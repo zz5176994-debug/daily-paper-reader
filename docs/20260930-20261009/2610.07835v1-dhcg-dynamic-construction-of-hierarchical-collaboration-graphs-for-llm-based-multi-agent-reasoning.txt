@@ -1,0 +1,528 @@
+Title: DHCG: Dynamic Construction of Hierarchical Collaboration Graphs for LLM-Based Multi-Agent Reasoning
+
+URL Source: https://arxiv.org/pdf/2610.07835v1
+
+Published Time: Wed, 07 Oct 2026 00:56:48 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# DHCG: Dynamic Construction of Hierarchical Collaboration Graphs for LLM-Based Multi-Agent Reasoning 
+
+## Jie Ren 1, Jiakang Yuan 1, Chenyu Huang 1, Hezeer Ma 1, Jiayuan Fan 1, Tao Chen 1, 2 ∗
+
+> 1
+
+College of Future Information Technology, Fudan University, Shanghai, China 
+
+> 2
+
+Shanghai Innovation Institute, Shanghai, China 
+
+Abstract 
+
+LLM-based multi-agent systems (MAS) have demonstrated strong capabilities in solving complex problems across diverse domains. Recently, the dynamic orchestration of agent systems has become an important research direction. However, existing methods suffer from limited composition, misaligned depen-dencies, and inflexible scale, restricting their ability to adapt to reasoning requirements during execution. To address these limitations, we reframe MAS design as a partially observable Markov decision process, in which both the composition and scale of the MAS are dynamically determined. We propose DHCG, a novel framework that coordinates three modules (Planner, Worker, and Generator) to progressively construct a dynamic hierarchical collaboration graph from scratch based on the query and evolving execution feedback. At each step, guided by feedback, the Planner generates a set of distinct and complementary roles tailored to the current reasoning needs and selectively routes relevant information to each role. It can also finalize the hierarchical collaboration graph early or pro-gressively expand it when additional reasoning is required. We further introduce action-aware preference optimization to train the Planner to make more effective decisions when con-structing hierarchical collaboration graphs. We systematically evaluate DHCG across code generation, mathematical rea-soning, and domain-specific reasoning benchmarks. DHCG achieves state-of-the-art average performance among the com-pared methods, improving over the single-agent baseline by 
+
+13.06 points and outperforming both static and dynamic MAS baselines by 2.77–8.02 points. Additional experiments further demonstrate its generalization across different Planner back-bones and unseen Worker models. 
+
+## 1 Introduction 
+
+Agents powered by large language models (LLMs) have demonstrated strong capabilities across a wide range of tasks, including code generation, decision making, and question an-swering (Yao et al. 2023; Shinn et al. 2023; Zhang et al. 2024; Schick et al. 2023). Despite these advances, a single agent may still face challenges when solving complex problems in-volving diverse expertise and verification from multiple per-spectives. Recent studies have increasingly explored LLM-based multi-agent systems (MAS) (Wu et al. 2024; Team et al. 2025; Li et al. 2023), where multiple agents collaborate 
+
+> ∗
+
+Corresponding Author RL-Based GNN-based            
+
+> Expand
+> Task/ Query
+> Learn / Prune Graph Edges and Nodes
+> Graph Template Task-specific Sparse Topology
+> ✗Fixed Role
+> ✗Weak Dependency (a) Graph-based MAS
+> Analysis Solver
+> Analysis Solver Critic
+> Initial Workflow Task-specific Workflow
+> (b) Workflow-based MAS
+> iterate
+> ✗Predefined Operator
+> ✗Rigid Execution
+> Create Feedback
+> Finalize  Answer
+> ✓Dynamic Role
+> ✓Dependency Routing
+> ✓Dynamic Scale
+> New Roles & Routing Initial Roles
+> Planner Expand or Finalize?
+> (c) Feedback-driven Graph Construction (Ours)
+> Task/ Query Task/ Query
+> Aggregator
+> Agent Planner
+> Iterate Feedback
+> Answer
+
+Figure 1: Comparison of three MAS construction paradigms: (a) graph-based MAS; (b) workflow-based MAS; and (c) our feedback-driven graph construction paradigm. through role specialization and communication. Early frame-works such as AutoGen (Wu et al. 2024), CAMEL (Li et al. 2023), and MetaGPT (Hong et al. 2024) largely rely on man-ually designed roles and interaction patterns, requiring con-siderable human effort and providing limited task-specific adaptability. These limitations have motivated growing ef-forts to automatically design and adapt multi-agent collabo-ration for different tasks. Existing approaches to automated MAS design can be broadly categorized into two paradigms: graph-based MAS and workflow-based MAS, as shown in Fig. 1(a) and Fig. 1(b). Graph-based MAS optimize inter-agent commu-nication topologies through graph optimization, pruning, or topology generation (Zhuge et al. 2024; Zhang et al. 2025b; Li et al. 2026). A representative example is G-Designer (Zhang et al. 2025c), which employs graph neural networks to generate a task-adaptive communication topol-ogy. In parallel, workflow-based MAS construct and optimize executable workflows by organizing components through arXiv:2610.07835v1 [cs.AI] 6 Oct 2026 search, evolution, or feedback-driven refinement (Hu, Lu, and Clune 2025; Hu et al. 2026; Wang et al. 2025a). For example, AFlow (Zhang et al. 2025d) uses Monte Carlo tree search to iteratively optimize workflows. Despite their task-adaptive designs, existing dynamic MAS methods still suffer from several limitations. 1) Limited Composition. Existing methods construct MAS from prede-fined agent nodes or workflow operators. Consequently, they may provide insufficient role coverage because the agent composition cannot adapt to task-specific requirements or emerging reasoning needs during execution. 2) Misaligned Dependencies. Communication dependencies are often de-termined by predefined templates or global optimization ob-jectives, rather than the actual information needs of down-stream agents. Agents may receive irrelevant or redundant context while missing critical intermediate evidence, which can weaken collaboration and propagate errors through the reasoning process. 3) Inflexible scale. Fixed interaction rounds and one-shot workflow generation determine the rea-soning scale before execution. This can cause the system to continue reasoning after sufficient evidence has been ob-tained, or stop before the remaining reasoning needs have been adequately addressed. Given the above limitations, a natural question arises: Can we dynamically design MAS at inference time, adapting their components, dependencies, and scale to the evolving reasoning state? 
+
+To seek the answer to the above question, we draw in-spiration from how real-world teams incrementally recruit experts according to evolving task needs, rather than assem-bling all members in advance. This motivates a feedback-driven dynamic collaboration graph construction paradigm for MAS design, as shown in Fig. 1(c). Unlike existing paradigms that determine agent components, communica-tion structures, and interaction scales before execution, our paradigm constructs the MAS progressively from scratch us-ing real-time execution feedback. At each construction step, unresolved reasoning needs are identified, and an appropri-ate number of complementary roles are generated, enabling task- and state-specific capability composition. Dependen-cies are then established according to each new role’s infor-mation requirements, aligning communication with down-stream needs. Finally, the construction process adaptively determines whether to expand the collaboration graph or finalize the reasoning process, allowing the system scale to evolve with the current reasoning state. Together, these mech-anisms help alleviate the limitations in role composition, de-pendency alignment, and system scalability, respectively. Building on this new paradigm, we propose DHCG :
+
+Dynamic construction of Hierarchical Collaboration Graphs for MAS. We formulate MAS construction as a partially ob-servable Markov decision process, in which a Planner makes sequential decisions based on the query and evolving execu-tion feedback. At each layer, the Planner generates comple-mentary roles for unresolved reasoning needs, assigns rel-evant predecessors through dependency-aware instructions, and decides whether to expand or finalize the graph. Conse-quently, both the collaboration structure and scale evolve with the reasoning process. Training such a sequential construc-tion policy online is expensive. We therefore devise an offline action-aware preference optimization strategy that reuses collected trajectory trees to construct multiple preference pairs from relatively few trajectories. It evaluates alternative Planner actions through downstream outcomes, constructs within- and cross-action preferences, and weights the pairs by their value gaps. This offline training strategy guides the Planner toward more effective role-generation, dependency-routing, and finalization decisions. Empirical results show that DHCG achieves the highest average performance, out-performing the strongest static, workflow-based, and graph-based MAS baselines by 4.76, 2.77, and 3.33 points, respec-tively. The framework also generalizes across Planner back-bones and transfers effectively to unseen Worker models. Additional analyses show that DHCG adapts its collabora-tion structure and scale to task difficulty. Our main contributions are summarized as follows: 
+
+• We introduce an inference-time dynamic graph construc-tion paradigm for MAS design, where collaboration struc-tures are progressively constructed according to the query and real-time execution feedback, rather than being fully specified before execution. 
+
+• We propose DHCG , a Planner-driven framework that for-mulates MAS construction as a POMDP and adaptively determines roles, dependencies, and graph scale. We fur-ther introduce offline action-aware preference optimiza-tion, which derives within- and cross-action preferences from downstream trajectory quality and action-level exe-cution cost. 
+
+• We evaluate DHCG on seven benchmarks spanning math-ematical reasoning, code generation, and general knowl-edge. The results validate DHCG’s effectiveness and its generalization across Planner backbones and unseen Worker models. Additional analyses show that DHCG adapts its collaboration structure and scale to task diffi-culty. 
+
+## 2 Related Work 
+
+Static and Dynamic MAS Construction. Early MAS frameworks organize collaboration through predefined roles and protocols. CAMEL (Li et al. 2023) and AutoGen (Wu et al. 2024) support structured agent interactions, while MetaGPT (Hong et al. 2024) coordinates specialized agents through standardized operating procedures. Such static de-signs rely heavily on manual specification and offer limited adaptability across tasks. Recent dynamic MAS methods seek to replace manually specified collaboration structures with automatically optimized designs. At the topology level, GPTSwarm (Zhuge et al. 2024) and G-Designer (Zhang et al. 2025c) learn task-adaptive communication structures, while AgentPrune (Zhang et al. 2025b) and AgentDropout (Wang et al. 2025d) prune redundant agents or edges. At the workflow level, ADAS (Hu, Lu, and Clune 2025) and AFlow (Zhang et al. 2025d) search for executable proce-dures, whereas MASS (Zhou et al. 2026) and MaAS (Zhang et al. 2025a) optimize broader agent configurations and or-chestration. These methods reduce manual design and im-prove task-specific coordination, but predefined components or search spaces still limit adaptation during execution. Policy Optimization for MAS Construction. Recent studies increasingly formulate MAS construction as a learn-able decision-making process. One line of work optimizes policies for generating complete workflows or global collabo-ration structures. ScoreFlow (Wang et al. 2025c) learns work-flow generation from execution-score-derived preferences, while MAS 2 (Wang et al. 2025a) combines collaborative tree search with value-guided optimization to train multiple Meta-Agents. AgentConductor (Wang et al. 2026) further introduces difficulty-aware rewards for optimizing layered communication topologies. Another line of work focuses on sequential construction guided by intermediate feedback. DyFlow (Wang et al. 2025b) trains a Designer through distilled self-play to adapt its planning decisions, whereas Workflow-R1 (Kong et al. 2026) and FlowSteer (Zhang et al. 2026) optimize multi-turn workflow construction through sub-sequence policy updates and atomic workflow editing, respectively. Collectively, these studies demonstrate the ef-fectiveness of policy optimization for automated MAS con-struction. However, the former provides only coarse super-vision at the workflow or structure level, while the latter fo-cuses on sequential refinement and offers limited modeling of evolving inter-agent dependencies. 
+
+## 3 Methodology 
+
+3.1 Problem Formulation 
+
+Hierarchical Collaboration Graph. We model multi-agent collaboration as a hierarchical directed acyclic graph 
+
+G = ( V, E ). Each node vi ∈ V denotes an agent execu-tion, and each edge (vj , v i) ∈ E routes the output of vj to 
+
+vi, thereby defining an information dependency. Agent vi is specified by a language model policy πθi and an instruction prompt pi. Given the original task q, its routed context and output are defined as 
+
+xi = {yj | (vj , v i) ∈ E}, yi ∼ πθi (· | q, p i, x i), (1) where xi collects the outputs yj routed from the predecessors of vi, and yi denotes the output generated by vi. For a node without incoming edges, xi = ∅.To distinguish sequential dependencies across reasoning stages from parallel collaboration within the same stage, we partition G into layers: 
+
+V =
+
+> L
+
+G
+
+> l=0
+
+Vl, E ⊆
+
+> L
+
+[
+
+> l=1
+
+(Vl−1 × Vl) , (2) where Vl denotes nodes in layer l, L is the maximum layer index, and E denotes inter-layer edges. This constraint ex-cludes intra-layer dependencies, allowing agents in the same layer to execute in parallel. 
+
+Dynamic Graph Construction as a POMDP. Rather than determining all agent nodes and dependencies before exe-cution, we formulate collaboration graph construction as a sequential decision process in which a planner adapts the graph according to intermediate agent outputs. We model this process as a partially observable Markov decision process (POMDP): 
+
+M = ⟨S , A, T, R, Ω, O, γ ⟩, (3) where S is the latent state space of graph construction, A is the Planner action space, T is the transition function, Ω is the observation space, and O is the observation function. The reward function R reflects downstream task performance and execution cost, while γ is the discount factor. At decision step t, the latent state st ∈ S summarizes the graph-construction history, accumulated agent outputs, and unobserved reasoning conditions. The Planner observes the query and the role-output pairs from the most recently executed layer: 
+
+ot = O(st) = 
+
+(q, ∅), t = 0 ,
+
+(q, Zt−1), t ≥ 1, ot ∈ Ω, (4) where Zt−1 = {(ρi, y i) | vi ∈ Vt−1}, with ρi and yi denot-ing the role specification and output of agent node vi.Conditioned on ot, the planner selects an action and tran-sitions to the next state: 
+
+at ∼ πθ (· | ot), st+1 ∼ T (· | st, a t), (5) where πθ is the planner policy, at is the selected construction action, and T describes the transition induced by the action and subsequent agent execution. 
+
+3.2 Dynamic Hierarchical Collaboration Graph 
+
+Overview. Building on the POMDP formulation, we pro-pose DHCG , a framework that dynamically constructs hi-erarchical collaboration graphs for MAS. As shown in Fig-ure 2(a), DHCG consists of a Planner, Workers, and a Gen-erator. Based on the query and evolving execution feedback, the Planner incrementally generates task-specific roles, spec-ifies inter-layer dependencies, and decides whether to expand or finalize the graph. Workers execute the generated roles to produce intermediate outputs, while the Generator synthe-sizes the final answer from the outputs selected by the Plan-ner. This design enables parallel intra-layer collaboration and hierarchical inter-layer information flow. 
+
+Initial Layer Construction. The initial layer provides a set of independent and complementary perspectives for ad-dressing the input query. Since communication dependen-cies may propagate and amplify errors introduced at early reasoning stages (Shen et al. 2025), DHCG avoids prema-ture information coupling by allowing the initial agents to reason independently. Meanwhile, the required perspectives can vary across queries. Rather than relying on fixed agent configurations or constructing structures solely from learned query representations (e.g., embeddings) (Su et al. 2026), DHCG employs a Planner to analyze the task-specific rea-soning requirements of each query. Based on this analysis, the Planner determines both the number of initial agents and the complementary roles. Formally, given the input query q, the Planner generates the initial layer as 
+
+V0 = {vi = ( ρi, p i)}n0 
+
+> i=1
+
+∼ πinit  
+
+> θ
+
+(· | q), (6) where n0 denotes the number of agents, while ρi and pi
+
+denote the role specification and instruction prompt of agent 
+
+vi, respectively. The corresponding Workers are instantiated ✓ Correct    
+
+> ✓Correct
+> ✗Wrong
+> ✗Wrong
+
+×   
+
+> ✓Better Roles
+> ✓Better Routing
+> ✓Better Scale
+
+(a) DHCG Inference 
+
+Query    
+
+> Planner Planner
+> Role: ... Inst: ... Role: ... Inst: ...
+> pruned Worker
+> Instantiate Initial Expand or Finalize?
+> Expand Finalize Selected Sources ：
+> Role1, Role2 ...
+> Role: ... Source: ... Inst: ... Role: ... Source: ... Inst: ...
+> Instantiate New Roles with Cross-layer Routing
+> Initial Layer Roles Execution Feedback
+> Generator Answer
+
+×pruned 
+
+(b) Planner Training 
+
+Query   
+
+> Initialize Expand Finalize
+> INIT vs. INIT EXPAND vs. EXPAND EXPAND vs. FINALIZE FINALIZE vs. FINALIZE
+> Value-gap-weighted DPO
+> Optimized Planner
+> Preference Optimization
+> Worker
+> Role: ... Inst: ...
+> Feedback
+> Terminal Value Backward Value
+> Action-aware Pair Construction
+> Value estimation Trajectory Tree
+
+Figure 2: Overview of DHCG. (a) The Planner dynamically initializes, expands, and finalizes the hierarchical collaboration graph during inference. (b) The Planner is trained from tree-structured trajectories via action-aware preference optimization. from these nodes and execute their assigned roles in parallel. Let y(0)  
+
+> i
+
+denote the output produced by the Worker associated with node vi in the initial layer. The resulting role-output pairs are collected as 
+
+Z0 = {(ρi, y (0)  
+
+> i
+
+)}n0
+
+> i=1
+
+, (7) which are passed to the Planner for subsequent planning steps. 
+
+Dynamic Planning and Graph Construction. After ex-ecuting the initial layer, DHCG continues graph construc-tion based on the latest execution feedback. Fixed interac-tion rounds or execution stages may lead to unnecessary computation for simple queries or insufficient reasoning for complex ones (Wang et al. 2025d). Moreover, dense or pre-defined communication structures may introduce redundant information or fail to provide the evidence required by down-stream agents (Qian et al. 2025). Accordingly, DHCG adap-tively determines whether to finalize or expand the graph and, when expanding, establishes sparse inter-layer dependencies by routing relevant outputs from the preceding layer to each newly generated role. Formally, after layer Vt−1 is executed, the Planner observes the query q and the latest role-output pairs Zt−1, and samples a dynamic planning action: 
+
+at ∼ πdyn  
+
+> θ
+
+(· | q, Zt−1), at ∈ A t, (8) where the action space is defined as 
+
+At =
+
+ FINALIZE( Ct−1), Ct−1 ⊆ Vt−1,
+
+EXPAND( Vt, E t), Et ⊆ Vt−1 × Vt. (9) If the Planner selects FINALIZE( Ct−1), the construction process is terminated and the selected source agents are used for final answer synthesis. Otherwise, if the Planner selects 
+
+EXPAND( Vt, E t), it generates a new layer of agents: 
+
+Vt =
+
+n
+
+v(t) 
+
+> i
+
+=  ρ(t) 
+
+> i
+
+, p (t)
+
+> i
+
+ont
+
+> i=1
+
+, (10) where nt denotes the number of newly generated agents in layer t. For each new agent v(t) 
+
+> i
+
+, the Planner selects only the necessary source agents from the previous layer, denoted by 
+
+S(t) 
+
+> i
+
+⊆ Vt−1. Agents whose outputs are irrelevant, redundant, or unnecessary for v(t) 
+
+> i
+
+are not connected. The corresponding sparse routing edges are then constructed as 
+
+Et = {(vj , v (t) 
+
+> i
+
+) | v(t) 
+
+> i
+
+∈ Vt, v j ∈ S (t) 
+
+> i
+
+}. (11) The instruction prompt p(t) 
+
+> i
+
+specifies both the new agent’s role and how it should process the routed source outputs, such as by verifying, refining, comparing, or synthesizing them. The corresponding Workers are then instantiated to execute these roles, producing role–output pairs. These role–output pairs are returned to the Planner for the next decision step, en-abling DHCG to progressively adapt the collaboration graph according to the evolving intermediate results. 
+
+Answer Synthesis. DHCG employs a dedicated Generator to produce a stable and well-formatted final response. Upon 
+
+FINALIZE( Ct−1), only the selected role-output pairs in 
+
+Ct−1 are provided to the Generator; if the maximum layer L is reached, all outputs in VL are used instead. This design filters redundant context and enables focused answer synthesis. 
+
+3.3 Planner Training 
+
+The Planner jointly determines construction actions, agent roles, and routing dependencies, which directly affect both the collaboration graph and final answer quality. Inspired by Algorithm 1: DHCG Inference 
+
+Require: Query q; maximum layer L; width budget W
+
+Ensure: Final answer ˆy and collaboration graph G 
+
+> 1:
+
+Step 1: Initial Layer Construction  
+
+> 2:
+
+V0 ← Planner init (q), |V0| ≤ W, G ← (V0, ∅) 
+
+> 3:
+
+Z0 ← Workers( q, V 0), C ← V0 
+
+> 4:
+
+Step 2: Dynamic Graph Construction  
+
+> 5:
+
+for t = 1 to L do  
+
+> 6:
+
+at ← Planner dyn (q, Zt−1) 
+
+> 7:
+
+if at = FINALIZE( Ct−1), Ct−1 ⊆ Vt−1 then  
+
+> 8:
+
+C ← Ct−1; break  
+
+> 9:
+
+end if  
+
+> 10:
+
+(Vt, E t) ← at, |Vt| ≤ W, G ← G ∪ (Vt, E t) 
+
+> 11:
+
+Zt ← Workers( q, V t, E t, Zt−1), C ← Vt 
+
+> 12:
+
+end for  
+
+> 13:
+
+Step 3: Answer Synthesis  
+
+> 14:
+
+ˆy ← Generator( q, Outputs( C))  
+
+> 15:
+
+return (ˆ y, G )
+
+tree-based preference construction (Wang et al. 2025a), we propose Action-aware Preference Optimization to train the Planner from the downstream outcomes of alternative con-struction decisions. As shown in Figure 2(b), we first collect tree-structured trajectories by recursively sampling and exe-cuting alternative Planner actions. We then construct action-aware preference pairs and optimize the Planner according to their relative advantages. 
+
+Action-aware Preference Construction. Given a plan-ning observation ot, we sample multiple candidate Planner outputs and recursively execute them to construct a tree of alternative graph-construction trajectories. Each node nt rep-resents a candidate Planner action at construction step t.We recursively estimate the value of each candidate action as 
+
+Vt =
+
+(r − λ · CT , t = T, γ · ¯Vt+1 − λ · Ct, t < T, (12) where r ∈ [0 , 1] denotes the final-answer score, Ct is the token cost incurred by the current Planner action, λ controls the trade-off between accuracy and efficiency, and γ ∈ (0 , 1] 
+
+is the discount factor. Here, ¯Vt+1 denotes the average recur-sively estimated value of the directly sampled child actions. We construct preferences based on the action types being compared. Cross-action pairs, primarily Expand–Finalize, use task-only values to avoid favoring Finalize due to lower cost, whereas same-action pairs use cost-aware values to account for execution efficiency. We retain only pairs with sufficiently large value gaps and discard same-action pairs when both candidates have zero downstream task scores. 
+
+Action-aware Preference Optimization. Each retained preference pair is represented as (oi, a + 
+
+> i
+
+, a − 
+
+> i
+
+, w i), where wi
+
+is obtained by clipping the corresponding value gap. We use a smaller clipping threshold for same-action pairs, which are more frequent and partially reflect efficiency differences. The resulting weights are normalized by their mean over the training set, yielding ewi.Let πref denote the frozen reference Planner. For the i-th preference pair, we define the relative log-likelihood differ-ence as 
+
+∆ρ(i) 
+
+> θ
+
+= log πθ (a+ 
+
+> i
+
+| oi)
+
+πref (a+ 
+
+> i
+
+| oi) − log πθ (a− 
+
+> i
+
+| oi)
+
+πref (a− 
+
+> i
+
+| oi) . (13) The Planner is optimized using the weighted DPO for action-aware preference optimization: 
+
+LAPO = − 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+ewi log σ
+
+
+
+β∆ρ(i)
+
+> θ
+
+
+
+, (14) where σ is the sigmoid function and β controls the strength of preference separation relative to the reference Planner. Cross-action preferences teach the Planner whether further graph expansion is beneficial or the current graph should be finalized, whereas same-action preferences help it distinguish among alternative decisions of the same type by considering both downstream task performance and execution efficiency. 
+
+## 4 Experiments 
+
+4.1 Experiment Setup 
+
+Benchmarks. To comprehensively evaluate DHCG, we conduct experiments on seven benchmarks spanning three reasoning domains. For code reasoning, we use Hu-manEval (Chen et al. 2021) and MBPP (Austin et al. 2021). For mathematical reasoning, we adopt MATH-500 (Light-man et al. 2024) to assess general mathematical problem solv-ing, GSM8K (Cobbe et al. 2021) to evaluate multi-step arith-metic reasoning, and AIME 2025 (Mathematical Associa-tion of America 2025) to probe performance on challenging competition-level problems. For knowledge-intensive rea-soning, we use GPQA Diamond (Rein et al. 2024) to evaluate graduate-level scientific reasoning and MMLU-Pro (Wang et al. 2024) to assess complex discipline reasoning. 
+
+Baselines. We compare DHCG with representative base-lines from four categories. Single-model prompting includes IO (direct LLM invocation), Chain-of-Thought (Wei et al. 2022), and Self-Consistency CoT (5 answers) (Wang et al. 2023). Static MAS include LLM-Debate (Du et al. 2024) and MacNet (Qian et al. 2025). Graph-based MAS include G-Designer (Zhang et al. 2025c) and ARG-Designer (Li et al. 2026). Workflow-based MAS include AFlow (Zhang et al. 2025d) and MaAS (Zhang et al. 2025a). For a fair compar-ison, all agent types in every method use the same LLM backbone and identical inference configurations. Details of benchmark curation, data splits, baseline configurations, and evaluation protocols are provided in Appendix A. 
+
+Implementation Details. Our Planner is fine-tuned from Qwen3-8B (Yang et al. 2025), while both the Workers and Generator use the original Qwen3-8B model. All experi-ments are conducted over three independent runs, and we report the average performance. For Planner training, we sample the training data from DeepMath-103K (He et al. 2025) and KodCode (Xu et al. 2025). Details of the training-data composition, selection and preprocessing procedures, preference-data construction, and optimization configura-tions are provided in Appendix B. Method MBPP HumanEval MATH-500 AIME GSM8K GPQA MMLU-Pro Average 
+
+IO 63.73 82.70 81.20 17.78 88.09 37.54 51.57 60.37 CoT 70.48 ↑ 6.75 85.75 ↑ 3.05 84.60 ↑ 3.40 18.89 ↑ 1.11 92.58 ↑ 4.49 39.90 ↑ 2.36 54.29 ↑ 2.72 63.78 ↑ 3.41 
+
+CoT-SC 71.36 ↑ 7.63 86.01 ↑ 3.31 88.47 ↑ 7.27 25.56 ↑ 7.78 93.90 ↑ 5.81 52.02 ↑ 14 .48 64.95 ↑ 13 .38 68.90 ↑ 8.52 
+
+LLM-Debate 71.07 ↑ 7.34 88.04 ↑ 5.34 88.60 ↑ 7.40 23.33 ↑ 5.55 94.19 ↑ 6.10 52.53 ↑ 14 .99 62.95 ↑ 11 .38 68.67 ↑ 8.30 
+
+MacNet 68.33 ↑ 4.60 84.48 ↑ 1.78 86.00 ↑ 4.80 26.67 ↑ 8.89 91.53 ↑ 3.44 49.66 ↑ 12 .12 63.57 ↑ 12 .00 67.18 ↑ 6.80 
+
+G-Designer 78.59 ↑ 14 .86 85.49 ↑ 2.79 87.80 ↑ 6.60 25.56 ↑ 7.78 93.37 ↑ 5.28 53.54 ↑ 16 .00 66.38 ↑ 14 .81 70.10 ↑ 9.73 
+
+ARG-Designer 72.63 ↑ 8.90 86.26 ↑ 3.56 83.60 ↑ 2.40 20.00 ↑ 2.22 91.34 ↑ 3.25 53.37 ↑ 15 .83 64.81 ↑ 13 .24 67.43 ↑ 7.06 
+
+AFlow 72.33 ↑ 8.60 84.48 ↑ 1.78 87.07 ↑ 5.87 21.11 ↑ 3.33 92.86 ↑ 4.77 43.10 ↑ 5.56 56.95 ↑ 5.38 65.41 ↑ 5.04 
+
+MaAS 82.01 ↑ 18 .28 89.82 ↑ 7.12 87.33 ↑ 6.13 28.89 ↑ 11 .11 92.89 ↑ 4.80 49.83 ↑ 12 .29 63.86 ↑ 12 .29 70.66 ↑ 10 .29 
+
+DHCG (Ours) 84.36 ↑ 20 .63 93.13 ↑ 10 .43 88.73 ↑ 7.53 30.00 ↑ 12 .22 93.93 ↑ 5.84 55.89 ↑ 18 .35 68.00 ↑ 16 .43 73.43 ↑ 13 .06 
+
+Table 1: Performance comparison (%) on seven benchmarks. 
+
+4.2 Experimental Results 
+
+Overall Performance. Table 1 reports the results across seven benchmarks. DHCG achieves the highest average accuracy of 73.43%, outperforming the strongest static MAS method, LLM-Debate, by 4.76 points, the strongest graph-based method, G-Designer, by 3.33 points, and the strongest workflow-based method, MaAS, by 2.77 points. Among the baselines, MaAS performs particularly well on code-generation tasks, while G-Designer is strong on knowledge-intensive reasoning. DHCG achieves strong per-formance across code generation, mathematical reasoning, and knowledge-intensive reasoning, demonstrating the ef-fectiveness of dynamically constructing collaboration graphs according to evolving reasoning states. Notably, although the Planner is trained only on mathematical and code-generation data, DHCG remains highly competitive on GPQA and MMLU-Pro, indicating effective cross-domain generaliza-tion. This generalization is supported by DHCG’s dynamic graph construction, which adapts roles and dependencies to evolving reasoning needs. 
+
+Empirical Upper Bound. Table 2 reports the Pass@5 re-sults of DHCG and CoT under repeated sampling. DHCG consistently outperforms CoT across all three benchmarks, indicating a higher probability of obtaining a correct solu-tion over multiple runs. This advantage stems from the di-verse collaboration graphs and reasoning paths constructed across different runs. In particular, DHCG achieves a Pass@5 of 98.47% on HumanEval, demonstrating a strong empiri-cal upper bound for code generation. The improvements on MATH-500 and MMLU-Pro further show that this advan-tage extends to mathematical reasoning and multi-domain knowledge reasoning. 
+
+4.3 Generalization Analysis 
+
+Cross-Planner Generalization. To assess the robustness of DHCG to different Planner backbones, we instantiate the framework with three distinct models: GPT-5.4-mini (Singh et al. 2025), DeepSeek-V4-Pro (DeepSeek-AI 2026), and our trained Qwen3-8B Planner. As shown in Table 3, all three variants achieve higher average accuracy than the strongest 
+
+Method HumanEval MATH-500 MMLU-Pro Avg. 
+
+CoT 92.37 93.40 74.68 86.82 
+
+DHCG 98.47 95.20 81.71 91.79 
+
+Table 2: Pass@5 performance (%) on three representative benchmarks. 
+
+Method MBPP AIME MMLU-Pro Avg. 
+
+MaAS 82.01 28.89 63.86 58.25 DHCG (GPT-5.4-mini) 84.16 28.89 69.24 60.76 DHCG (DS-V4-Pro) 83.97 28.89 69.48 60.78 DHCG (Qwen3-8B †) 84.36 30.00 68.00 60.79 
+
+Table 3: Cross-Planner generalization of DHCG and com-parison with baselines (%) on three benchmarks. † denotes our Planner trained from the Qwen3-8B backbone. baseline, MaAS, indicating that DHCG is not tied to a spe-cific Planner model and generalizes well across different Planner families. Moreover, although our Planner is trained from the smaller 8B backbone, it achieves an average score comparable to those achieved by larger Planner models. These results suggest that our training strategy can effectively elicit the planning capability of a compact model, enabling competitive performance without relying on large-scale Plan-ner models. 
+
+Cross-Worker Generalization. We further investigate whether DHCG is sensitive to the choice of Worker model. To this end, we keep the trained Planner fixed and pair it with DeepSeek-V4-Pro and GPT-5.4-mini as Workers, re-spectively. As shown in Figure 3, DHCG consistently outper-forms the corresponding single-model CoT baseline across the evaluated benchmarks, although the magnitude of im-provement varies by task. These results demonstrate that the learned graph-construction policy can effectively general-ize across different Worker backbones, improving reasoning quality while maintaining robust and consistent performance. 0 20 40 60 80 100      
+
+> DeepSeek-V4-Pro
+> DHCG CoT
+> +6.66 +5.05 +1.8 +1.43 +1.77 +13.19
+> 020 40 60 80 100
+> GPT-5.4-mini
+> DHCG CoT
+> +6.66 +2.53 +0.6 +1.86 +3.82 +14.96
+> AIME GPQA MATH 500 MMLU Pro Human Eval MBPP
+
+Figure 3: Cross-worker generalization of DHCG against the corresponding single-model CoT baselines. 
+
+Method MMLU-Pro GSM8K HumanEval Avg. 
+
+Planner Training 
+
+Base Planner 67.14 93.55 91.35 84.01 SFT 66.29 93.81 88.30 82.80 Vanilla DPO 66.71 93.40 92.37 84.16 
+
+Graph Construction 
+
+w/o Dyn. Routing 67.00 93.71 91.86 84.19 w/o Dyn. Scale 65.62 92.76 88.80 82.39 w/o Dyn. Role 66.19 93.78 89.31 83.09 
+
+DHCG 68.00 93.93 93.13 85.02 
+
+Table 4: Ablation results (%) on three representative bench-marks. 
+
+4.4 Ablation Study 
+
+Planner Training. We compare the base Planner, SFT, vanilla DPO, and our action-aware preference optimization. As shown in Table 4, SFT reduces the average performance by 1.21, including a 3.05 drop on HumanEval. Since SFT optimizes token-level imitation, the Planner may overfit to specific planning patterns, reducing its ability to adapt its decisions to evolving execution feedback. This observation also supports our choice to directly optimize the base Plan-ner through reinforcement learning, rather than adopting the conventional SFT-then-RL training paradigm. Vanilla DPO uses the same value-based preference pairs as our method but assigns a uniform weight to every pair. Its slight im-provement over the base Planner confirms the effectiveness of our preference construction. Our complete method further weights each pair according to its value gap and achieves the best average score, demonstrating the additional benefit of distinguishing preference strength during optimization. 
+
+Graph Construction. We ablate dynamic routing, graph-scale control, and dynamic role generation by replacing them with fixed alternatives. Removing any of these dynamic com-ponents leads to performance degradation to varying degrees. Among them, dynamic graph-scale control has the largest overall impact, with its removal reducing average perfor-mance by 2.63 and HumanEval performance by 4.33. This highlights the necessity of adapting the collaboration scale to evolving reasoning requirements rather than determining it in advance. Together, these results show that dynamic scale, role generation, and routing provide complementary benefits for constructing effective collaboration graphs. 83 84 85 86 87 88 89 0 10 20 Accuracy (%) Token consumption (10^6)     
+
+> (a) Token cost of MATH-500
+> 56 59 62 65 68 010 20 30 40 Accuracy (%) Token consumption (10^6)
+> (b) Token cost of MMLU-Pro
+> LLM-Debate MacNet AFlow G-Designer MaAS ARG-Designer DHCG
+
+Figure 4: Performance and total token cost comparison. 
+
+4.5 Framework Analysis 
+
+Cost Analysis. DHCG dynamically adapts the collabora-tion graph to task-specific reasoning requirements, allocating different amounts of computational resources across queries. As shown in Figure 4, fixed graph templates and static MAS methods can introduce substantial redundant commu-nication. This advantage is particularly evident on MMLU-Pro, where DHCG outperforms G-Designer with over 50% fewer tokens and achieves higher accuracy than MacNet while reducing token consumption by 32.16%. A similar accuracy–efficiency advantage is observed on MATH-500, where DHCG surpasses MaAS with comparable token usage, whereas AFlow consumes fewer tokens but achieves lower accuracy. Overall, these results demonstrate that dynamic graph construction improves the balance between reasoning performance and computational cost. 
+
+Difficulty-Aware Graph Construction. We further exam-ine whether DHCG adapts its collaboration graph to problem difficulty. Both the MATH-500 trend analysis and qualitative case study show that DHCG constructs larger graphs with more Workers for harder problems, while maintaining com-pact structures for easier ones. These results demonstrate that DHCG dynamically allocates computational resources according to reasoning difficulty. Additional quantitative and qualitative analyses are provided in Appendix C. 
+
+## 5 Conclusion 
+
+In this work, we proposed DHCG, a novel framework for the dynamic construction of hierarchical collaboration graphs in MAS. We formulated MAS construction as a partially observable Markov decision process and introduced a new paradigm in which the collaboration graph is progressively constructed during execution. DHCG employs a Planner to generate task-specific roles, determine dependency routing, and control graph scale through sequential expansion and finalization decisions based on evolving execution feedback, while optimizing the planning policy through action-aware preference optimization. Extensive experiments demonstrate DHCG’s effectiveness and generalization across Planner backbones and unseen Worker models, with our compact Planner performing comparably to larger ones. 
+
+## Acknowledgement 
+
+This work is supported by the National Key R&D Program of China (No. 2026YFE0101200), and the National Natural Science Foundation of China (No. 62671175). The com-putations in this research were performed using the CFFF platform of Fudan University. 
+
+## References 
+
+Austin, J.; Odena, A.; Nye, M.; Bosma, M.; Michalewski, H.; Dohan, D.; Jiang, E.; Cai, C.; Terry, M.; Le, Q. V.; and Sutton, C. 2021. Program Synthesis with Large Language Models. arXiv preprint arXiv:2108.07732 .Chen, M.; Tworek, J.; Jun, H.; et al. 2021. Evaluating Large Language Models Trained on Code. arXiv preprint arXiv:2107.03374 .Cobbe, K.; Kosaraju, V.; Bavarian, M.; Chen, M.; Jun, H.; Kaiser, L.; Plappert, M.; Tworek, J.; Hilton, J.; Nakano, R.; Hesse, C.; and Schulman, J. 2021. Training Verifiers to Solve Math Word Problems. arXiv preprint arXiv:2110.14168 .DeepSeek-AI. 2026. DeepSeek-V4: Towards Highly Effi-cient Million-Token Context Intelligence. arXiv preprint arXiv:2606.19348 .Du, Y.; Li, S.; Torralba, A.; Tenenbaum, J. B.; and Mordatch, I. 2024. Improving Factuality and Reasoning in Language Models through Multiagent Debate. In Proceedings of the 41st International Conference on Machine Learning , volume 235 of Proceedings of Machine Learning Research , 11733– 11763. PMLR. He, Z.; Liang, T.; Xu, J.; Liu, Q.; Chen, X.; Wang, Y.; Song, L.; Yu, D.; Liang, Z.; Wang, W.; Zhang, Z.; Wang, R.; Tu, Z.; Mi, H.; and Yu, D. 2025. DeepMath-103K: A Large-Scale, Challenging, Decontaminated, and Verifiable Math-ematical Dataset for Advancing Reasoning. arXiv preprint arXiv:2504.11456 .Hong, S.; Zhuge, M.; Chen, J.; Zheng, X.; Cheng, Y.; Zhang, C.; Wang, J.; Wang, Z.; Yau, S. K. S.; Lin, Z.; Zhou, L.; Ran, C.; Xiao, L.; Wu, C.; and Schmidhuber, J. 2024. MetaGPT: Meta Programming for a Multi-Agent Collaborative Frame-work. In The Twelfth International Conference on Learning Representations .Hu, S.; Lu, C.; and Clune, J. 2025. Automated Design of Agentic Systems. In The Thirteenth International Conference on Learning Representations .Hu, Y.; Zhang, Y.; Trager, M.; Zhang, Y.; Yang, S.; Xia, W.; and Soatto, S. 2026. EvoMAS: Evolutionary Generation of Multi-Agent Systems. arXiv preprint arXiv:2602.06511 .Kong, M.; Qu, Z.; Zhou, Z.; Liang, P.; Li, X.; Shang, Z.; Hong, Z.; Huang, K.; Wang, Z.; and Dai, Z. 2026. Workflow-R1: Group Sub-Sequence Policy Optimization for Multi-Turn Workflow Construction. arXiv preprint arXiv:2602.01202 .Li, G.; Hammoud, H. A. A. K.; Itani, H.; Khizbullin, D.; and Ghanem, B. 2023. CAMEL: Communicative Agents for “Mind” Exploration of Large Language Model Society. In Advances in Neural Information Processing Systems , vol-ume 36. Li, S.; Liu, Y.; Wen, Q.; Zhang, C.; and Pan, S. 2026. As-semble Your Crew: Automatic Multi-Agent Communication Topology Design via Autoregressive Graph Generation. Pro-ceedings of the AAAI Conference on Artificial Intelligence ,40(28): 23142–23150. Lightman, H.; Kosaraju, V.; Burda, Y.; Edwards, H.; Baker, B.; Lee, T.; Leike, J.; Schulman, J.; Sutskever, I.; and Cobbe, K. 2024. Let’s Verify Step by Step. In The Twelfth Interna-tional Conference on Learning Representations .Mathematical Association of America. 2025. American In-vitational Mathematics Examination (AIME). MAA Invita-tional Competitions. Qian, C.; Xie, Z.; Wang, Y.; Liu, W.; Zhu, K.; Xia, H.; Dang, Y.; Du, Z.; Chen, W.; Yang, C.; Liu, Z.; and Sun, M. 2025. Scaling Large Language Model-Based Multi-Agent Collaboration. In The Thirteenth International Conference on Learning Representations .Rein, D.; Hou, B. L.; Stickland, A. C.; Petty, J.; Pang, R. Y.; Dirani, J.; Michael, J.; and Bowman, S. R. 2024. GPQA: A Graduate-Level Google-Proof Q&A Benchmark. In Pro-ceedings of the First Conference on Language Modeling .Schick, T.; Dwivedi-Yu, J.; Dessì, R.; Raileanu, R.; Lomeli, M.; Hambro, E.; Zettlemoyer, L.; Cancedda, N.; and Scialom, T. 2023. Toolformer: Language Models Can Teach Them-selves to Use Tools. In Advances in Neural Information Processing Systems , volume 36. Shen, X.; Liu, Y.; Dai, Y.; Wang, Y.; Miao, R.; Tan, Y.; Pan, S.; and Wang, X. 2025. Understanding the Informa-tion Propagation Effects of Communication Topologies in LLM-Based Multi-Agent Systems. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , 12347–12361. Suzhou, China: Association for Computational Linguistics. Shinn, N.; Cassano, F.; Gopinath, A.; Narasimhan, K.; and Yao, S. 2023. Reflexion: Language Agents with Verbal Re-inforcement Learning. In Advances in Neural Information Processing Systems , volume 36. Singh, A.; Fry, A.; Perelman, A.; Tart, A.; Ganesh, A.; El-Kishky, A.; McLaughlin, A.; Low, A.; Ostrow, A.; Anan-thram, A.; et al. 2025. Openai gpt-5 system card. arXiv preprint arXiv:2601.03267 .Su, J.; Lan, Q.; Xia, Y.; Sun, L.; Tian, W.; Shi, T.; and He, L. 2026. Difficulty-Aware Agentic Orchestration for Query-Specific Multi-Agent Workflows. In Proceedings of the ACM Web Conference 2026 , 2060–2070. ACM. Team, I.; Zhang, B.; Feng, S.; Yan, X.; Yuan, J.; Ma, R.; Hu, Y.; Yu, Z.; He, X.; Huang, S.; et al. 2025. InternA-gent: When Agent Becomes the Scientist–Building Closed-Loop System from Hypothesis to Verification. arXiv preprint arXiv:2505.16938 .Wang, K.; Zhang, G.; Ye, M.; Deng, X.; Wang, D.; Hu, X.; Guo, J.; Liu, Y.; and Guo, Y. 2025a. MAS 2: Self-Generative, Self-Configuring, Self-Rectifying Multi-Agent Systems. arXiv preprint arXiv:2509.24323 .Wang, S.; Lu, R.; Yang, Z.; Wang, Y.; Zhang, Y.; Xu, L.; Xu, Q.; Yin, G.; Chen, C.; and Guan, X. 2026. AgentConduc-tor: Topology Evolution for Multi-Agent Competition-Level Code Generation. arXiv preprint arXiv:2602.17100 .Wang, X.; Wei, J.; Schuurmans, D.; Le, Q. V.; Chi, E. H.; Narang, S.; Chowdhery, A.; and Zhou, D. 2023. Self-Consistency Improves Chain of Thought Reasoning in Lan-guage Models. In The Eleventh International Conference on Learning Representations .Wang, Y.; Ma, X.; Zhang, G.; Ni, Y.; Chandra, A.; Guo, S.; Ren, W.; Arulraj, A.; He, X.; Jiang, Z.; Li, T.; Ku, M.; Wang, K.; Zhuang, A.; Fan, R.; Yue, X.; and Chen, W. 2024. MMLU-Pro: A More Robust and Challenging Multi-Task Language Understanding Benchmark. In Advances in Neural Information Processing Systems , volume 37. Wang, Y.; Xu, Z.; Huang, Y.; Wang, X.; Song, Z.; Gao, L.; Wang, C.; Tang, X.; Zhao, Y.; Cohan, A.; Zhang, X.; and Chen, X. 2025b. DyFlow: Dynamic Workflow Framework for Agentic Reasoning. arXiv preprint arXiv:2509.26062 .Wang, Y.; Yang, L.; Li, G.; Wang, M.; and Aragam, B. 2025c. ScoreFlow: Mastering LLM Agent Workflows via Score-based Preference Optimization. arXiv preprint arXiv:2502.04306 .Wang, Z.; Wang, Y.; Liu, X.; Ding, L.; Zhang, M.; Liu, J.; and Zhang, M. 2025d. AgentDropout: Dynamic Agent Elimina-tion for Token-Efficient and High-Performance LLM-Based Multi-Agent Collaboration. In Proceedings of the 63rd An-nual Meeting of the Association for Computational Linguis-tics (Volume 1: Long Papers) , 24013–24035. Vienna, Aus-tria: Association for Computational Linguistics. Wei, J.; Wang, X.; Schuurmans, D.; Bosma, M.; Ichter, B.; Xia, F.; Chi, E. H.; Le, Q. V.; and Zhou, D. 2022. Chain-of-Thought Prompting Elicits Reasoning in Large Language Models. In Advances in Neural Information Processing Sys-tems , volume 35, 24824–24837. Wu, Q.; Bansal, G.; Zhang, J.; Wu, Y.; Li, B.; Zhu, E.; Jiang, L.; Zhang, X.; Zhang, S.; Liu, J.; Awadallah, A. H.; White, R. W.; Burger, D.; and Wang, C. 2024. AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversations. In Proceedings of the First Conference on Language Model-ing .Xu, Z.; Liu, Y.; Yin, Y.; Zhou, M.; and Poovendran, R. 2025. KodCode: A Diverse, Challenging, and Verifiable Synthetic Dataset for Coding. In Findings of the Association for Com-putational Linguistics: ACL 2025 , 6980–7008. Vienna, Aus-tria: Association for Computational Linguistics. Yang, A.; Li, A.; Yang, B.; Zhang, B.; Hui, B.; Zheng, B.; Yu, B.; et al. 2025. Qwen3 Technical Report. arXiv preprint arXiv:2505.09388 .Yao, S.; Zhao, J.; Yu, D.; Du, N.; Shafran, I.; Narasimhan, K.; and Cao, Y. 2023. ReAct: Synergizing Reasoning and Acting in Language Models. In The Eleventh International Conference on Learning Representations .Zhang, G.; Niu, L.; Fang, J.; Wang, K.; Bai, L.; and Wang, X. 2025a. Multi-Agent Architecture Search via Agentic Super-net. In Proceedings of the 42nd International Conference on Machine Learning , volume 267 of Proceedings of Machine Learning Research , 75834–75852. PMLR. Zhang, G.; Yue, Y.; Li, Z.; Yun, S.; Wan, G.; Wang, K.; Cheng, D.; Yu, J. X.; and Chen, T. 2025b. Cut the Crap: An Economical Communication Pipeline for LLM-based Multi-Agent Systems. In The Thirteenth International Conference on Learning Representations .Zhang, G.; Yue, Y.; Sun, X.; Wan, G.; Yu, M.; Fang, J.; Wang, K.; Chen, T.; and Cheng, D. 2025c. G-Designer: Architecting Multi-Agent Communication Topologies via Graph Neural Networks. In Proceedings of the 42nd International Confer-ence on Machine Learning , volume 267 of Proceedings of Machine Learning Research , 76678–76692. PMLR. Zhang, J.; Xiang, J.; Yu, Z.; Teng, F.; Chen, X.; Chen, J.; Zhuge, M.; Cheng, X.; Hong, S.; Wang, J.; Zheng, B.; Liu, B.; Luo, Y.; and Wu, C. 2025d. AFlow: Automating Agen-tic Workflow Generation. In The Thirteenth International Conference on Learning Representations .Zhang, K.; Li, J.; Li, G.; Shi, X.; and Jin, Z. 2024. CodeAgent: Enhancing Code Generation with Tool-Integrated Agent Sys-tems for Real-World Repo-level Coding Challenges. arXiv preprint arXiv:2401.07339 .Zhang, M.; Liu, W.; Shen, T.; Lin, Q.; Mao, R.; Cambria, E.; Tang, X.; and Luo, H. 2026. FlowSteer: Towards Agents Designing Agentic Workflows via Reinforced Progressive Canvas Editing. arXiv preprint arXiv:2602.01664 .Zhou, H.; Wan, X.; Sun, R.; Palangi, H.; Iqbal, S.; Vulić, I.; Korhonen, A.; and Arık, S. Ö. 2026. Multi-Agent Design: Optimizing Agents with Better Prompts and Topologies. In 
+
+The Fourteenth International Conference on Learning Rep-resentations .Zhuge, M.; Wang, W.; Kirsch, L.; Faccio, F.; Khizbullin, D.; and Schmidhuber, J. 2024. GPTSwarm: Language Agents as Optimizable Graphs. In Proceedings of the 41st Inter-national Conference on Machine Learning , volume 235 of 
+
+Proceedings of Machine Learning Research , 62743–62767. PMLR.

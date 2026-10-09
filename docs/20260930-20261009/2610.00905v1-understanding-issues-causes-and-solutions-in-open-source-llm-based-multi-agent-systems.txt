@@ -1,0 +1,1217 @@
+Title: Understanding Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+URL Source: https://arxiv.org/pdf/2610.00905v1
+
+Published Time: Fri, 02 Oct 2026 01:05:10 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# Understanding Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+## Asad Ur Rehman a, Syed Mohammad Kashif a, Ruiyin Li a,∗, Peng Liang a,∗, Zengyang Li b and Arif Ali Khan c
+
+> a
+
+School of Computer Science, Wuhan University, China 
+
+> b
+
+School of Computer Science & Hubei Provincial Key Laboratory of Artificial Intelligence and Smart Learning, Central China Normal University, China 
+
+> c
+
+M3S Empirical Software Engineering Research Unit, University of Oulu, Finland 
+
+A R T I C L E I N F O 
+
+Keywords :LLM-based Multi-Agent System; Open Source Project; Issue; Cause; Solution 
+
+A B S T R A C T 
+
+With the advancement of LLM-based multi-agent systems (MAS), an increasing number of open-source projects are adopting multi-agent architectures as the foundation of their core functionality. Although research and practice on MAS have attracted considerable attention, limited studies have explored the challenges faced by practitioners of open-source LLM-based MAS, the causes of these challenges, and potential solutions. To address this gap, we conducted an empirical study to understand the issues that practitioners encounter when developing and using open-source LLM-based MAS, the possible causes of these issues, and potential solutions. We collected 22,848 closed issues from 21 open-source LLM-based MAS and applied a mixed automated and manual filtering approach to reduce the dataset to 944 issues related to LLM-based MAS. We then analyzed these issues to understand the frequent issues encountered by practitioners, their underlying causes, and potential solutions. Our study results show that (1) Orchestration & Execution Issue is the most common issue faced by practitioners, (2) Workflow Problem , Tool Integration Problem , and Memory Problem are identified as the most frequent causes of the issues, and (3) Optimize Workflow is the predominant solution to the issues. Based on the study results, we derive empirically grounded implications for practitioners and researchers aimed at improving orchestration, tool integration, and memory mechanisms in LLM-based MAS. 
+
+## 1. Introduction 
+
+Large Language Models (LLMs) are transforming the landscape of software development, moving us beyond sim-ple coding copilots to a future where specialized LLM-powered agents actively collaborate like a digital team (Hou et al., 2024). Since the release of ChatGPT in 2022 (Ope-nAI, 2025), research on LLMs has grown rapidly (Zhao et al., 2023a). The software engineering (SE) community quickly recognized their potential and began applying LLMs throughout the software development lifecycle (Hou et al., 2024; Wang et al., 2024). Early studies examined single-agent scenarios, where an LLM assists developers with code generation, code review, software testing, and requirements documentation (Fan et al., 2023). Recent advances in multi-agent frameworks have en-abled the development of LLM-based multi-agent systems (MAS), in which multiple specialized LLM-powered agents communicate, coordinate, and collaborate to accomplish complex, sequential software engineering tasks that were previously too difficult for a single LLM agent (He et al., 2025b; Liu et al., 2026). This architectural approach is well-suited for complex end-to-end software processes because 
+
+> ∗
+
+Corresponding author.  
+
+> asadurrehman@whu.edu.cn
+
+(A.U. Rehman); smkashif145@gmail.com 
+
+(S.M. Kashif); ryli_cs@whu.edu.cn (R. Li); liangp@whu.edu.cn (P. Liang);  
+
+> zengyangli@ccnu.edu.cn
+
+(Z. Li); arif.khan@oulu.fi (A.A. Khan) 
+
+> ORCID
+
+(s): 0009-0005-8484-3287 (A.U. Rehman); 0009-0001-0243-0720 
+
+(S.M. Kashif); 0000-0001-8536-4935 (R. Li); 0000-0002-2056-5346 (P. Liang); 0000-0002-7258-993X (Z. Li); 0000-0002-8479-1481 (A.A. Khan) 
+
+it addresses the inherent limitations of individual LLMs, in-cluding limited context windows, error propagation, and dif-ficulties in managing complex software development work-flows (He et al., 2025b; Wang et al., 2024). Meanwhile, software practitioners are increasingly inte-grating LLM-based multi-agent systems (MAS) into their software projects. Frameworks such as LangChain and Se-mantic Kernel facilitate the development of these systems, supporting a wide range of applications from code gen-eration to system design (Chase, 2024; Microsoft, 2024). Recent surveys have examined the use of LLMs in SE, analyzing model usage, dataset creation, and evaluation methods (Hou et al., 2024). Despite the rapid adoption and significant potential of LLM-based MAS (Guo et al., 2024), there remains a lack of empirical studies regarding the challenges associated with their development and main-tenance in real-world contexts. From an SE perspective, the complexity of agent coordination, planning, and interaction introduces novel challenges that are not yet fully understood. This study addresses this gap by conducting a com-prehensive empirical analysis of prominent open-source systems (OSS) that incorporate LLM-based MAS as core architectural components. We collected 22,848 closed issues from relevant GitHub repositories whose documentation explicitly describes them as MAS projects. GitHub is the leading platform for hosting OSS projects and is widely used in empirical SE research (Alrashedy and Binjahlan, 2024). Our approach of analyzing closed issues from prominent OSS projects follows well-established practices in empirical SE (Waseem et al., 2026; Cai et al., 2025b). By analyzing 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 1 of 30 arXiv:2610.00905v1 [cs.SE] 1 Oct 2026 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+issue tracking data, our study directly observes the practical issues and root causes that developers encounter, as well as the solutions they employ when building and maintaining LLM-based MAS. 
+
+A motivating example: Figure 1 presents a sample GitHub issue ( CrewAI issue #2606) from an LLM-based MAS project in which a developer reports a type validation issue where the manager agent passes structured dictionary inputs while the schema expects string values. To ensure consis-tency, the developer proposes enforcing a JSON message format, thereby highlighting an Orchestration & Execution Issue . Overall, the issue highlights a type mismatch in multi-agent coordination within LLM-based MAS. CrewAI is an open-source project for orchestrating role-playing, autonomous AI                          
+
+> agents. By fostering collaborative intelligence, CrewAI empowers agents to work
+> together seamlessly, tackling complex tasks.
+> 858
+> Stars Commits Contributors Forks Branches
+> Agents orchestration failure issue
+> Agent autonomously outputs a
+> dictionary, but schema strictly
+> enforces string.
+> Inter-agent delegation fails due
+> to data format mismatch.
+> writes code
+> may provide
+> description/rationale
+> reports
+> Cause
+> 1
+> 2
+> 3
+> Additional details/documentation
+> Update schema to accept both
+> string and dictionary inputs.
+> Issue
+> Solution
+> has 4
+> 5
+> class DelegateWorkToolSchema (BaseModel ):
+> task: Union[str, Dict[str, Any]] = Field(..., description="The task to delegate")
+> code to fix
+> the issue
+> Name
+> Crew AI
+> requires
+> GitHub
+> Closed
+> 42.1k 284 1883 5.6k
+> [BUG]Type Error in Hierarchical Process Delegation #2606
+> class DelegateWorkToolSchema (BaseModel ):
+> task: str =Field(..., description ="The task to delegate ")
+> context: str =Field(..., description ="The context for the task ")
+> // The schema rigidly defines 'task' as a string (text).
+> // It fails because the agent autonomously sends a dictionary (structure).
+> MAS orchestration failure caused by a protocol mismatch. The
+> Manager Agent autonomously communicated using a
+> structured dictionary, violating the system's rigid, text-only (str)
+> protocol. This misalignment between agent autonomy and
+> environmental rigidity broke the inter-agent delegation process,
+> causing the collaborative workflow to crash.
+
+Figure 1: A GitHub issue demonstrating an Orchestration & Execution Issue in an LLM-based MAS. 
+
+Our study aims to identify the issues in developing and using open-source LLM-based MAS and to determine the 
+
+causes of these issues, as well as possible solutions . With this aim in mind, we formulate three Research Questions (RQs): • RQ1 : What issues do practitioners face when working on LLM-based MAS? • RQ2 : What are the underlying causes of the issues in LLM-based MAS? • RQ3 : What are the potential solutions to address the issues in LLM-based MAS? To answer RQ1–RQ3, we analyzed the filtered set of 944 GitHub issues to identify the issues reported by practitioners, examine their underlying causes, and the solutions adopted in practice. Our findings show that: (1) Orchestration & Execution Issue is the most common issue faced by practitioners, (2) 
+
+Workflow Problem , Tool Integration Problem , and Memory Problem are identified as the most frequent causes of the issues, and (3) Optimize Workflow and Adjust Configuration 
+
+are the predominant solutions to the issues in LLM-based MAS. The main contributions of this work are threefold: (1) We identify the key issues that occur during the development of LLM-based MAS projects using the dataset (Rehman et al., 2026) and organize them into a two-level taxonomy to provide a hierarchical understanding of their character-istics. (2) We identify the root causes of these issues and document the corresponding solutions proposed and adopted by practitioners, organizing both into taxonomies for causes and solutions. (3) We establish and analyze the mapping re-lationships between the identified issues and their underlying causes, as well as between the issues and their associated solutions, to better understand how issues are triggered and addressed in practice. The rest of this paper is structured as follows: Section 2 presents the Research Questions (RQs) and the research methodology employed in this study. Section 3 presents the study results. Section 4 discusses the findings and impli-cations based on the study results. Section 5 discusses the threats to validity. Section 6 reviews the related work, and Section 7 concludes this work along with the directions for future research. 
+
+## 2. Methodology 
+
+This study follows a systematic, multi-stage research methodology to investigate the practitioner-reported issues, underlying causes, and corresponding solutions in open-source LLM-based MAS. Based on this objective, we formu-late three Research Questions (RQs) to guide the subsequent phases of the study and ensure a structured and repro-ducible analysis process, as shown in Figure 2. The research process comprises the formulation of RQs in Section 2.1, data collection in Section 2.2, data filtering and labeling in Section 2.3, data extraction in Section 2.4, and data analysis in Section 2.5. 
+
+2.1. Research Questions 
+
+RQ1: What issues do practitioners face when working on MAS? 
+
+Rationale : As stated in Section 1, recent advances in LLMs (Zhao et al., 2023a) have led to a rapid increase in OSS that use LLMs as core components for building intelligent agents (i.e., LLM-based MAS). This RQ aims to provide a comprehensive understanding of the issues faced by OSS software engineers while developing MAS. This un-derstanding provides an empirical foundation for identifying the critical challenges that require attention in the design and development of LLM-based MAS. Therefore, identifying and analyzing these practical difficulties is a fundamental first step in this study. 
+
+RQ2: What are the underlying causes of the issues in a MAS? 
+
+Rationale : Following the identification of issues cur-rently faced by practitioners in RQ1 , it is necessary to deter-mine their underlying causes. Identifying these root causes allows this study to provide more practical and actionable recommendations for developing effective, context-specific 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 2 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems RQ1            
+
+> RQ2
+> RQ3
+> Phase A
+> Solutions
+> Data Filtering &
+> Labeling
+> Causes
+> Issues
+> Phase B
+> Data
+> Collection
+> 22,848 Closed GitHub Issues
+> Issues
+> [D1~D3: Data Items]
+> Open Coding
+> &
+> Constant Comparison
+> At Least
+> 3,000 Stars
+> Documented
+> Multi-Agent P rojects
+> At Least 100
+> Closed Issues
+> Update at Least
+> Once in a Year
+> Causes
+> Solutions
+> MA
+> Issue
+> Data Extraction Data Analysis
+> Phase C Phase D Phase E
+> Data Extration
+> 944 Real
+> MA Issues Automated
+> Filtering
+> Prompt
+> Engineering
+> 2,335 Marked
+> MA Issues
+> Manual
+> Filtering
+> Closed
+> Issues
+> At Least 10
+> Contributors
+> DeepSeek
+> R1
+> Research
+> Questions
+
+Figure 2: Overview of the research methodology 
+
+solutions. Additionally, these insights can inform the ongo-ing refinement and optimization of both LLM-based MAS and the underlying foundation models. 
+
+RQ3: What are the potential solutions to address the issues in MAS? 
+
+Rationale : This RQ seeks to understand how OSS practi-tioners address the challenges encountered during the devel-opment and maintenance of LLM-based MAS. Answering this RQ will identify the most commonly adopted solutions within the MAS community and yield a diverse set of prac-tical, practitioner-validated responses to the issues identified in RQ1 . By systematically exploring and analyzing these solutions, the study aims to provide actionable guidance for optimizing the design and implementation of LLM-based MAS. 
+
+2.2. Data Collection 
+
+We collected data for our study from GitHub repositories that clearly mention MAS in their documentation. GitHub is currently the largest platform for hosting OSS projects. In addition, every project on GitHub has an “Issues” page, which provides a platform for users and developers of the project to report issues experienced during development and usage, and to discuss the identification, analysis, and resolution of these issues with other users and developers. In order to thoroughly explore the causes of issues and their potential solutions, we collected all “closed” issues from the repositories of the selected LLM-based MAS. To ensure comprehensive data collection, we did not set a start date for the data source. The date we performed the data search was November 16, 2025, and we collected all the closed issues created before this date. The first author utilized a keyword-based search approach, using the search terms “Multi-Agent System”, “Multi-Agent LLM”, and “AI Agents” to search across GitHub. Any project that contained these search terms (e.g., in the project description or tags) was retrieved. After obtaining the search results, we found that although many projects include the terms “Multi-Agent System”, “Multi-Agent LLM”, or “AI Agents”, they do not actually implement multi-agent architectures or utilize multiple LLM-based agents as core components. For exam-ple, some projects focus on teaching multi-agent concepts 
+
+Table 1 
+
+Inclusion and exclusion criteria for selecting LLM-based multi-agent open-source projects from GitHub repositories 
+
+Inclusion Criteria 
+
+I1 The project must have at least 3,000 stars. I2 The project must have at least 10 contributors. I3 The project must have at least 100 closed issues. I4 The project must have been updated at least once within the past year. I5 The repository must be a real open-source software project that explicitly integrates multi-agent LLM architectures as core architectural components to execute its primary functionality. 
+
+Exclusion Criteria 
+
+E1 We excluded projects categorized as course assignments, teaching guides, standalone LLM tutorials, books, or competition submissions to ensure the study focuses on practical software systems. E2 We also excluded repositories that merely mention multi-agent concepts in their documentation without implementing actual multi-agent functionality. 
+
+without building functional MAS. Therefore, we established the following criteria for selecting open-source LLM-Based MAS projects. Table 1 summarizes the inclusion and exclusion criteria used in this study. We defined an inclusion criterion (I5) to select projects that utilize multi-agent LLM architectures as core architectural components for their primary function-ality. Following established empirical practices (Cai et al., 2025b; Lin et al., 2025), we further applied the inclusion criterion (I1)–(I4) as benchmarks for evaluating project quality, activity, and popularity. By enforcing thresholds on star counts, contributor participation, issue resolution history, and recent update activity, we excluded inactive or unpopular repositories. We prioritized projects with recent commit activity to ensure they reflect current MAS practices, and we manually 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 3 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+Table 2 
+
+Information of selected open-source LLM-based multi-agent projects                                                                                         
+
+> Project Name #Stars #Issues #Forks #Contributors
+> Activepieces 19.1k 2216 3.1k 336 Adk-python 14.2k 1354 2.7k 180 Agency-swarm 3.9k 141 998 21 Agno 34.8k 1475 4.8k 343 Ag2 3.7k 646 511 158 Agentscope 13.5k 305 1.2k 23 Autogen 55.6k 2496 8.2k 547 Camel 14.7k 912 1.7k 183 ChatDev 27.7k 255 3.5k 56 Continue 29.9k 3384 3.9k 421 CrewAI 39.9k 1548 5.6k 278 Claude-flow 9.5k 311 1.4k 11 Flowise 46.4k 1777 23.4k 268 Langroid 3.7k 201 348 41 MetaGPT 59.2k 874 7.6k 113 Openai-agents-python 17k 811 3k 182 Owl 18.3k 307 2.1k 38 PraisonAI 5.5k 263 752 28 Ragflow 66.9k 2811 7.6k 377 Sdk-python 3.9k 270 570 72 Smolagents 24k 491 2.2k 196
+
+Table 3 
+
+Domain categorization of the selected LLM-based multi-agent open-source projects                                          
+
+> Domain #Definition #Projects
+> LLM-based Develop-ment Framework Open-source projects that provide frameworks for de-veloping software systems by leveraging LLMs. MetaGPT, ChatDev, Agentscope, Langroid, Camel, Owl, AutoGen Autonomous Agents and Multi-Agent Orchestra-tion Open-source projects that focus on coordinating, managing, and enabling collaboration among multiple autonomous LLM-based agents. CrewAI, Agency-swarm, Ag2, Agno, PraisonAI Agent SDKs and Toolkits Open-source software development kits that provide APIs and tools for building, deploying, and managing LLM-based agents. Adk-python, Openai-agents-python, Smolagents Retrieval-Augmented LLM Applications Open-source projects that integrate information re-trieval mechanisms with LLMs to enhance reason-ing and response genera-tion using external knowl-edge. Ragflow Visual Or-chestration and Workflow Automation Open-source platforms that enable visual, low-code, or automated orchestration of LLM workflows and agent pipelines. Flowise AI Developer Tools Open-source tools designed to assist developers by integrating LLM-based capabilities into development environments and workflows. Continue
+
+verified whether each project explicitly described multi-agent collaboration rather than single-agent LLM usage. In addition, the exclusion criteria (E1) and (E2) were applied to remove educational, tutorial-oriented, or competition-based projects, as well as repositories that only reference multi-agent concepts without implementing actual multi-agent functionality. This selection process ensures that the final dataset is representative of established and actively maintained LLM-based MAS. After applying the inclusion and exclusion criteria, we carefully examined the remaining repositories to ensure that they implemented LLM-based MAS and satisfied all selection requirements. Repositories that only partially met the criteria, lacked sufficient project information, or did not provide clear evidence of multi-agent functionality were ex-cluded. Through this screening process, we identified a final set of 21 actively maintained open-source LLM-based MAS projects, which formed the basis of our subsequent analysis. Following the selection criteria, we ultimately included 21 open-source LLM-based MAS (see Table 2) that met our criteria. The domains of the 21 selected LLM-based MAS projects are categorized into six categories (see Table 3). Then, the first author employed web scrapers to collect all the closed issues from these project repositories. In the end, we gathered a total of 22,848 closed issues. Each closed issue was recorded in an MS Excel file. We named each MS Excel file using the convention: “P ROJECT NAME ” + “_” + “I SSUE 
+
+NUMBER ”. 
+
+2.3. Data Filtering and Labeling 
+
+We collected closed issues from 21 open-source LLM-based MAS and observed that not all reported issues were relevant to MAS-related problems. For example, some prac-titioners used issue trackers for community interaction or general inquiries, such as requesting access to a project’s Discord channel Agency-swarm #37, without describing any technical problem in the MAS projects. We also identified issues that were purely single-agent in nature and did not involve multi-agent collaboration, despite being reported in MAS project repositories (e.g., Sdk-python #1435). In addition, we found that the issue labels were often too generic, and relying solely on existing labels could lead to missing relevant information. For example, the multi-agent 
+
+Orchestration Issue reported in Autogen #6819 was assigned only the generic Bug label, making it difficult to identify through label-based filtering alone. To address these challenges in filtering and labeling MAS-related issues, we adopted a two-stage mixed ap-proach, combining automated and manual filtering meth-ods to construct a high-quality dataset. This process fo-cused on identifying closed issues that explicitly describe practitioner-reported problems related to MAS. Based on the pilot and formal filtering results in Section 2.3.1 and Sec-tion 2.3.2, the final dataset was constructed and subsequently used for data extraction and analysis. 
+
+2.3.1. Pilot Data Filtering 
+
+We conducted pilot data filtering by randomly select-ing 100 closed issues from the collected dataset. The first and second authors independently labeled these issues to minimize potential personal bias. We observed that multi-agent issues were rare only 11 issues were related to real MAS issues, whereas non-multi-agent issues accounted for a relatively large proportion. Therefore, we adopted a mixed approach, combining automated and manual methods for 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 4 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+data filtering, to ensure a high-quality dataset for our study. The pilot filtering results were compiled and recorded in MS Excel files (Rehman et al., 2026). 
+
+Automated Filtering : We applied a pilot automated fil-tering approach (He et al., 2025a), following the method-ology of prior studies demonstrating the effectiveness of LLM-based evaluation and automated assessment in soft-ware engineering tasks (Zhou et al., 2025a; Crupi et al., 2025). We randomly selected 500 issues from the col-lected 22,848 closed issues and processed them with the 
+
+DeepSeek-R1 model deployed locally via Ollama, with care-fully crafted prompt instructions and iterative refinement to identify MAS-related issues (Montes et al., 2025). Using this approach, we identified 110 MAS-related issues. 
+
+Manual Filtering : To ensure dataset quality, we did not fully rely on the LLM; therefore, manual filtering was also conducted. Two human coders, the first and second authors, were involved in this process. They labeled the same sample of 500 issues independently, which contained information related to problems encountered during the development or use of open-source LLM-based MAS. Inter-rater agreement between the two authors was measured using Cohen’s Kappa coefficient (Cohen, 1960), yielding a value of 0.82, which indicates a very high level of labeling consistency between the two authors. Any disagreements in the pilot labeling results were resolved through discussion involving the fourth author to reach a consensus. Finally, 102 out of the 500 closed issues were considered real multi-agent issues. 
+
+Evaluation of Automated Filtering : To evaluate the effectiveness and accuracy of the DeepSeek-R1 model, we compared the automated filtering results with those of the manual filtering. Out of the 500 sampled issues, manual filtering labeled 102 multi-agent-related issues, while auto-mated filtering labeled 110 such issues. The comparison be-tween manual and automated labels yielded 452 agreements, where both methods produced consistent labels (i.e., auto=0, manual=0 or auto=1, manual=1), and 48 disagreements, where the labels differed (i.e., auto=1, manual=0 or auto=0, manual=1). We measured the agreement between the au-tomated filtering results and the human annotations. Using this measure, the automated filtering approach achieved an agreement rate of 90.4%. To examine the 48 disagreements, we reviewed the cases where automated filtering labeled an issue as 0 but manual filtering labeled it as 1. In these cases, MAS concepts were not explicitly mentioned, and the relevance to MAS could only be determined from the issue context rather than explicit keywords. As a result, the LLM did not filter these issues as MAS-related issues. For example, Agentscope #489 does not explicitly describe a multi-agent issue, but its relevance to MAS is only clear from the context, not from explicit keywords. Conversely, in cases where automated filtering labeled an issue as 1 but manual filtering labeled it as 0, the issues often contained MAS-related terminology or project components, leading the LLM to filter them as MAS-related issues. However, during manual filtering, they were determined not to clearly 
+
+Table 4 
+
+The source projects of the closed issues in the final data sample                                                                    
+
+> Project Name #Selected Issues #Contributors #Lines of Code
+> Activepieces 6336 1,358k Adk-python 142 180 209k Agency-swarm 27 21 79.1k Agno 126 343 390k Ag2 28 158 190k Agentscope 23 23 71.1k Autogen 81 547 1,592.4k Camel 14 183 236k ChatDev 656 53.0k Continue 34 421 661.7k CrewAI 77 278 466k Claude-flow 70 11 1,489.7k Flowise 94 268 309.5k Langroid 841 611.3k MetaGPT 44 113 70.1k Openai-agents-python 22 182 108.1k Owl 738 14.2k PraisonAI 31 28 512.7k Ragflow 8377 414k Sdk-python 39 72 59.3k Smolagents 15 196 29.8k
+> Total 944
+
+describe practitioner-reported MAS-related issues. For ex-ample, PraisonAI #234 reports a dependency installation error but uses the term CrewAI , which is a MAS framework. Based on this keyword, the LLM classified it as a MAS-related issue. Similarly, Claude-flow #571 uses the phrase  
+
+> Hive Mind
+
+, which refers to MAS functionality, but it is actually a release announcement describing bug fixes and improvements rather than a practitioner-reported issue. 
+
+2.3.2. Formal Data Filtering 
+
+We conducted formal data filtering on the collected 22,848 closed issues. In this process, we excluded the issues not related to our study. We selected projects in which LLM-based MAS is a core component, and we kept those issues related to the problems that practitioners encountered during the development and use of open-source LLM-based MAS. As observed in the pilot study (see Section 2.3.1), the proportion of real MAS issues among the collected 22,848 closed issues was relatively low. Therefore, we adopted a mixed approach, combining automated and manual methods to construct a high-quality dataset. Accordingly, we first applied automated filtering to all 22,848 collected closed is-sues using the DeepSeek-R1 model deployed locally via Ol-lama, with carefully crafted prompt instructions and iterative refinement (Montes et al., 2025), to identify MAS-related issues (He et al., 2025a). This automated filtering identified 2,335 multi-agent-related closed issues. To ensure dataset quality, we did not fully rely on the LLM; therefore, manual filtering was also conducted. The first author was involved in manually reviewing the results of the automated filtering to ensure data quality. Any disagreements in the formal data filtering results were resolved through discussion involving the fourth author to reach a consensus. Finally, 944 out of the 22,848 closed issues were considered real multi-agent issues. The source projects of the closed issues in the final dataset are presented in Table 4. In addition, the distribution 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 5 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+of the duration from issue opening to closing for the closed issues in the final dataset is shown in Figure 3. The results of the formal data filtering were compiled and recorded in MS Excel files (Rehman et al., 2026). <= 1 day 1-7 days 8-30 days 31-100 days > 100 days 
+
+> Duration
+> 050 100 150 200 250
+> Count
+> 207 179 146 247 165
+
+Figure 3: The distribution of the duration of the closed issues in the final data sample 
+
+2.4. Data Extraction 
+
+To answer the three RQs presented in Section 2.1, we defined a set of data items for data extraction, as shown in Table 5. The data items D1–D3 are used to extract infor-mation about issues, underlying causes, and solutions that address these issues, corresponding to RQ1–RQ3, respec-tively. These data items are extracted from different parts of the collected closed issues, including the title, description, and discussion. To ensure the accuracy of the data extraction results and the validity of the subsequent data analysis, we decided to conduct the data extraction manually. In addition, the dataset size is relatively small, making manual data extraction feasible. The details of the pilot and formal data extraction procedures are presented in Section 2.4.1 and Section 2.4.2, respectively. 
+
+2.4.1. Pilot Data Extraction 
+
+We randomly selected 100 closed issues from our filtered dataset. The first author then independently performed pilot data extraction on these issues. The results indicate that all three data items (see Table 5) can be extracted from our dataset. Based on the pilot extraction results, we reached a consensus and defined the following rules for formal data extraction. (1) In principle, only one issue is extracted from each closed issue; if multiple issues can be extracted, we record the first issue discussed. (2) If there are multiple causes mentioned in a closed issue, we record all the causes of the issue extracted in the former step, which are identified by the reporter and the development team. (3) Similarly, if there are multiple solutions mentioned in a closed issue, we record all the solutions identified by the reporter and the development team that can address the issue extracted in the former step. 
+
+Table 5 
+
+Data items extracted and their corresponding RQs         
+
+> #Data Item Description RQ
+> D1 Issue The main issue discussed in a GitHub issue report. In principle, only one issue is extracted from each closed issue. RQ1 D2 Cause The cause(s) of the issue are identified. Due to the complexity of some issues, multiple causes may exist. RQ2 D3 Solution The solution(s) that address the issue are pro-vided. Some issues may have multiple solutions. RQ3
+
+2.4.2. Formal Data Extraction 
+
+Following the pilot phase, the first author independently performed the formal data extraction based on the items defined in Table 5. Any ambiguities encountered during the data extraction process were resolved through discussions with the fourth author to ensure consistency. After complet-ing the data extraction, the second and fourth authors re-viewed the results and discussed them with the first author to resolve inconsistencies and reach a consensus. Both authors further conducted multiple rounds of review and refinement to ensure the accuracy of the final dataset. The final results were compiled and recorded in an MS Excel file (Rehman et al., 2026). During the formal data extraction, we identified 16 closed issues that contained multiple problems within a sin-gle GitHub issue report (e.g., CrewAI #3918 ). In accordance with our predefined criteria in Section 2.4.1, we included only the first reported problem along with its corresponding causes and solutions. We also observed that not all closed issues contained clearly extractable information (i.e., causes or solutions). In some cases, the discussion was too vague to identify specific causes or solutions, while in others, issues were automatically closed due to inactivity, low priority, or high complexity, making it difficult to extract information. 
+
+2.5. Data Analysis 
+
+After completing the data extraction, we performed data analysis to address the three RQs formulated in Section 2.1. We applied the Open Coding and Constant Comparison methods, which are widely used in Grounded Theory for qualitative analysis in software engineering research (Stol et al., 2016). Open Coding represents the initial stage of anal-ysis, where researchers systematically examine the text to identify key concepts and categories, assigning descriptive codes to each element. Constant Comparison follows as a refinement stage, in which researchers iteratively compare new data with previously coded data to adjust and integrate categories based on their similarities and differences. The steps in our data analysis are as follows: (1) The first author meticulously read through the text of each closed issue and assigned descriptive codes that succinctly summa-rize the core themes according to the three RQs (see Table 5). For example, Smolagents #1353 was coded as “Agent Tool Registration Failure” , which indicates an error caused by improper agent integration. (2) The first author compared commonalities and differences among codes. Following a bottom-up approach, identical or similar codes were grouped 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 6 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+into higher-level types and categories. For example, the code from Smolagents #1353, along with similar instances, constituted a Tool Invocation Error type under the broader 
+
+Tool Issue category. (3) When uncertainties about code descriptions arose, the first author discussed them with the second and fourth authors to reach a consensus. Due to the iterative nature of constant comparison, the initial results underwent several modifications. (4) The fourth author re-viewed and verified the initial analysis. Subsequently, all other authors reviewed the final results and made further refinements to improve the accuracy and consistency of the analysis. Any disagreements were resolved through discus-sion; after resolving 29 conflicts in issue categories, 24 in cause categories, and 22 in solution categories, we obtained the final data analysis results. 
+
+## 3. Results and Interpretation 
+
+We present the findings of the three RQs and discuss their implications. We introduce a two-stage classification for the Issue, Cause, and Solution taxonomies, where an Issue refers to a problem reported by practitioners in LLM-based MAS, a Cause represents the underlying reason for the problem, and a Solution describes the approach used to resolve it. The taxonomies consist of categories and types, and brief descriptions of each type are provided under the corresponding category. To demonstrate the relationships among issues, causes, and solutions, we present mappings between Issue and Cause categories, as well as between Issue and Solution categories. It should be noted that only closed issues for which a solution has been extracted are included in the issue solution mapping. Similarly, only closed issues for which a cause has been extracted are included in the issue cause mapping. The taxonomy of issues in the final dataset is shown in Figure 4, while the distribution of their closure durations is presented in Figure 3. To further interpret these findings, we identify key patterns in the results and examine their implications for issues, causes, and solutions in LLM-based MAS. 
+
+3.1. Category of Issues (RQ1) 
+
+Figure 4 shows the taxonomy of the closed issues ex-tracted from the dataset. The results show that Orchestration & Execution Issue (22.0%) is the most frequent category reported by practitioners in open-source LLM-based MAS projects, followed by Memory & State Management Issue 
+
+(14.7%) and Feature Request (13.2%). Implementation Issue 
+
+(10.6%) also represents a notable portion of the dataset. The remaining categories each account for less than 10%, includ-ing Tool Issue (9.2%), Integration Issue (6.7%), Role Issue 
+
+(3.8%), Environment & Configuration Issue (3.5%), Output Issue (3.1%), Documentation Issue (2.8%), Communication Issue (2.6%), Performance Issue (2.0%), Model Issue (1.6%), 
+
+Compatibility Issue (1.4%), Error Handling Issue (1.3%), 
+
+Task Management Issue (1.2%), and Security Issue (0.3%). 
+
+3.1.1. Orchestration & Execution Issue 
+
+(22.0%) Orchestration & Execution Issue refers to prob-lems arising from agent orchestration and LLM-based exe-cution control during runtime in the development and use of open-source LLM-based MAS. This category comprises the following ten issue types. • COORDINATION & H ANDOFF ISSUE refers to issues in interaction and task transfer between agents in LLM-based MAS. These issues usually arise when agents fail to properly coordinate or hand off tasks, leading to delays, duplication, unexpected outputs, or incomplete execution. For example, a practitioner reported that “ sub-agent could not correctly transfer to root agent and call the MCP tool ” (Adk-python #1039). • CONTROL FLOW ERROR refers to issues where the execution order between agents or tasks does not behave as expected. These issues include incorrect sequencing, unexpected loop behavior, or disrupted execution flow, which may lead to incorrect outputs, execution failure, or early termination. For example, a practitioner reported that “ SequentialAgent doesn’t execute sub-agents after the first one ” (Adk-python #573). • INFINITE EXECUTION LOOP refers to issues where agents become trapped in continuous execution with-out a valid termination condition. These issues arise from missing termination logic, weak control, or poor coordination, leading to resource waste and incomplete workflows. For example, a practitioner reported that “ agentic parallelization with different agents/tasks: tasks repeat in a loop, aggregator never runs, process never completes ” (PraisonAI #864). • TERMINATION FAILURE refers to issues where exe-cution continues even after a valid termination condi-tion is met. These issues result from incorrect termi-nation signaling or inconsistent stopping conditions, causing workflows to run longer than necessary. For example, a practitioner reported that “ termination on the receiving agent doesn’t terminate the program ”(Autogen #1919). • PREMATURE TERMINATION refers to issues where execution stops before all agents complete their tasks. These issues arise from incorrect orchestration, early stopping, or faulty propagation, resulting in partial workflow execution. For example, a practitioner re-ported that “ multi-agent chain stops at first agent without executing others in v2.2.7 ” (Flowise #4321). • RESOURCE LIMITATION refers to issues where LLM-based MAS experience resource conflicts, shared tool contention, or time constraints. These issues result in execution hangs, failures, or early termination. For example, a practitioner reported that   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 7 of 30
+
+Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems Compatibility Issue 
+
+Output Issue 
+
+Implementation Issue  Integration Issue 
+
+Taxonomy of Issues in LLM-based Multi-Agent Open-Source Systems 
+
+208 (22.0%) 
+
+Category 
+
+Taxonomy Legend 
+
+Type of Issues 
+
+Taxonomy 
+
+Number of Issues 
+
+(Percentage) 
+
+> (Number of Issues)
+> Subcategory
+> 00
+
+Orchestration & 
+
+Execution Issue 
+
+State Persistence Failure 
+
+Retrieval Failure 
+
+(42) 
+
+(26) 
+
+(15) 
+
+State Inconsistency  (36) 
+
+Context Overflow  (15) 
+
+State Loss  (5) 
+
+Context Loss Extensibility & Customization 
+
+Communication & Data Flow 
+
+Monitoring & Debugging 
+
+(57) 
+
+(27) 
+
+(18) 
+
+Framework Limitation  (12) 
+
+Performance & Scalability  (11) 
+
+Tool Selection Error 
+
+Parameter Configuration Error 
+
+(41) 
+
+(9) 
+
+(9) 
+
+Tool Invocation Error  (28) 
+
+Tool Execution Failure 
+
+Correctness Issue 
+
+Dependency Conflict 
+
+Parameter Configuration Error 
+
+(29) 
+
+(20) 
+
+(14) 
+
+Execution Logic Error 
+
+(13) 
+
+Missing Attribute/Parameter  (13) 
+
+Class Issue  (6) 
+
+Agent Execution Issue  (5) 
+
+Parameter Misconfiguration 
+
+(36) 
+
+(8) 
+
+Interface Compatibility Problem  (6) 
+
+API Integration Failure 
+
+Dependency Conflict  (7) 
+
+Framework Integration issue  (6) 
+
+Message Format Error  (12) 
+
+Connection Issue  (6) 
+
+Role assignment issue  
+
+> Message Transmission Failure
+
+(2) 
+
+(5) 
+
+Incomplete Response  (12) 
+
+Output Inaccuracy  (10) 
+
+Output Inconsistency  (7) 
+
+Role Assignment Error 
+
+(6) Role Misalignment 
+
+(30)  Unclear Documentation 
+
+(12) Missing Documentation 
+
+(14) 
+
+Inefficient Execution 
+
+(10) Response Delay 
+
+(9) 
+
+Unhandled Exception 
+
+(5) Recovery Failure 
+
+(7) 
+
+Message Format Mismatch 
+
+(3) API Compatibility Issue  
+
+> (12)
+
+Interface Type Mismatch 
+
+> (3)
+
+API Compatibility Issue 
+
+(10)  Validation issue 
+
+> (1)
+
+Access Control 
+
+(2) 
+
+Task Allocation Failure 
+
+Task Duplication 
+
+> (7)
+
+Parameter Configuration Error 
+
+Environment Misconfiguration  (8) 
+
+(7) API Integration Failure 
+
+(9) 
+
+Dependency Conflict  (9)      
+
+> Identifies Issue
+> may provide
+> description/rationale
+> 1
+> 2
+> GitHub
+> Multi-agent group chat incorrectly assigns to role="assistant"
+> user proxy messages instead of role="user"
+> [Bug]: Wrong role set in group chat #3009 Closed
+> 3 Reports User proxy messages are set to the assistant role, but they should
+> be set to the user role #3009
+> https://github.com/microsoft/autogen/issues/3009
+
+Task Management Issue 
+
+139 (14.7%) 
+
+87 (9.2%) 
+
+125 (13.2%) 
+
+33 (3.5%) 25 (2.6%) 
+
+100 (10.6%)  63 (6.7%) 
+
+29 (3.1%) 11 (1.2%) 
+
+12 (1.3%) 19 (2.0%) 26 (2.8%) 36 (3.8%) 
+
+15 (1.6%)  13 (1.4%)  3 (0.3%) 
+
+Coordination & Handoff issue 
+
+Control Flow Error 
+
+Infinite Execution Loop 
+
+(62) 
+
+(40) 
+
+(28) 
+
+Termination Failure  (23) 
+
+Premature Termination  (12) 
+
+Agent selection issue 
+
+(12) 
+
+Agent Design Issue  (8) 
+
+Concurrency Issue 
+
+(7) Context Loss 
+
+(6) 
+
+Resource Limitation 
+
+(10) 
+
+Tool Issue 
+
+Environment & 
+
+Configuration Issue 
+
+Memory &  State 
+
+Management Issue 
+
+Communication Issue 
+
+Feature Request 
+
+Role Issue  Documentation Issue  Performance Issue  Error Handling Issue 
+
+Security Issue Model Issue 
+
+> (4)
+
+Figure 4: Taxonomy of issues of open-source LLM-based MAS 
+
+“Claude-Flow swarm command consistently times out due to resource conflicts between the swarm execution and active Claude Code sessions ” (Claude-flow #59). • AGENT SELECTION ISSUE refers to issues where the routing or delegation mechanism fails to identify and assign the most appropriate specialized agent for a given task. These issues lead to incorrect agent se-lection or failed agent delegation decisions, resulting in incorrect or failed task execution. For example, a practitioner reported that “ manager llm doesn’t seem to be working properly and does not seem to delegate the query to other agents ” (CrewAI #1503). • AGENT DESIGN ISSUE refers to issues where agent architectural design, data flow, or inter-agent commu-nication is difficult to define or implement in LLM-based MAS. These issues lead to challenges in chain-ing agents, handling structured data, or maintaining consistency across agent boundaries, resulting in or-chestration errors or workflow breakdowns. For exam-ple, a practitioner reported that “ passing information between 2 agents is cumbersome ” (Agno #2391). • CONTEXT LOSS refers to issues where runtime con-textual information (e.g., domain, task constraints, or user instructions) is not properly propagated between agents during execution. Agents ignore or revert to default values instead of following the intended con-text, leading to incorrect or unexpected behavior. For example, a practitioner reported that “ agents failed to consistently follow the specified domain context during multi-agent execution, repeatedly using the wrong domain example.com ” (PraisonAI #289). • CONCURRENCY ISSUE refers to issues where shared state is not properly managed when multiple agents execute in parallel. These issues arise when actions from different agents are processed in an unexpected 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 8 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+order, potentially leading to inconsistent or incom-plete context, runtime errors, or unstable behavior. For example, a practitioner reported that “ when running multiple agents in parallel, events coming from differ-ent agents can interleave ” (Adk-python #2404). 
+
+Interpretation : The high proportion of Orchestration & Execution Issue indicates that runtime coordination is the main challenge in LLM-based MAS. Coordination & Hand-off Issue (62) and Control Flow Errors (40) are the most frequent types of issues in this category. Coordination & Handoff Issue reflect failures in task transfer between agents, while Control Flow Error indicate incorrect or unstable execution ordering. Overall, most issues arise from weak coordination between agents rather than limitations in indi-vidual agents. This indicates a gap between theoretical multi-agent design and practical execution reliability. The findings highlight orchestration as a key bottleneck and the need for better execution control and coordination mechanisms in future LLM-based MAS. 
+
+3.1.2. Memory & State Management Issue 
+
+(14.7%) Memory & State Management Issue refers to issues in storing, updating, and propagating memory, state, or intermediate information across agents during execution. Practitioners encounter these challenges during the develop-ment and use of LLM-based multi-agent OSS. This category encompasses the following six types. • CONTEXT LOSS refers to issues where persistent state or shared memory is not properly maintained or retrieved across agents during execution. Contextual information stored at higher levels is not consistently propagated or is reinitialized instead of being reused, causing agents to lose access to previously established states and leading to inconsistent or incorrect behavior across execution steps. For example, a practitioner reported that “ team shared context is lost whenever moving on to subsequent agent ” (Agno #3254). • STATE INCONSISTENCY refers to issues where shared state or intermediate outputs are not consistently vis-ible, synchronized, or aligned across agents during execution. State updates are not reliably propagated, or different agents access different versions of the same state due to timing or synchronization issues, causing agents to operate on inconsistent state views, leading to unreliable or divergent execution behavior. For example, a practitioner reported that “ the second agent is often unable to see items stored in the state of the previous agent ” (Adk-python #1119). • STATE PERSISTENCE FAILURE refers to issues where stored state or session-level information is not correctly initialized, preserved, or made accessible across agents during execution. State is not properly bound to session identifiers, or stored information becomes unavailable during runtime despite being ex-plicitly defined, preventing agents from retrieving pre-viously stored session state and leading to incomplete or incorrect execution. For example, a practitioner reported that “ team_session_state not initialized when session_id is provided ” (Agno #3799). • RETRIEVAL FAILURE refers to issues where previ-ously stored state, memory entries, or checkpoints cannot be reliably accessed during execution, even if they exist in the system. Agents fail to retrieve the required previous state, leading to incomplete work-flow progression or reduced system reliability. For example, a practitioner reported that “ in a sequential agent workflow, the system randomly fails to retrieve stored checkpoints ” (Flowise #3859). • CONTEXT OVERFLOW refers to issues where accu-mulated contextual information exceeds the effective input or memory capacity of the system during multi-agent execution. Multiple agents continuously con-tribute information without filtering or compression, making the input context excessively large and leading to degraded performance or loss of relevant signals during reasoning. For example, a practitioner reported that “ a single agent needs to store information from multiple agents, which can lead to excessively long to-ken lengths in the input for large models ” (Agentscope #637). • STATE LOSS refers to issues where parts of the generated or updated state are not retained in the final execution outcome. In multi-agent or parallel workflows, intermediate state updates are overwritten, dropped, or not properly merged during aggregation, causing some agent contributions to be missing from the final system state and resulting in incomplete or partial execution results. For example, a practitioner reported that “ state updates from parallel agent calls were not correctly aggregated, causing some agent contributions to be missing from the final session state ” (Adk-python #1153). 
+
+Interpretation : The high proportion of Memory & State Management Issue indicates that state handling is a critical challenge in LLM-based MAS. Context Loss (42) and State Inconsistency (36) are the most frequently reported issues, showing a consistent pattern of unreliable state propagation across agents. There is a clear gap between the designed memory abstractions and their actual behavior in execution. This highlights the need for reliable state management and memory propagation mechanisms in future MAS. 
+
+3.1.3. Feature Request 
+
+(13.2%) Feature Request refers to practitioner-driven requests for new capabilities or enhancements in LLM-based MAS. These requests typically highlight gaps between ex-isting system capabilities and real-world application needs. This category encompasses the following five types.   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 9 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+• EXTENSIBILITY & C USTOMIZATION refers to re-quests for extending system flexibility to support cus-tom configurations, models, or agent-specific behav-iors in LLM-based MAS. For example, a practitioner requested “ textit Is it possible to define multiple (local) LLMs in the config.yaml for different agents?” (MetaGPT #1266). • COMMUNICATION & DATA FLOW refers to re-quests for improving how information is transmitted, streamed, or exposed across agents and system com-ponents in LLM-based MAS. These requests typically arise when intermediate outputs or interactions are not visible or are delayed during execution. For example, a practitioner requested “ a way to output or stream AgentFlows like Chat inside Flowise app ” (Flowise #2838). • MONITORING & D EBUGGING refers to requests for improving visibility into agent behavior, execution steps, and system-level activities in LLM-based MAS. These requests typically arise when practitioners can-not observe how agents make decisions or interact with tools and data during execution. For example, a practitioner requested “ observability of agents’ ac-tions taken, tools used, and data accessed ” (AutoGen #2423). • FRAMEWORK LIMITATION refers to requests in multi-agent frameworks where certain capabilities or design requirements are not directly supported by the existing system design or API. These requests typically arise when the framework only supports sim-ple sequential or instruction-based workflows, thereby limiting more structured orchestration designs. For ex-ample, a practitioner requested support for advanced orchestration patterns: “ The agent team API cannot handle complicated workflows or hierarchical multi-agent patterns ” (Agno #2209). • PERFORMANCE & S CALABILITY refers to requests aimed at improving execution speed, parallelism, and system throughput in multi-agent frameworks. These requests typically arise when current systems do not efficiently support large-scale agent execution or real-time control over running processes. For example, a practitioner proposed “ parallel agent spawning to improve execution speed and support real-time query control in multi-agent workflows ” (Claude-flow #781). 
+
+Interpretation : The Feature Request category shows that practitioners mainly focus on extending the capabilities of existing multi-agent frameworks. A clear pattern emerges in Extensibility & Customization (57) and Communication & Data Flow (27), where users request more flexible con-figurations and support for advanced design capabilities not directly available in existing frameworks. Overall, these findings indicate that current MAS frameworks are func-tional but still limited in flexibility, leading practitioners to request more adaptable and extensible system designs. 
+
+3.1.4. Implementation Issue 
+
+(10.6%) Implementation Issue refers to issues arising from incorrect or incomplete implementation in LLM-based MAS during development or runtime. This category encom-passes the following seven types. • EXECUTION LOGIC ERROR refers to issues aris-ing from incorrect or unintended execution behav-ior caused by flaws in implementation logic dur-ing runtime in LLM-based MAS. Function calls, control flow, or internal execution mechanisms do not behave as intended, leading to runtime er-rors or incorrect execution paths despite a correct intended design. For example, a practitioner re-ported that when an agent is copied, method ref-erences become mismatched: “ the copied version of the BoardAgent causes a KeyError when ac-cessing hook_lists[self.process_all_messages] ” (Au-toGen #1706). • CORRECTNESS ISSUE refers to issues where the sys-tem produces factually incorrect, logically inconsis-tent, or semantically invalid results during execution in LLM-based MAS. Agent reasoning or intermediate computations deviate from expected functional behav-ior despite successful execution, resulting in wrong answers, miscalculations, or flawed decisions even when the output format is correct. For example, a practitioner reported that the system returns incor-rect stock prices in a multi-agent setup: “ multi-agent framework not working as expected, issue with finance lib as well internally ” (Agno #1700). • DEPENDENCY CONFLICT refers to issues where dif-ferent framework or library versions lead to incom-patible behaviors in LLM-based MAS. These issues arise when updates in dependencies modify core ex-ecution logic or agent interaction mechanisms, caus-ing regressions in previously working workflows or system failures. For example, a practitioner reported that a version update breaks the group chat speaker selection logic: “ Autogen Studio GroupChatWorkflow not working on pyautogen==0.2.13 but working on pyautogen==0.2.10 ” (AutoGen #1693). • PARAMETER CONFIGURATION ERROR refers to issues where incorrect or inconsistent parameter pass-ing, or misconfiguration in setup, leads to unexpected behavior in LLM-based MAS during execution. These issues typically arise when input parameters are not properly propagated across agents, tools, or execution modes under different runtime settings, causing the system to execute successfully but fail to correctly utilize required inputs, resulting in incomplete behav-ior. For example, a practitioner reported that enabling streaming causes the files argument to be lost during execution: “ Files parameter not passed to tools when using team streaming ” (Agno #5121).   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 10 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+• MISSING ATTRIBUTE /P ARAMETER refers to imple-mentation issues where required attributes or parame-ters are missing or incorrectly defined in data models or execution objects in LLM-based MAS. Framework components evolve, but dependent modules or log-ging/processing layers are not updated accordingly, leading to attribute mismatches during runtime. For example, a practitioner reported that “ AttributeError: ‘Message’ object has no attribute ‘params’ ” (Adk-python #2930). • CLASS ISSUE refers to implementation issues where class types are not properly registered, recognized, or handled during runtime in LLM-based MAS. Custom or extended class types (including structured outputs) may not be supported by existing runtime compo-nents, leading to execution errors. For example, a practitioner reported that custom structured message classes are not recognized by the group chat runtime: “agent’s StructuredMessage class is not registered in GroupChat ” (AutoGen #6983). • AGENT EXECUTION ISSUE refers to issues where agents do not follow the intended execution strat-egy (e.g., parallelism, scheduling, or control flow) during runtime. The orchestration layer may enforce unintended sequential processing, leading to agents executing in a different order than expected. For exam-ple, a practitioner reported that “ graph nodes execute sequentially instead of parallel ” (Sdk-python #478). 
+
+Interpretation : The substantial proportion of Implemen-tation Issue indicates that correct runtime behavior is a critical challenge in LLM-based MAS. Execution Logic Error (29) and Correctness Issue (20) highlight a consistent pattern of faulty execution flow and incorrect system behav-ior. There is a clear gap between intended system design and its implementation, as implementation flaws lead to in-correct execution behavior, dependency conflicts, parameter misconfigurations, and other runtime issues in LLM-based MAS. 
+
+3.1.5. Tool Issue 
+
+(9.2%) Tool Issue refers to issues arising from incorrect integration, configuration, or usage of external tools in LLM-based MAS. This category encompasses the following four types. • TOOL EXECUTION FAILURE refers to issues that arise when tools fail during the runtime execution of LLM-based MAS. Tool invocation mechanisms or execution environments are improperly handled, leading to crashes or incomplete execution despite correct setup. For example, a practitioner reported that improper async handling causes a runtime error when invoking tools in a group chat: “ GroupChat cannot run with MCP tool call (async await issue) ” (Ag2 #1763). • TOOL INVOCATION ERROR refers to issues where tools are incorrectly invoked during execution in LLM-based MAS. Function names, mappings, or in-vocation logic are improperly configured, leading to calls to invalid or non-existent tools and failure to execute the intended functions. For example, a practi-tioner reported that missing function mappings cause incorrect tool selection: “ AutoGen tries to call non-existent functions that are the names of agents ” (Au-toGen #781). • TOOL SELECTION ERROR refers to issues where agents improperly select or access tools that are not intended for them in LLM-based MAS. These issues typically arise when tool access boundaries are not properly defined in the multi-agent group configura-tion or when tools assigned to one agent become avail-able to other agents, allowing these agents to use tools beyond their intended scope. For example, a prac-titioner reported that an agent uses tools registered for another agent due to shared group context: “ Why agent can use tools from another agent in autogen ”(AutoGen #4399). • PARAMETER CONFIGURATION ERROR refers to issues arising from incorrect or incompatible param-eter definitions in tool schemas within LLM-based MAS. The selected tool is correct, but the provided inputs do not align with the expected tool schema in terms of structure, type, or format, leading to vali-dation failures before tool execution. For example, a practitioner reported that “ the manager agent passes dictionary values where the delegation tool schema expects strings ” (CrewAI #2606). 
+
+Interpretation : The Tool Issue category highlights key challenges in LLM-based MAS related to tool usage during execution. The most common issues include Tool Execution Failure (41) and Tool Invocation Error (28). These findings indicate that issues primarily arise from runtime breakdowns and incorrect tool selection in multi-agent settings, reflecting a gap between intended tool behavior and actual system execution. 
+
+3.1.6. Integration Issue 
+
+(6.7%) Integration Issues refer to issues related to the interaction and compatibility between different components in LLM-based MAS that practitioners encounter while de-veloping and using these MAS. This category encompasses the following five types. • API I NTEGRATION FAILURE refers to issues where external APIs or service-based models fail to inte-grate properly within LLM-based MAS. Integration issues between certain APIs or live services during execution result in runtime errors, thereby limiting communication between agents and external services. For example, a practitioner reported that live API constraints prevent the proper integration of sub-agent   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 11 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+functionality: “ Live Event, Live API stuffs cannot use sub-agent ” (Adk-python #491). • PARAMETER MISCONFIGURATION refers to issues where parameter definitions used during the integra-tion of external models or APIs do not align with the expected schema in LLM-based MAS. The selected model or service is correct, but the parameters passed across system components are improperly structured, missing required fields, or incompatible with the API specification. For example, a practitioner reported that misconfigured tool parameters cause schema valida-tion errors: “ Gemini models in agent mode giving error 400 invalid argument ” (Continue #6121). • DEPENDENCY CONFLICT refers to issues in which incompatible or mismatched library dependencies hinder the successful integration of components in LLM-based MAS. Different system environments rely on conflicting package versions or unsupported de-pendency combinations. For example, a practitioner reported that dependency incompatibilities lead to integration failures during deployment due to serial-ization errors: “ GroupChatWorkflow breaks after up-grading from pyautogen==0.2.10 to 0.2.13 due to in-compatible dependency behavior ” (Autogen #1693). • INTERFACE COMPATIBILITY PROBLEM refers to issues arising from incompatibility between different interfaces or execution environments in LLM-based MAS. The same agentic workflow behaves correctly in a local or direct execution environment but fails when integrated with external interfaces such as web sockets, IO streams, or service-based communication layers. For example, a practitioner reported that a group chat system fails to execute function calls when running through a WebSocket integration, despite working correctly in a direct environment: “ Group-chat will not call function when using IOStream ”(AutoGen #2824). • FRAMEWORK INTEGRATION ISSUE refers to issues where external multi-agent frameworks or libraries fail to integrate correctly within LLM-based MAS. Developers combine different agent frameworks or extend reference implementations, but runtime behavior breaks due to missing framework-specific configurations, incompatible abstractions, or incorrect usage of required components. For example, a practitioner reported that a SemanticKernel-based multi-agent setup fails when adapting areference group-chat implementation, resulting in runtime exceptions: “Write sample based on SemanticKernel with content copied from Example04_Dynamic_GroupChat_Coding_Task, can’t work ” (AutoGen #2688). 
+
+Interpretation : The Integration Issue category high-lights key challenges in LLM-based MAS related to integrat-ing external APIs, frameworks, and system components. The most common issues include API Integration Failure (36) and Parameter Misconfiguration (8). Overall, these findings indicate that even when components are present and acces-sible, failures mainly arise from incorrect integration and mismatched assumptions across the system. Overall, these findings indicate that integration issues stem primarily from incompatibilities and configuration mismatches between ex-ternal components and the MAS. 
+
+3.1.7. Role Issue 
+
+(3.8%) Role Issue refers to issues related to incorrect or unclear role assignment in LLM-based MAS, where agents fail to consistently follow their intended roles during execu-tion. This category encompasses the following two types. • ROLE ASSIGNMENT ERROR refers to issues where LLM-based MAS fail to correctly assign or evaluate roles during execution. The role assignment mech-anism or routing logic does not produce valid or sufficient role decisions, leading to execution failure or inability to proceed with multi-agent coordination. For example, a practitioner reported that “ role assign-ment fails when the system receives insufficient com-patibility scores for the user role, preventing the multi-agent process from proceeding ” (CAMEL #419). • ROLE MISALIGNMENT refers to issues where LLM-based MAS store incorrect role labels in logs or chat history, even when the execution flow is correct. Mes-sage handling or logging mechanisms record wrong role tags (e.g., user messages recorded as assistant), leading to inconsistencies between actual agent be-havior and the recorded system state. For example, a practitioner reported that messages from a user proxy agent are incorrectly recorded as assistant in the chat history: “ Wrong role set in group chat ” (AutoGen #3009). 
+
+Interpretation : The Role Issue category highlights key challenges in LLM-based MAS related to correct role as-signment and role labeling. These issues comprise Role Assignment Error (30) and Role Misalignment (6). Overall, role-related problems affect both role behavior during exe-cution and role recording in logs, leading to inconsistencies between actual agent behavior and stored role information. 
+
+3.1.8. Environment & Configuration Issue 
+
+(3.5%) Environment & Configuration Issue refers to is-sues arising from incorrect setup, dependency management, or runtime environment configuration in LLM-based MAS, where agents fail to initialize or execute correctly. This category encompasses the following four types. • DEPENDENCY CONFLICT refers to issues where in-compatible library or package versions in the exe-cution environment prevent proper initialization or execution of LLM-based MAS. These runtime envi-ronment mismatches lead to runtime failures such as missing attributes or import errors, even when the   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 12 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+system logic is correctly implemented. For example, a practitioner reported that a version mismatch be-tween autogen_studio and autogen_agentchat causes a missing attribute error during team initialization: “Type object team has no attribute load_component with AutoGen Studio v0.4.0.4 ” (AutoGen #5319). • PARAMETER CONFIGURATION ERROR refers to issues where parameter configuration is incorrectly structured or not properly mapped to target agents or nodes in the current execution environment in LLM-based MAS. Runtime parameter overrides fail when schema mismatches, invalid formatting, or incorrect node identifiers, leading to execution errors or ignored settings despite correct system logic. For example, a practitioner reported that structured override config-urations for sequential agents and LLM nodes cause runtime errors: “ Can’t override data for sequential agents ” (Flowise #3240). • ENVIRONMENT MISCONFIGURATION refers to is-sues where LLM-based MAS fail when incorrect or incompatible deployment environment settings, such as networking rules, service exposure, or runtime constraints in cloud or containerized setups. These issues prevent agents from accessing external services or internal APIs, leading to connection failures despite correct system logic. For example, a practitioner re-ported that agent creation fails because of Kubernetes networking restrictions that block access to external AI endpoints: “ AI agents fail to create due to Kuber-netes networking constraints ” (Activepieces #9038). • API I NTEGRATION FAILURE refers to issues where external APIs or tool interfaces fail to operate cor-rectly due to environmental configuration constraints in LLM-based MAS. Incorrect lifecycle management or missing integration handling between the agent framework and external API services prevents agents from accessing API-based tools despite correct sys-tem logic. For example, a practitioner reported that MCP tool connections fail inside a FastAPI-mounted application because of improper lifecycle handling of the API interface: “ mounting AgentOS app on exist-ing FastAPI prevents MCP tools connection ” (Agno #4958). 
+
+Interpretation : The Environment & Configuration Issue 
+
+category highlights key challenges in LLM-based MAS related to deployment setup, dependency management, and external service integration. The most common issues in-clude Dependency Conflict (9) and Parameter Configuration Error (9). Overall, these findings indicate that environment & configuration issues can prevent agents from initializing, communicating, or executing correctly within LLM-based MAS. 
+
+3.1.9. Output Issue 
+
+(3.1%) Output Issue refers to issues related to incorrect, incomplete, or malformed outputs generated by LLM-based MAS during execution that practitioners encounter while developing and using these systems. This category encom-passes the following three types. • INCOMPLETE RESPONSE refers to issues where LLM-based MAS return only a subset of the ex-pected output, omitting intermediate results, agent-level responses, or other information from the exe-cution process. This reduces transparency and makes it difficult to understand how the final answer was produced. For example, a practitioner reported that only the final conclusion is returned through the API while intermediate worker outputs are hidden: “ API of Agentflows not displaying the answers of each worker ”(Flowise #2706). • OUTPUT INACCURACY refers to issues where LLM-based MAS generate outputs containing unintended formatting artifacts or structural tokens in the final re-sponse, such as extra symbols, wrappers, or formatting noise not intended in the output format. This makes the output unsuitable for direct use or downstream processing. For example, a practitioner reported that “triple backticks (“‘) are appended unexpectedly at the end of crew output responses ” (CrewAI #2105). • OUTPUT INCONSISTENCY refers to issues where LLM-based MAS produce inconsistent or unstable outputs under the same input conditions, even when the prompt, model, and configuration remain un-changed. These inconsistencies may arise from vari-ations in multi-agent coordination, task decomposi-tion, or sequential execution, leading to differences in the generated outputs. For example, a practitioner reported that “ Crew fails to deliver the same output as ChatGPT given the same prompt and model ” (CrewAI #1024). 
+
+Interpretation : The Output Issue category highlights key challenges in LLM-based MAS related to the complete-ness, correctness, and reliability of generated outputs. The most common issues include Incomplete Response (12) and 
+
+Output Inaccuracy (10). Overall, these findings indicate that incomplete, malformed, and inconsistent outputs can reduce the usability and reliability of responses generated by LLM-based MAS. 
+
+3.1.10. Documentation Issue 
+
+(2.8%) Documentation Issue refers to issues related to missing, unclear, or incorrect documentation in LLM-based MAS. This category encompasses the following two types. • UNCLEAR DOCUMENTATION refers to issues where system documentation is inconsistent, ambiguous,   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 13 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+or incorrect, leading to confusion during develop-ment and usage of LLM-based MAS. Documentation-related information such as agent and tool descrip-tions, usage instructions, or multi-agent workflows may not align with the actual implementation in LLM-based MAS. For example, a practitioner re-ported that documentation references outdated tool prefixes, causing naming confusion: “ confusing MCP Tool References - mcp_ruv-swarm vs mcp_claude-flow ” (Claude-flow #160). • MISSING DOCUMENTATION refers to issues where required information, commands, or usage details are not properly documented in LLM-based MAS. caus-ing confusion during the development and execution of LLM-based MAS. For example, a practitioner re-ported that “ the documentation lacked examples and guidance for the new multi-agent setup using Agent-Tool ” (Adk-Python #1608). 
+
+Interpretation : The Documentation Issue category high-lights the challenges in LLM-based MAS related to the clarity and completeness of system documentation. These issues include Unclear Documentation (14) and Missing Documentation (12). Overall, these findings indicate that documentation issues reflect a gap between the system and its supporting documentation in LLM-based MAS. 
+
+3.1.11. Communication Issue 
+
+(2.6%) Communication Issue refers to issues related to interaction, message exchange, and information flow be-tween agents in LLM-based MAS that practitioners en-counter while developing and using these systems. This category encompasses the following four types. • MESSAGE FORMAT ERROR refers to issues where messages exchanged between agents are incorrectly structured or violate the expected communication pro-tocol (e.g., JSON schema, role fields, or message for-mat), causing failures in inter-agent communication or message processing. For example, a practitioner reported that an entry-point agent sends malformed messages to other agents, requiring a structured for-mat: “ Entry point agent occasionally sends incorrect or malformed information when communicating with other agents ” (Agency-Swarm #175). • CONNECTION ISSUE refers to issues where com-munication between agents fails when network or connectivity problems occur, such as network errors, incorrect endpoints, or infrastructure constraints, pre-venting information exchange and coordinated task execution. For example, a practitioner reported that inter-agent communication fails due to a network error: “ A2A inter-agent communication failure due to network/proxy connectivity problem ” (Adk-python #2384). • ROLE ASSIGNMENT ISSUE refers to issues where agent roles are incorrectly assigned during inter-agent communication, leading to misinterpretation of con-text by downstream agents and incorrect outputs. For example, a practitioner reported that: “ incorrect role assignment in multi-agent mode causes context misin-terpretation ” (Adk-python #1748). • MESSAGE TRANSMISSION FAILURE refers to issues where messages or events are not properly transmit-ted between agents or system components, leading to incomplete information flow. In such cases, com-munication signals (e.g., intermediate messages) fail to propagate across system. For example, a practi-tioner reported that a sub-agent successfully executes a tool, but the corresponding event is not transmitted to the frontend: “ Sub-agent tool execution event fails to propagate to the frontend ” (Agno #3435). 
+
+Interpretation : The Communication Issue category highlights key challenges in LLM-based MAS related to message exchange, connectivity, and interaction between agents. The most common issues include Message Format Error (12) and Connection Issue (6). Overall, these findings indicate that incorrect message structuring, communication failures, and network constraints can disrupt information ex-change and interaction between agents in LLM-based MAS. 
+
+3.1.12. Performance Issue 
+
+(2.0%) Performance Issue refers to issues related to ex-ecution efficiency, latency, and resource utilization in LLM-based MAS. This category encompasses the following two types. • INEFFICIENT EXECUTION refers to issues where LLM-based MAS use resources inefficiently during task execution, leading to redundant processing and increased computational or time overhead, such as when unnecessary agents or processes are involved in task execution. For example, a practitioner re-ported that: “ GroupChat keeps calling all the avail-able agents and doesn’t stop even after output from one agent is generated ” (AutoGen #1464). • RESPONSE DELAY refers to issues where LLM-based MAS experience high latency during execution, tool invocation, or response generation. Delays between key stages (e.g., model callbacks, tool calls, or agent communication) result in slow system responsiveness and reduced performance. For example, a practitioner reported that “ high latency occurs between agent call-backs and tool invocation during multi-agent execu-tion ” (Adk-python #1566). 
+
+Interpretation : The Performance Issue category high-lights key challenges in LLM-based MAS related to exe-cution efficiency and response latency. The issues include 
+
+Inefficient Execution (9) and Response Delay (9). Overall, these findings indicate that redundant processing and execu-tion delays can reduce the efficiency and responsiveness of LLM-based MAS.   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 14 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+3.1.13. Model Issue 
+
+(1.6%) Model Issue refers to issues arising from model behavior and model-level limitations in LLM-based MAS. This category encompasses the following two types. • MESSAGE FORMAT MISMATCH refers to issues where agents generate outputs in a format that is incompatible with the system’s expected structured output interface. For example, a practitioner reported that the model returns responses in an incorrect ob-ject format instead of a properly structured string: “Sequential agents with anthropic return the response as an array of strings instead of the expected string format ” (Flowise #3792). • API C OMPATIBILITY ISSUE refers to issues where LLM-based MAS are incompatible with specific model API requirements or provider constraints dur-ing model API integration. Model providers enforce strict API rules that may conflict with MAS design, leading to execution failures despite correct system implementation. For example, a practitioner reported that Anthropic’s API enforces strict role-alternation rules that are incompatible with the system’s conver-sation structure: “ Anthropic Claude rejects sequential multi-agent messages because its API requires alter-nating user and assistant roles ” (Flowise #3147). 
+
+Interpretation : The Model Issue category highlights challenges in LLM-based MAS related to model response formatting and platform-specific constraints. The issues in-clude Message Format Mismatch (12) and API Compati-bility Issue (3). Overall, these findings indicate that model issues arise from mismatches between model outputs, API requirements, and MAS communication requirements. 
+
+3.1.14. Compatibility Issue 
+
+(1.4%) Compatibility Issue refers to issues related to version mismatches and incompatibilities between different components or frameworks in LLM-based MAS. This cate-gory encompasses the following two types. • INTERFACE TYPE MISMATCH refers to issues where LLM-based MAS produce outputs that do not follow the expected data structures defined by external sys-tems or the expected output formats of model APIs. This leads to violations of required constraints in mes-sage content types, field formats, or nested structures. For example, a practitioner reported that “ sub-agent execution produced array-based content instead of the string format required by the Ollama API ” (Adk-python #376). • API C OMPATIBILITY ISSUE refers to issues where LLM-based MAS fail to comply with provider-specific API requirements. The request sent to the API does not meet required constraints, leading to runtime rejection despite correct system design. For example, a practitioner reported that “ crewAI sends conversa-tion messages to WatsonX (IBM’s AI platform) that do not conform to the API’s required user/assistant role sequence ” (CrewAI #1619). 
+
+Interpretation : The Compatibility Issue category high-lights challenges in LLM-based MAS related to interface and protocol-level constraints during integration with exter-nal services. The issues include Interface Type Mismatch 
+
+(10) and API Compatibility Issue (3). Overall, these findings indicate that compatibility issues arise from violations of external interface schemas and provider-specific conversa-tion rules, leading to integration breakdowns despite correct system design. 
+
+3.1.15. Error Handling Issue 
+
+(1.3%) Error Handling Issue refers to issues related to failure detection, exception handling, and recovery mecha-nisms in LLM-based MAS. This category encompasses the following two types. • UNHANDLED EXCEPTION refers to failures where LLM-based MAS do not properly handle runtime exceptions during execution. These issues arise when variables, inputs, or intermediate states are not cor-rectly defined or passed, which leads to unex-pected execution failures. For example, a practitioner reported that “ MetaGPT’s ActionNode.fill function raises an UnboundLocalError when the local variable context is referenced before assignment ” (MetaGPT #1839). • RECOVERY FAILURE refers to failures where LLM-based MAS are unable to properly restore or cor-rect system state after an error occurs. This happens because partial execution results are not rolled back or cleared. This results in inconsistent system states despite the presence of fallback or recovery mecha-nisms. For example, a practitioner reported that “ aguardrail exception fails to remove the prior agent response from the session history ” (openai-agents-python #1840). 
+
+Interpretation : The Error Handling Issue category high-lights challenges in LLM-based MAS related to runtime exception handling and system recovery mechanisms. The issues include Unhandled Exception (5) and Recovery Fail-ure (7). Overall, these findings indicate that Error Handling Issues arise from the inability of systems to properly manage runtime errors and recover from execution breakdowns, leading to reduced reliability and interrupted multi-agent workflows. 
+
+3.1.16. Task Management Issue 
+
+(1.2%) Task Management Issue refers to issues arising from task assignment, scheduling, and task execution flow in LLM-based MAS. This category encompasses the following two types.   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 15 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+• TASK ALLOCATION FAILURE refers to issues where tasks are not handled by the appropriate agents in a multi-agent workflow, leading to incomplete task execution. For example, a practitioner reported that “a ‘RetrieveUserProxyAgent’ agent is sometimes not called when expected, preventing the intended re-trieval task from being performed. ” (AutoGen #1130). • TASK DUPLICATION refers to issues where the same task is executed multiple times in a single run, leading to repeated agent executions and duplicated outputs. For example, a practitioner reported that agents are re-invoked after completing their first cycle, causing the pipeline to run again: “ Agents work twice in every run ” (CrewAI #416). 
+
+Interpretation : The Task Management Issue category highlights challenges in LLM-based MAS related to task allocation and execution control during multi-agent work-flows. The issues include Task Allocation Failure (7) and 
+
+Task Duplication (4). Overall, these findings indicate that incorrect task distribution and repeated task execution across agents can reduce coordination effectiveness and lead to inconsistencies in multi-agent workflow execution. 
+
+3.1.17. Security Issue 
+
+(0.3%) Security Issue refers to issues related to access control, data protection, and security vulnerabilities in LLM-based MAS. This category encompasses the following two types. • VALIDATION ISSUE refers to security issues where insufficient verification of input data leads to un-safe processing, resulting in security vulnerabilities or unintended system behavior. For example, a practi-tioner reported that pickle.loads is used without suffi-cient input validation, allowing unsafe code execution: “incoming agent data is unsafely deserialized using pickle.loads, allowing attackers to execute commands remotely ” (AgentScope #635). • ACCESS CONTROL ISSUE refers to security issues where permission control, or identity-based access mechanisms, are not properly implemented, leading to unauthorized access to user-specific resources. For example, a practitioner reported that “ wrong user IDs cause agents to return data belonging to other users, resulting in unauthorized access to user-specific re-sources ” (Agno #2279). 
+
+Interpretation : The Security Issue category highlights challenges in LLM-based MAS related to input validation and access control in LLM-based MAS. The issues include 
+
+Validation Issue (2) and Access Control Issue (1). Overall, these findings indicate that security-related issues mainly arise from insufficient input validation and weak enforce-ment of access restrictions, which may lead to unsafe pro-cessing and unauthorized access in MAS. 
+
+3.2. Category of Causes (RQ2) 
+
+To address RQ2, we investigate the underlying causes of the issues identified in the final dataset. We categorize the extracted causes into distinct categories to characterize the factors contributing to issues in open-source LLM-based MAS. As mentioned in Section 2.4.2, not all closed issues have an associated cause that can be identified. However, an issue may have one or more causes, and all causes identified by the practitioner or development team are recorded. As a result, we identified a total of 540 causes, which were extracted from 57.2% of the 944 issues and categorized into 14 categories as presented in Table 6. 
+
+3.2.1. Results 
+
+The results show that the most prominent cause is 
+
+Workflow Problem (WP) (29.4%), followed by Tool Integra-tion Problem (TIP) (11.7%), and Memory Problem (MP) 
+
+(11.1%). Examples of each category of cause, along with their counts and proportions, are also provided in Table 6. It should be noted that certain categories of issues can poten-tially serve as causes of other issues. For example, problems in the Agent Lifecycle Problem (ALP) category can disrupt workflow execution, leading to problems in the Workflow Problem (WP) category. Such failures may also disrupt inter-agent coordination and message exchange during execution, resulting in problems in the Communication Problem (CP) 
+
+category. • WORKFLOW PROBLEM (WP) refers to problems in workflow execution and task coordination in LLM-based MAS. These problems are caused by limitations in workflow design and execution, leading to incor-rect, incomplete, or failed outcomes. It encompasses eleven types: (1) C ONTEXT MANAGEMENT PROB -
+
+> LEM
+
+: Problems arising from failures in transferring task-related context (e.g., instructions, communica-tion history, or execution state) between agents during workflow execution, causing incorrect coordination or task outcomes. (2) C OORDINATION PROBLEM : Prob-lems arising from weak interaction and synchroniza-tion among multiple agents. (3) E RROR TRANSMIS - 
+
+> SION
+
+PROBLEM : Problems arising when failures in an earlier workflow step affect subsequent execution stages, causing incorrect task outcomes. (4) H ANDOFF DATA PROBLEM : Problems arising when task-related data, execution context, or required parameters are missing or incompletely transferred during a handoff between agents. For example, a user reported that “ required execution events were incor-rectly classified and filtered out during the handoff ”(Adk-Python #2073). (5) L OOP PROBLEM : Problems arising from missing or incorrect termination condi-tions or flawed control logic. (6) M ESSAGE ROUTING 
+
+PROBLEM : Problems arising due to failures in pro-cessing, forwarding, or delivering messages between agents during execution.   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 16 of 30
+
+Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+Table 6 
+
+Causes of Issues in Open-Source LLM-based Multi-Agent Projects                                                            
+
+> Category Count %Example (Extracted Cause)
+> Workflow Problem (WP) 159 29.4% System remembers only the first user message and keeps reusing it, leading to wrong answers (Agno #3422)
+> Tool Integration Problem (TIP) 63 11.7% Tool-calling agents cannot start managed agents because managed agents are not registered as tools. (Smolagents #1353)
+> Memory Problem (MP) 60 11.1% Session history fails to load due to process-bound in-memory caching when teams nest other teams. (Agno #4831)
+> Integration Problem (IP) 56 10.4% Integration fails when context does not pass from agent memory to tools, so tools use hardcoded defaults. (PraisonAI #289)
+> Agent Lifecycle Problem (ALP) 56 10.4% Initialization fails when an agent name contains a space, as names must be valid Python identifiers. (smolagents #640)
+> Communication Problem (CP) 37 6.9% Agents misinterpret each other’s messages when responses are incorrectly labeled as user input. (ADK-Python #1748)
+> Configuration Problem (ConP) 34 6.3% Configuration fails because the system uses a hardcoded path and ignores user settings. (Claude-flow #52)
+> Dependency Problem (DP) 25 4.6% Missing setuptools dependency causes CrewAI import error, breaking multi-agent workflows. (PraisonAI #234)
+> Documentation Problem (DocP) 15 2.8% Documentation does not match actual hook implementation, missing events and control flow features. (Claude-flow #377)
+> Performance Problem (PP) 13 2.4% Team conversation performance degrades because team sessions keep re-sending old messages. (Agno #3793)
+> Database Problem (DataP) 11 2.0% Missing tables in database schema break state persistence. (Claude-flow #192)
+> Infrastructure Problem (InfP) 61.1% Kubernetes networking constraints prevent pods from reaching their own external URL. (Activepieces #9038)
+> Frontend Problem (FP) 30.6% Agent outputs are truncated when fixed-position boxes run out of space (Agno #3680)
+> Security Problem (SP) 20.4% The function loads incoming untrusted data in a way that can run hidden malicious code. (AgentScope #635)
+
+(7) O RCHESTRATION PROBLEM : Problems arising from improper management of task dependencies and workflow execution across multiple agents, affecting overall execution flow. (8) R ESOURCE CONTENTION 
+
+PROBLEM : Problems arising when multiple agents compete for limited shared resources (e.g., memory, files, tools, or execution slots) during concurrent ex-ecution, causing blocking, conflicts, or delayed task completion. (9) S EQUENTIAL EXECUTION PROBLEM :Problems arising due to incorrect ordering or depen-dency conflicts in stepwise execution. (10) W ORK -
+
+FLOW STATE ERROR : Problems arising from incorrect or inconsistent system state during a single workflow run, causing agents to act on outdated or corrupted intermediate data across sequential steps. (11) E X-
+
+TERNAL TOOL PROBLEM : Problems arising when an external tool itself fails or produces unexpected outputs during workflow execution, despite being cor-rectly integrated and invoked, resulting in incorrect or incomplete workflow outcomes. • TOOL INTEGRATION PROBLEM (TIP) refers to problems concerning the integration and interaction of external tools in LLM-based MAS. These prob-lems are caused by failures in integrating, invoking, or communicating with tools, including parameter handling, tool access, or schema consistency, leading to invocation failures, incorrect data transmission, or incomplete task outcomes. It encompasses four types: (1) MCP I NTEGRATION PROBLEM : Problems aris-ing due to failures in integrating or communicating with external Model Context Protocol (MCP)-based systems. (2) P ARAMETER INTEGRATION PROBLEM :Problems arising due to required input parameters not being correctly passed to tools during invocation. (3) T OOL EXECUTION PROBLEM : Problems arising due to failures in accessing or executing tools, where the tool cannot run as intended (e.g., resource locks, runtime crashes, timeouts). For example, a user ex-plained that “ Claude Code tools were already active or locked in the current session, preventing Claude-Flow from accessing them ” (Claude-Flow #59). (4) TOOL SCHEMA PROBLEM : Problems arising due to mismatches or inconsistencies between tool defini-tions and expected input or output schemas. • MEMORY PROBLEM (MP) refers to problems con-cerning the storage, retrieval, and utilization of mem-ory in LLM-based MAS. These problems arise due to limitations in memory mechanisms or contex-tual consistency, leading to consistency errors and incorrect responses across sessions. It encompasses three types: (1) M EMORY PERSISTENCE PROBLEM :Problems arising from failures in storing, retrieving, or retaining contextual information across execution steps, causing agents to lose previously established knowledge or states. (2) M EMORY MANAGEMENT 
+
+PROBLEM : Problems arising due to failures in storing or updating internal or external memory, affecting memory consistency and correctness. For example, a user explained that “ external memory storage failed because agent roles were appended to the collection name, exceeding the allowed length ” (CrewAI #2985). (3) S TATE MANAGEMENT PROBLEM : Problems aris-ing due to inconsistent or incorrect maintenance of system state across interactions or sessions. 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 17 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+• INTEGRATION PROBLEM (IP) refers to problems concerning the integration and compatibility of com-ponents in LLM-based MAS. These problems arise due to failures in component compatibility, coordina-tion among agents, or configuration alignment across agents, models, and execution frameworks, leading to communication inconsistencies, configuration mis-matches, and incorrect system behavior across work-flows. It encompasses two types: (1) A GENT INTE - 
+
+> GRATION
+
+PROBLEM : Problems arising due to failures in integrating agents within hierarchical MAS. For example, a user reported that “ the issue occurred because the speaker-selection agent was not properly integrated with the custom model client ” (AutoGen #2956). (2) P ARAMETER PROPAGATION PROBLEM :Problems arising when required parameters or exe-cution settings are not correctly transferred between interacting components in LLM-based MAS. • AGENT LIFECYCLE PROBLEM (ALP) refers to problems concerning the lifecycle of agents in LLM-based MAS, including their creation, initialization, and execution. These problems arise from failures in agent initialization or runtime execution, leading to improper agent setup, execution failures, or inconsis-tent agent behavior. It encompasses two types: (1) AGENT CREATION PROBLEM : Problems arising due to created agents not being properly initialized with required configurations or model clients. For example, a user reported that “ a custom model client failed in a group chat because the internal speaker-selection agent was initialized without registering the custom model client ” (AutoGen #2643). (2) A GENT RUNTIME 
+
+PROBLEM : Problems arising when an agent fails to execute an assigned task correctly due to runtime errors or execution interruptions. • COMMUNICATION PROBLEM (CP) refers to prob-lems concerning the exchange of information between agents in LLM-based MAS. These problems arise due to failures in message passing, routing, or main-taining shared context among agents, leading to in-correct information transfer and disrupted execution continuity across the workflow. It encompasses three types: (1) H ANDOFF PROBLEM : Problems arising during the transfer of control, responsibility, or task ownership between agents, where the receiving agent fails to correctly continue execution. For example, a user reported that “ a handoff between agents returned no task because the user message was added to the chat history after the LLM processed the handoff tool, making the message unavailable to the receiving agent ” (PraisonAI #795). (2) I NTER -A GENT COMMU - 
+
+> NICATION
+
+PROBLEM : Problems arising due to failures in delivering or routing messages between agents in LLM-based MAS. (3) M ESSAGE HANDLING PROB -
+
+> LEM
+
+: Problems arising due to incorrect processing, interpretation, or filtering of received messages within agents. • CONFIGURATION PROBLEM (C ON P) refers to prob-lems related to the setup and specification of parame-ters and system configurations in LLM-based MAS. These problems arise due to missing or incorrect configuration of models, agents, or execution frame-works, leading to initialization failures and runtime errors. It encompasses the following two types: (1) SETUP PROBLEM : Problems arising due to missing, incompatible, or incorrectly initialized configuration files or environment dependencies during MAS or agent setup. (2) P ARAMETER PROBLEM : Problems arising due to required parameters, model settings, or execution arguments being incorrectly specified or propagated. For example, a user reported that “ Cap-tainAgent failed because the internal AgentBuilder ignored the explicitly provided LLMConfig parameter and instead looked for a legacy OAI_CONFIG_LIST file, causing a file-not-found error ” (Ag2 #1446). • DEPENDENCY PROBLEM (DP) refers to problems concerning incompatibilities among system depen-dencies in LLM-based MAS. These problems arise due to mismatched, missing, or incompatible exter-nal APIs or modules, leading to execution failures or runtime errors. It encompasses three types: (1) API COMPATIBILITY PROBLEM : Problems arising due to incompatible or changed API interfaces. (2) IMPORT PROBLEM : Problems arising due to missing or improperly loaded modules, files, or configuration imports. (3) V ERSION COMPATIBILITY PROBLEM :Problems arising due to mismatched or incompatible software versions following upgrades or changes in the execution environment. For example, a user re-ported that “ upgrading Flowise to v3.0.3 caused exist-ing AgentFlow v1 flows to fail due to incompatibility between the updated dependencies and the existing flow configuration ” (Flowise #4756). • DOCUMENTATION PROBLEM (D OC P) refers to problems concerning incomplete or inconsistent doc-umentation in LLM-based MAS. These problems arise due to missing, outdated, or inconsistent docu-mentation, leading to usability issues, configuration errors, or incorrect system execution. It encompasses two types: (1) M ISSING DOCUMENTATION : Problems arising due to required information not being provided in documentation. (2) O UTDATED DOCUMENTATION :Problems arising due to documentation not being updated after system changes. For example, a user reported that a “ sub-agent execution failed because the documentation incorrectly instructed hooks no-tification while the actual command expected hooks notify ” (Claude-flow #504). • PERFORMANCE PROBLEM (PP) refers to problems concerning the efficiency and speed of LLM-based   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 18 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+MAS. These problems arise due to limitations in parallel execution, scalability, timeouts, or processing latency, leading to slow execution or high resource usage. It encompasses four types: (1) P ARALLEL EX- 
+
+> ECUTION
+
+PROBLEM : Problems arising due to failures in concurrent execution across agents. (2) S CALA - 
+
+> BILITY
+
+PROBLEM : Problems arising due to reduced performance as system size or workload increases.(3) TIMEOUT PROBLEM : Problems arising when opera-tions exceed the allowed execution time. (4) L ATENCY 
+
+PROBLEM : Problems arising due to delays caused by inefficient processing or large data operations. For example, a user explained that “ shared memory access became slow as the dataset grew because load() used deepcopy() on every call, and duplicate records led to increased memory usage, resulting in high latency ”(Camel #3185). • DATABASE PROBLEM (D ATA P) refers to problems concerning database structure, initialization, data ac-cess, and schema consistency in LLM-based MAS. These problems arise due to failures in database setup, data retrieval, or schema alignment, leading to ex-ecution failures or incorrect system behavior. It en-compasses three types: (1) D ATABASE INITIALIZA - 
+
+> TION
+
+FAILURE : Problems arising due to errors during database creation or setup. (2) D ATA RETRIEVAL 
+
+FAILURE : Problems arising due to failure in accessing or retrieving required data. (3) D ATABASE SCHEMA 
+
+INCONSISTENCY : Problems arising due to mismatches between expected and actual database schema. For ex-ample, a user reported that “ agent creation failed be-cause the agents table lacked the role column that the application expected during data insertion ” (Claude-Flow #403). • INFRASTRUCTURE PROBLEM (I NF P) refers to prob-lems concerning the technical infrastructure, execu-tion environment, and deployment of LLM-based MAS. These problems arise due to failures or limi-tations in system infrastructure, deployment environ-ments, or file handling, leading to execution failures or system unavailability. It encompasses three types: (1) S ERVER PROBLEM : Problems arising from server configuration, availability, or resource limitations. (2) FILE SYSTEM HANDLING PROBLEM : Problems aris-ing from file access, storage, or path-related issues. (3) DEPLOYMENT PROBLEM : Problems arising from in-frastructure or runtime environment issues during sys-tem deployment. For example, a user explained that “AI agents failed to be created in a Kubernetes deploy-ment because network policies prevented pods from reaching external URLs, causing connection timeouts to external AI providers ” (Activepieces #9038). • FRONTEND PROBLEM (FP) refers to problems con-cerning the user interface and output handling of LLM-based MAS. These problems arise due to fail-ures or limitations in user interface rendering, event propagation, or output display, leading to incorrect, in-complete, or unavailable information being presented to users. It encompasses two types: (1) U SER INTER - 
+
+> FACE
+
+PROBLEM : Problems arising from failures in rendering or presenting the user interface during MAS execution. (2) O UTPUT PROBLEM : Problems arising from failures or limitations in displaying, updating, or streaming agent outputs. For example, a user ex-plained that “ streaming agent outputs are truncated when fixed-position boxes run out of available display space, preventing the display from scrolling to the latest output ” (Agno #3680). • SECURITY PROBLEM (SP) refers to problems con-cerning vulnerabilities that expose LLM-based MAS to unauthorized access, malicious execution, or unau-thorized manipulation of system control. These prob-lems arise due to weaknesses in input validation, dese-rialization, or function access control, leading to sys-tem compromise or unauthorized actions. It encom-passes two types: (1) P ROMPT INJECTION PROBLEM :Problems arising due to manipulation of model inputs to alter system behavior or bypass constraints. (2) INSECURE DESERIALIZATION PROBLEM : Problems arising due to unsafe deserialization of malicious data, potentially allowing unauthorized code execution. For example, a user explained that “ the system unsafely deserialized incoming agent data using a vulnerable deserialization method, allowing malicious code exe-cution ” (Agentscope #635). 
+
+3.2.2. Causes to Issues Mapping 
+
+Table 7 illustrates the mapping between Issue categories and Cause categories identified in the development and use of open-source LLM-based MAS, along with their distri-butions. To improve readability, abbreviations are used to denote each Cause category for instance, “WP” refers to 
+
+Workflow Problem . The full names of all Cause categories are provided in the note of Table 7. Over three quarters, 87.0% of Implementation Issue are associated with identified causes, representing the highest rate among all issue categories. These issues are mainly caused by Workflow Problem (WP) (24). Only 13.6% of Feature Request cases are associated with identified causes, representing the lowest rate among all issue categories. Workflow Problem (WP) (7) is identified as the most frequent cause. The largest category among all issues is Orchestration & Execution Issue . 54.8% of these issues are associated with identified causes, and the most frequent causes are Workflow Problem (WP) (65), Agent Lifecycle Problem (ALP) (10), and Integration Problem (IP) (9). For Error Handling Issue , causes are identified in 83.3% of cases. These issues mainly originate from Tool Integration Problem (TIP) (3). For Tool Issue , 73.6% of cases are associated with identified causes. These issues mainly originate from Tool   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 19 of 30
+
+Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+Table 7 
+
+Mapping between issue categories (vertical) and cause categories (horizontal)                                                                                                                                                                                                                                                                          
+
+> WP TIP MP IP ALP CP ConP DP DocP PP DataP InfP FP SP Orchestration & Execution Issue 65 73910 841051100
+> Memory & State Management Issue 16 143 16230038100
+> Feature Request 72021210110000
+> Implementation Issue 24 7411 18 112 5202100
+> Tool Issue 18 23 344414110100
+> Integration Issue 211 117 3235100000
+> Role Issue 70056010000000
+> Environment & Configuration Issue 12013077000200
+> Output Issue 31132100000030
+> Documentation Issue 0210001110 00000
+> Communication Issue 3101011 00000000
+> Performance Issue 21200000020000
+> Model Issue 41020300000000
+> Compatibility Issue 11001312000000
+> Error Handling Issue 23202000010000
+> Task Management Issue 40000000000000
+> Security Issue 00000000000002
+> Full names of every cause category abbreviation : WP: Workflow Problem ; TIP: Tool Integration Problem ; MP: Memory Problem ; IP: Integration Problems ;ALP: Agent Lifecycle Problem ; CP: Communication Problem ; ConP: Configuration Problem ; DP: Dependency Problem ; DocP: Documentation Problem ; PP:
+> Performance Problem ; DataP: Database Problem ; InfP: Infrastructure Problem ; FP: Frontend Problem ; SP: Security Problem .
+
+Integration Problem (TIP) (23) and Workflow Problem (WP) 
+
+(18). For Integration Issue , causes are identified in 71.4% of cases, mainly arising from Integration Problem (IP) (17). For Environment & Configuration Issue , causes are iden-tified in 69.7% of cases, mainly arising from Dependency Problem (DP) (7) and Configuration Problem (ConP) (7). For Compatibility Issue , causes are identified in 69.2% of cases, mainly arising from Communication Problem (CP) 
+
+(3). For Model Issue , causes are identified in 66.7% of cases, mainly originating from Workflow Problem (WP) (4). For Security Issue , causes are identified in 66.7% of cases, mainly originating from Security Problem (SP) (2). For Memory & State Management Issue , causes are identified in 60.4% of cases. These issues mainly originate from Memory Problem (MP) (43). For Communication Issue , causes are identified in 64.0% of cases. These issues mainly originate from Communication Problem (CP) (11). For Role Issue , causes are identified in 52.8% of cases. These issues are mainly caused by Workflow Problem (WP) 
+
+(7). For Documentation Issue , causes are identified in 57.7% of cases. These issues mainly originate from Documentation Problem (DocP) (10). For Output Issue , causes are identified in 48.3% of cases. These issues are mainly caused by Integration Problem (IP) 
+
+(3), Workflow Problem (WP) (3), and Frontend Problem (FP) (3). For Performance Issue , causes are identified in 36.8% of cases. These issues are mainly caused by Memory Problem (MP) (2), Workflow Problem (WP) (2), and Performance Problem (PP) (2). For Task Management Issue , causes are identified in 36.4% of cases. These issues are mainly caused by Workflow Problem (WP) (4). 
+
+3.2.3. Interpretation 
+
+In this section, we analyze the frequency and distribution of different causes across various issue categories in LLM-based MAS. We further map these causes to specific issue types to identify the dominant root causes associated with different issues. 
+
+Frequency of the causes : The frequency of the causes shows that Workflow Problem (WP) is the most frequent cause of issues, as the results indicate. Since LLM-based MAS rely on sequential execution and shared context, most failures arise from incorrect workflow state handling and re-peated use of outdated context, leading to incorrect outputs. This highlights workflow consistency as a key challenge in multi-agent coordination. Tool Integration Problem (TIP) 
+
+and Memory Problem (MP) also significantly contribute to issues in LLM-based MAS. TIP reflects failures in tool reg-istration or invocation, where agents cannot access required external tools. Memory Problem (MP) indicates failures in retaining or retrieving contextual information across agent interactions, causing agents in LLM-based MAS to lose pre-viously established context during task execution. Together, 
+
+Tool Integration Problem (TIP) and Memory Problem (MP) 
+
+represent important causes of issues in LLM-based MAS, particularly those related to tool integration and memory management. Additionally, Integration Problem (IP) , Agent Lifecycle Problem (ALP) , Communication Problem (CP) ,and Configuration Problem (ConP) appear with moder-ate frequency. These causes mainly concern system setup and coordination, including incorrect configurations, nam-ing constraints, and message misinterpretation. Although less frequent than WP, these causes reflect important chal-lenges in configuring and coordinating LLM-based MAS. The remaining categories, including Dependency Problem (DP) , Documentation Problem (DocP) , Performance Prob-lem (PP) , Database Problem (DataP) , Infrastructure Prob-lem (InfP) , Frontend Problem (FP) and Security Problem (SP) , occur less frequently but still impact system stabil-ity, usability, scalability, and security of LLM-based MAS. 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 20 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+Overall, most causes are concentrated in workflow execu-tion, tool usage, and memory handling, while the remaining categories represent other underlying causes in LLM-based MAS. 
+
+Mapping of causes to issues : Workflow Problem (WP) 
+
+is the most frequent cause across multiple issue categories. 57.0% of Orchestration & Execution Issue causes originate from Workflow Problem (WP) , reflecting the central role of workflow design in agent coordination and task execution. Similarly, 51.2% of Memory & State Management Issue 
+
+cases are caused by Memory Problem (MP) , highlighting the close relationship between workflow execution and memory handling when agents lose context or state updates are not properly propagated. Tool Integration Problem (TIP) 
+
+is the dominant cause of Tool Issue , accounting for 35.9% of cases. These issues typically arise from tool execution failures, invocation errors, and schema mismatches. Integra-tion Problem (IP) is the primary cause of Integration Issue ,accounting for 37.7% of cases, reflecting the challenges of coordinating multiple components, APIs, and frameworks within the MAS. Overall, Workflow Problem (WP) and Tool Integration Problem (TIP) are the most dominant root causes of issues in LLM-based MAS. This highlights the impor-tance of robust workflow design and reliable tool integration in LLM-based MAS. 
+
+3.3. Category of Solutions (RQ3) 
+
+To address RQ3, we investigate the solutions used to re-solve the identified issues in open-source LLM-based MAS. We categorize the identified solutions into distinct categories to characterize the approaches practitioners use to address the issues. As mentioned in Section 2.4.2, not all closed issues have an associated solution that can be identified. As a result, we identified a total of 427 solutions, which were used to address 45.2% of the 944 issues, and categorized them into 10 categories as presented in Table 8. 
+
+3.3.1. Results 
+
+The results show that Optimize Workflow (OW) is the most commonly utilized solution, accounting for 26.0% of the total solutions, followed by Adjust Configuration (AC) ,
+
+Optimize Tool Integration (OTI) , and Optimize Infrastruc-ture (OI) , accounting for 15.0%, 11.9%, and 11.0%, respec-tively. • OPTIMIZE WORKFLOW (OW) refers to improving workflow execution and task coordination in LLM-based MAS. It can be categorized into five types: (1) E NHANCE ORCHESTRATION : refers to adjusting strategies for coordination and task allocation among agents. (2) E NHANCE STATE MANAGEMENT : refers to adjusting strategies for managing execution states and intermediate data across agents. (3) F IX LOOP 
+
+ISSUES : refers to resolving infinite or unnecessary ex-ecution loops in workflow execution. (4) I MPLEMENT 
+
+PARALLEL EXECUTION : refers to adjusting execu-tion strategies to enable concurrent task processing across agents. (5) O PTIMIZE SEQUENTIAL EXECU -
+
+> TION
+
+: refers to optimizing execution strategies to en-sure efficient workflow progression and data exchange between agents. For example, a user proposed “ adding an agent parameter to tool hooks and injecting data keys into the LLM context to reduce token usage and latency when transferring large datasets between agents ” (Agno #3712). • ADJUST CONFIGURATION (AC) refers to modifying system settings and parameters in LLM-based MAS. It can be categorized into four types: (1) R EFINE 
+
+PROMPT : refers to adjusting prompt design to guide agent behavior. (2) M ODIFY RUNTIME PARAME -
+
+> TER
+
+: refers to adjusting execution parameters to con-trol runtime behavior. For example, a user proposed “adding a runtime parameter to execute only the lat-est message, preventing unintended code execution in multi-agent chats ” (Autogen #5283). (3) C ONFIG - 
+
+> URE
+
+EXTERNAL DEPENDENCY : refers to configur-ing external tools or libraries required for agents to perform tasks within LLM-based MAS. (4) U PDATE 
+
+ENVIRONMENT CONFIGURATION : refers to adjusting environment-level settings required for the compati-bility and correct execution of LLM-based MAS. • OPTIMIZE TOOL INTEGRATION (OTI) refers to improving tool connectivity and execution behavior in LLM-based MAS. It can be categorized into two types: (1) F IX TOOL EXECUTION : refers to resolving tool execution problems caused by execution flow issues or errors in LLM-based MAS. (2) T OOL IN- 
+
+> TEGRATION
+
+FIX : refers to resolving issues in tool reg-istration, connectivity, or compatibility within LLM-based MAS. For example, a user suggested that “ con-necting and closing MCP tools through the FastAPI application lifespan to resolve MCP connectivity fail-ures ” (Agno #4958). • OPTIMIZE INFRASTRUCTURE (OI) refers to im-proving infrastructure components and resource man-agement in LLM-based MAS. It can be categorized into two types: (1) D ATABASE COMPATIBILITY : refers to resolving incompatibilities in database backends and storage systems due to improper configuration in LLM-based MAS. (2) O PTIMIZE MEMORY MAN -
+
+> AGEMENT
+
+: refers to improving memory initialization, synchronization, and persistence to ensure reliable memory handling across agents in LLM-based MAS. For example, a user resolved “ the unknown memory backend: undefined error by adding required configu-ration parameters and creating a default SQLite con-figuration with a 50MB cache and 30s synchronization interval ” (Claude-flow #354). • IMPROVE ERROR HANDLING (IEH) refers to the process of solving problems by improving error detec-tion, exception management, and recovery behavior in LLM-based MAS. It can be categorized into four   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 21 of 30
+
+Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+Table 8 
+
+Solutions to Issues in Open-Source LLM-based Multi-Agent Projects                                                  
+
+> Category Count %Example (Extracted Solution)
+> Optimize Workflow (OW) 111 26.0% Replace the single agent with two agents, one for image parsing and another for retrieval and answering. (Ragflow #9451)
+> Adjust Configuration (AC) 64 15.0% Include custom message types during multi-agent system setup. (AutoGen #6795)
+> Optimize Tool Integration (OTI) 51 11.9% Move external tools from individual agents to the team to prevent delegation errors.
+> (Agno #4759)
+> Optimize Infrastructure (OI) 47 11.0% Resolve database module loading compatibility to ensure infrastructure stability.
+> (Claude-flow #893)
+> Improve Error Handling (IEH) 45 10.5% Use a function to end the conversation instead of relying on the AI to generate a termination word. (AutoGen #133)
+> Optimize Communication (OC) 33 7.7% Check message size before transmission and switch to streaming mode if exceeding the limit. (AgentScope #269)
+> Update Dependencies (UD) 31 7.3% Upgrade Docker images to newer compatible versions. (Flowise #4020)
+> Adjust Agent Initialization (AAI) 29 6.8% Before updating the agent during initialization, check for parameter changes.
+> (Agency-Swarm #126)
+> Improve Documentation (ID) 13 3.0% Add a documentation section with code examples showing how to use sub-agents as tools. (Adk-Python #1608)
+> Improve Frontend (IF) 30.7% Add a user interface option for removing links between nodes in an LLM-based MAS. (Flowise #4494)
+
+types: (1) F IX ERROR PROPAGATION : refers to ad-dressing situations in which an error generated by one agent or workflow step is propagated to subsequent agents or steps without being properly communicated, detected, or handled, potentially causing downstream execution failures. (2) E NHANCE FALLBACK MECHA -
+
+NISM : refers to improving fallback strategies to main-tain workflow execution when agents or tools fail in LLM-based MAS. (3) E NHANCE HANDOFF MES -
+
+SAGE FLOW : refers to improving message routing and conversation continuity during agent handoffs in LLM-based MAS. (4) E NHANCE EXCEPTION HAN -
+
+DLING : refers to improving exception management through retry logic, clearer error reporting, and re-covery mechanisms to handle failures during LLM-based MAS execution. For example, a user proposed enhancing exception handling by “ adding retry logic, circuit breakers, health checks, and clearer API error messages to manage external service failures more effectively ” (Claude-flow #183). • OPTIMIZE COMMUNICATION (OC) refers to im-proving information exchange between agents in LLM-based MAS. It can be categorized into two types: (1) O PTIMIZE MESSAGE HANDLING : refers to improving message processing, including parsing, formatting, and response transformation within agents or communication modules in LLM-based MAS. (2) OPTIMIZE INTER -A GENT COMMUNICATION : refers to improving the exchange of messages between agents to ensure correct delivery, interpretation, and coordi-nation across agents. For example, a user suggested that “ correcting the serialization of response data in the remote agent client can prevent agent-to-agent communication failures ” (Adk-Python #2921). • UPDATE DEPENDENCIES (UD) refers to solv-ing dependency-related problems, including missing, mismatched, or incompatible libraries and package versions in LLM-based MAS. It can be categorized into two types: (1) A DD MISSING DEPENDENCY :refers to installing required libraries that are missing from the environment for LLM-based MAS. (2) F IX 
+
+VERSION COMPATIBILITY : refers to resolving depen-dency version errors by aligning dependent library and package versions to ensure correct integration in LLM-based MAS. For example, a user resolved “ the issue by updating the outdated Pydantic dependency from version 2.5.2 to the latest version ” (Agno #2444). • ADJUST AGENT INITIALIZATION (AAI) refers to adjusting agent setup and initialization in LLM-based MAS. It can be categorized into three types: (1) F IX 
+
+IMPORT PATH RESOLUTION : refers to resolving is-sues where agent modules or definitions cannot be correctly located or loaded in LLM-based MAS. (2) CORRECT AGENT INITIALIZATION : refers to improv-ing dynamic agent creation and registration to ensure that required agent types are correctly initialized and available in LLM-based MAS. For example, a user resolved “ the issue by replacing the incorrect knowl-edge_sources parameter with the expected knowledge parameter when creating agents ” (PraisonAI #404). (3) C ONFIGURE AGENT INTEGRATION : refers to con-figuring the connections between agents and their re-quired components, such as knowledge sources, mod-els, or tools, during agent initialization in LLM-based MAS. • IMPROVE DOCUMENTATION (ID) refers to improv-ing the clarity and completeness of documentation in LLM-based MAS. It can be categorized into two types: (1) M ODIFY DOCUMENTATION : refers to mod-ifying or updating existing documentation to better clarify system behavior or usage instructions in LLM-based MAS. (2) A DD DOCUMENTATION : refers to adding missing guidance, examples, or workflow de-scriptions for system features in LLM-based MAS. For example, a user provided “ documentation and ex-amples for AgentTool usage in multi-agent workflows ”(Adk-Python #1608). 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 22 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+Table 9 
+
+Mapping between issue categories (vertical) and solution categories (horizontal)                                                                                                                                                                                                            
+
+> OW AC OTI OC UD AAI IEH OI ID IF Orchestration & Execution Issue 38 5621214 10 10
+> Memory & State Management Issue 17 52422523 00
+> Feature Request 10 7712 004310
+> Implementation Issue 18 16 84410 6201
+> Tool Issue 10 412 1722101
+> Integration Issue 2771642210
+> Role Issue 3510052100
+> Environment & Configuration Issue 0511810110
+> Output Issue 1010012101
+> Documentation Issue 2220112190
+> Communication Issue 3204000000
+> Performance Issue 1210010000
+> Model Issue 1121000100
+> Compatibility Issue 1112201000
+> Error Handling Issue 1100005100
+> Task Management Issue 3100000000
+> Security Issue 0001000000
+> Full names of every solution category abbreviation: OW: Optimize Workflow ; AC: Adjust Configuration ; OTI: Optimize Tool Integration ; OC: Optimize Communication ;UD: Update Dependencies ;AAI: Adjust Agent Initialization ;IEH: Improve Error Handling ;OI: Optimize Infrastructure ;ID: Improve Documentation ; IF: Improve Frontend .
+
+• IMPROVE FRONTEND (IF) refers to improving the user interface and output presentation of LLM-based MAS. It can be categorized into two types: (1) E N- 
+
+> HANCE
+
+UI I NTERACTION : refers to improving how users interact with LLM-based MAS through inter-face controls, input mechanisms, and interactive fea-tures. (2) E NHANCE UI D ISPLAY : refers to improving the presentation, updating, and streaming of agent outputs in LLM-based MAS. For example, a user proposed “ displaying agent names in chat messages to clarify which agent is communicating ” (AutoGen #5609). 
+
+3.3.2. Solutions to Issues Mapping 
+
+Table 9 illustrates the mapping of Issue categories to 
+
+Solution categories, along with their distribution, using abbreviations to represent each category of solution. For example, “OTI” represents Optimize Tool Integration . The full names of all solution categories are provided in the note of Table 9. For Documentation Issue , 76.9% of cases are well ad-dressed, reaching the highest resolution rate among all issue categories. Improve Documentation (ID) (9) is identified as the most frequent solution for resolving Documentation Issue .For Output Issue , 24.1% of cases are reported as re-solved, reaching the lowest resolution rate among all issue categories, and Output Issue is mostly solved by Improve Error Handling (IEH) (2). For Orchestration & Execution Issue , which is the largest issue category, 37.9% of cases have effective solutions. 
+
+Orchestration & Execution Issue is mostly addressed by 
+
+Optimize Workflow (OW) (38). For Implementation Issue , 69.0% of cases are well ad-dressed. The most frequently used solution for Implementa-tion Issue is Optimize Workflow (OW) (18). For Compatibility Issue , solutions are identified in 61.5% of cases. Update Dependencies (UD) (2) and Optimize Communication (OC) (2) are the most frequently employed solutions to resolve Compatibility Issue .For Error Handling Issue , 66.7% of cases are well re-solved. The most frequently employed solution for Error Handling Issue is Improve Error Handling (IEH) (5). For Environment & Configuration Issue , 54.5% of cases have effective solutions. Update Dependencies (UD) (8) is identified as the most frequently used solution to address the 
+
+Environment & Configuration Issue .For Integration Issue , solutions are identified in 50.8% of cases. The most frequently employed solutions for Integra-tion Issue are Adjust Configuration (AC) (7) and Optimize Tool Integration (OTI) (7). For Role Issue , 47.2% of cases are effectively addressed. The most frequently employed solutions to address Role Issues are Adjust Agent Initialization (AAI) (5) and Adjust Configuration (AC) (5). For Memory & State Management Issue , 43.2% of cases are addressed by practitioners. The most frequently em-ployed solution for Memory & State Management Issue is 
+
+Optimize Infrastructure (OI) (23). For Tool Issue , solutions are identified in 45.9% of cases. 
+
+Optimize Tool Integration (OTI) (12) is the most commonly applied solution to resolve Tool Issue .For Model Issue , 40.0% of cases are resolved. The most frequently used solution to address Model Issue is Optimize Tool Integration (OTI) (2). For Task Management Issue , 36.4% of cases are resolved by practitioners. Optimize Workflow (OW) (3) is identified as the most commonly applied solution to address Task Management Issue .For Feature Request , 35.2% of cases are well addressed by practitioners. The most commonly employed solution for 
+
+Feature Requests is Optimize Communication (OC) (12). For Communication Issue , 36.0% of cases are well re-solved by practitioners. Optimize Communication (OC) (4) is identified as the most frequently employed solution for 
+
+Communication Issue .
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 23 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+For Security Issue , 33.3% of cases are resolved. The most frequently used solution to address Security Issue is 
+
+Optimize Communication (OC) (1). For Performance Issue , 26.3% of cases are well resolved by practitioners. Adjust Configuration (AC) (2) is identified as the most frequently employed solution for Performance Issue .
+
+3.3.3. Interpretation 
+
+In this section, we analyze the frequency and distribu-tion of different solutions across various issue categories in LLM-based MAS. We further map these solutions to specific issue types to identify the dominant solutions used to address different issues. 
+
+Frequency of the solutions : Optimize Workflow (OW) ,
+
+Adjust Configuration (AC) , Optimize Tool Integration (OTI) ,and Optimize Infrastructure (OI) are the most frequently used solutions in LLM-based MAS due to their direct im-pact on execution flow, configuration, tool usage, and in-frastructure reliability. Optimize Workflow (OW) is widely applied because MAS depend on proper orchestration, state sharing, and task coordination to ensure smooth execution. 
+
+Adjust Configuration (AC) is also a common solution since incorrect prompts, runtime settings, or environment con-figurations often lead to system errors, making parameter adjustment a frequent fix strategy in LLM-based MAS. 
+
+Optimize Tool Integration (OTI) is another major category of solutions, as LLM-based MAS rely heavily on external tools and APIs, where integration or execution issues can easily break workflows between agents. Optimize Commu-nication (OC) is a similarly important solution category because reliable inter-agent communication is essential for correct message exchange and task completion in LLM-based MAS. Although Update Dependencies (UD) , Adjust Agent Initialization (AAI) , Improve Error Handling (IEH) ,
+
+Improve Documentation (ID) , and Improve Frontend (IF) are employed less frequently, they remain important for MAS stability. For example, Optimize Infrastructure (OI) shows that practitioners resolve system failures by improving mem-ory and database infrastructure to ensure stable execution and data persistence in LLM-based MAS. 
+
+Mapping of solutions to issues : Optimize Workflow (OW) is the most dominant solution category, accounting for 26.0% of all identified solutions. For Orchestration & Execution Issue , which is the largest issue category, Op-timize Workflow (OW) addresses 48.1% of cases, reflect-ing the critical role of workflow optimization in resolving agent coordination and execution failures. Similarly, Adjust Configuration (AC) is the second most common solution (15.0%), and it accounts for 21.9% of solutions for Inte-gration Issue . Optimize Tool Integration (OTI) accounts for 11.9% of solutions and is the most frequent solution for 
+
+Tool Issues , accounting for 30.0% of cases, reflecting the reliance of MAS on external tools and the need for robust tool integration mechanisms. Optimize Infrastructure (OI) 
+
+is the fourth most common solution, accounting for 11.0% of all identified solutions, and is predominantly applied to address Memory & State Management Issues . Documenta-tion Issue has the highest resolution rate of 76.0%, while 
+
+Output Issue has the lowest resolution rate 24.1%. Over-all, the predominance of Optimize Workflow (OW) , Adjust Configuration (AC) , Optimize Tool Integration (OTI) , and 
+
+Optimize Infrastructure (OI) across multiple issue categories indicates that practitioners primarily focus on workflow execution, configuration management, and tool integration when resolving issues in LLM-based MAS. 
+
+## 4. Implications 
+
+In this section, we discuss the implications of the study results presented in Section 3 for users, developers, and researchers of open-source LLM-based MAS. 
+
+4.1. Implications for Users of LLM-based MAS   
+
+> Implication 1 . Users can address the Orchestration & Execution Issue by designing explicit prompt-based hand-off mechanisms and implementing appropriate execution controls.
+
+Orchestration & Execution Issue (22.0%) ranks first among all 17 issue categories, and within this category, 
+
+Coordination & Handoff Issue is the dominant type, indi-cating that users frequently face difficulties in coordinating task transfers and managing execution flow in LLM-based MAS. A practitioner reported that “ the sub-agent could not correctly transfer control back to the root agent when calling an MCP tool ” (Adk-python #1039), suggesting that unclear handoff specifications can lead to agents coordi-nation failures. Several practices can improve coordination among agents and enhance the reliability of task execution in LLM-based MAS. For example, users can define explicit handoff prompts or utilize built-in agent handoff mecha-nisms provided by frameworks such as OpenAI Agents SDK (OpenAI, 2025) to clearly specify transfer conditions and task responsibilities between agents. Furthermore, users can configure framework-level execution controls, such as retry limits, timeout settings, and logging mechanisms, to reduce infinite loops, premature termination, and unexpected ex-ecution behaviors in LLM-based MAS. In addition, many LLM-based multi-agent frameworks provide orchestration and monitoring capabilities that support workflow design, inspection, and debugging, enabling early detection of co-ordination issues and improving collaboration reliability between agents (Dibia et al., 2024). For example, cite-cemri2025multi conducted a comprehensive empirical study on multi-agent failure modes and found that inter-agent mis-alignment, including communication breakdowns, context loss during handoffs, and conflicting outputs, accounts for 36.9% of failures across seven MAS frameworks. Conse-quently, users should prioritize explicit handoff design and systematic execution monitoring to address Orchestration & Execution Issue , the most common issue category in LLM-based MAS.   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 24 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+> Implication 2 . Users can leverage LLM-based multi-agent development frameworks for software development tasks while remaining mindful of the potential issues and limita-tions of LLMs.
+
+One-third of the open-source LLM-based MAS inves-tigated in this study are frameworks for developing soft-ware applications by leveraging multiple collaborating LLM agents (see Table 3). These frameworks lower the barrier for users to build applications using LLM-based MAS. For example, AutoGen is an open-source framework that enables users to build LLM applications using multiple agents that can communicate with each other to accomplish tasks (Wu et al., 2024). It also allows users to configure agents with dif-ferent commercial and open-source LLMs, according to their application requirements, enabling users to select a model that best fits their needs. While such frameworks provide useful capabilities for software development, our findings show that LLM-based MAS also face several problems. Specifically, Orchestration & Execution Issue , Memory & State Management Issue , Tool Issue , and Integration Issue 
+
+account for 22.0%, 14.7%, 9.2%, and 6.7% of the issues, respectively. These findings suggest that using open-source LLM-based MAS for software development may introduce various challenges. Users should therefore monitor agent workflows, manage agent memory and state, verify tool usage, and configure explicit agent communication mecha-nisms when deploying and using LLM-based MAS. 
+
+4.2. Implications for Developers of LLM-based MAS 
+
+> Implication 3 . Developers of open-source LLM-based MAS should possess a foundational understanding of multi-agent system design principles.
+
+According to our study results, the following knowledge is required to develop and use open-source LLM-based MAS: (1) Developers need knowledge of designing and managing agent workflows and orchestration in LLM-based MAS. Our findings show that Workflow Problem (WP) ac-counts for 29.4% and ranks first among all identified causes. This indicates that developers need solid knowledge of agent coordination, handoff design, and execution flow manage-ment when developing LLM-based MAS. For example, a contributor reported that “ after invoking transfer_to_agent, the target agent did not respond and produced no output due to incomplete transfer of task-related information ” (Adk-python #2073), highlighting the importance of proper hand-off design while developing LLM-based MAS. (2) Devel-opers need to understand tool integration and execution in LLM-based MAS. According to our study results, Tool Integration Problem (TIP) accounts for 11.7% of all causes. This indicates that developers require knowledge of tool reg-istration, schema validation, and concurrent tool access man-agement when developing LLM-based MAS. For example, a developer reported that a “ tool deadlock occurred because the swarm could not access tools already locked by an active Claude Code session ” (Claude-flow #59), highlighting that knowledge of proper tool lifecycle management is essential when developing LLM-based MAS. (3) Developers need to understand memory management and state persistence in LLM-based MAS. Memory Problem (MP) accounts for 11.1% of all causes. For example, a developer explained that “external memory failed to store new memories in Mem0 because the agent ID exceeded the allowed length ” (CrewAI #2985), indicating that knowledge of session persistence and state consistency is essential for developing reliable LLM-based MAS. 
+
+> Implication 4 . Developers can enhance the reliability of tool integration through schema validation and robust exe-cution controls.
+
+Tool Integration Problem (TIP) accounts for 11.7% of all identified causes, with Tool Execution Problem and MCP In-tegration Problem being the most frequently observed types. A typical failure occurs when tools encounter deadlocks, resource contention, or schema mismatches at runtime in LLM-based MAS. For example, a practitioner reported that “MCP tool calls failed during asynchronous GroupChat execution because the event loop was already running ”(Ag2 #1763), while another reported that “ VertexAI Search Tool failed when combined with a sub-agent because mul-tiple tool types were not supported together ” (Adk-Python #2822). To avoid such failures, developers should provide standardized tool validation APIs that automatically check input/output schemas when tools are configured, enforce timeouts at the tool level, and check tool availability before execution in LLM-based MAS. Additionally, since con-current tool access by multiple agents can cause session locks, connection failures, and timeouts, MAS frameworks should provide mechanisms for managing tool connections, handling tool connection failures, and retrying failed tool calls. One practitioner reported that “ managing tool con-nections through framework-provided lifecycle hooks (e.g., FastAPI lifespan in Agno) prevented MCP connection fail-ures ” (Agno #4958), highlighting the importance of proper tool lifecycle management for reliable MCP integration in LLM-based MAS. 
+
+4.3. Implications for Researchers of LLM-based MAS 
+
+> Implication 5 . Researchers may consider exploring or-chestration frameworks to improve agent coordination and execution reliability in LLM-based MAS.
+
+Orchestration & Execution Issue , accounting for 22.0% of all reported issues, represents the most critical challenge in LLM-based MAS. Within this category, Coordination & Handoff Issue and Control Flow Error are the most frequent types, highlighting that failures often originate from coordination deficiencies and execution management chal-lenges among agents. This finding is further supported by the root cause analysis, which identifies Workflow Problem   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 25 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+(WP) as the most significant underlying factor, account-ing for 29.4% of all reported causes. Moreover, Workflow Problem (WP) accounts for 57.0% of the causes associated with Orchestration & Execution Issue . This indicates that deficiencies in multi-agent workflow design, execution flow among agents, and inter-agent task coordination are major factors contributing to system-level failures in LLM-based MAS. We encourage researchers to shift their focus from enhancing individual agents reasoning capabilities toward developing robust orchestration frameworks that ensure reli-able handoffs between agents, correct execution order across the agents, and appropriate termination conditions in LLM-based MAS. Specifically, future work could investigate the formal verification of agent workflows and the development of runtime monitoring mechanisms capable of detecting and correcting coordination anomalies, such as infinite loops and premature termination, before they propagate throughout the system. 
+
+> Implication 6 . Researchers could investigate methods for improving the reproducibility of issues in LLM-based MAS.
+
+Given the complex and dynamic behavior of LLM-based MAS, 27 of the 128 unsolved issues involve difficulties in reproducing the reported problems. Without accurately reproducing the problem within LLM-based MAS, it can be difficult for practitioners to identify root causes of the issues, thereby hindering the resolution of the issues. For example, practitioners reported that the “ transfer_task_to_member er-ror occasionally occurs in some random cases when using the aprint_response method ” (Agno #3095), with multi-ple users experiencing different behaviors across versions. Identifying the root cause, in this case, a shared model in-stance issue, requires substantial investigation, highlighting the challenges of reproducing issues in LLM-based MAS and complicating their resolution. Therefore, future research could explore automated failure-reproduction techniques, controlled execution environments, and systematic test-case generation to improve the reproducibility of failures in LLM-based MAS.      
+
+> Implication 7.Researchers could investigate reliable memory mechanisms for LLM-based MAS.
+
+Memory & State Management Issue represents the sec-ond most frequent challenge in LLM-based MAS, account-ing for 14.7% of all reported issues. Within this category, 
+
+Context Loss and State Inconsistency are the most common types, indicating limitations in current memory mechanisms in LLM-based MAS. This finding is further supported by the root cause analysis, which identifies Memory Problem (MP) as the third most significant underlying cause among all identified causes, accounting for 11.1% of all reported causes. Memory & State Management Issue accounts for 51.1% of the issues caused by Memory Problem (MP) . This indicates that deficiencies in context propagation between agents, state synchronization across agents, and memory re-trieval for agent interactions are major contributors to system failures in LLM-based MAS. We recommend that future research focus on developing reliable memory management mechanisms that ensure (1) consistent context propagation across agents during handoffs, (2) reliable state synchroniza-tion during parallel agent execution, and (3) effective context compression to prevent context overflow while preserving information essential for agent reasoning. 
+
+## 5. Threats to Validity 
+
+Construct validity : In our study, data collection was conducted automatically using GitHub APIs, while data filtering and labeling involved both automated and manual processes. Since several phases, including manual filtering, open coding, constant comparison, and data extraction, were performed manually, the study may be subject to personal bias during the classification, labeling, and extraction of issues, causes, and solutions in LLM-based MAS. To reduce this risk and improve the objectivity and reliability of the results, pilot studies were conducted using both automated and manual approaches before each formal phase to evaluate the effectiveness of methods, prompts, and criteria across different researchers, thereby improving construct validity. Following each pilot and formal study, we first performed automated filtering to obtain initial results. The first author then conducted a manual analysis and discussed the findings with the second and third authors to reach a consensus on the results related to the RQs. Since open coding and constant comparison were mainly carried out by the first author, there is still a risk of subjective interpretation affecting the results. The first author’s six years of software development experience, along with two years of experience working with LLM-based MASs, helped mitigate this risk, although it could not be eliminated entirely. In addition, future work may adopt more advanced automated or semi-automated techniques to further reduce bias in data filtering, labeling, and extraction. 
+
+External validity : In our study, the main threat to ex-ternal validity comes from the selection of data sources. To address this, we used the “Issues” pages of GitHub projects as the primary data source. GitHub is the largest platform for hosting open-source projects. Each project includes an “Issues” section. Practitioners use it to report bugs, errors, and development difficulties. It also allows discussion be-tween users and developers. To extract more reliable in-formation on causes and solutions, we focused on closed issues. These usually contain resolved discussions and more complete resolution details of issues. However, even with these selection choices, we acknowledge that the dataset may not fully represent all practices in the development and use of LLM-based MAS. Some relevant information may reside outside GitHub or in undocumented settings, which could be explored as potential sources in future work. 
+
+Reliability : To address potential uncertainties arising from the research methodology, we took several steps to   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 26 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems
+
+improve the reliability of this study. As described in Sec-tion 2.3.1, we first conducted pilot studies to check the agreement between the first and third authors on data la-beling before starting the formal study. In this pilot phase, Cohen’s Kappa value was 0.82, which indicated a good level of agreement. During the data labeling, extraction, and analysis stages, we regularly discussed cases where there were differences in interpretation. These discussions helped us resolve disagreements and keep the results consistent across different stages of the study. This also improved the overall stability of the findings. In addition, the dataset used in this study has been made publicly available (Rehman et al., 2026), so that other researchers can replicate the study and validate the results independently. 
+
+## 6. Related Work 
+
+The existing literature is organized into three categories. We first review empirical studies using software repository mining to investigate practitioner-reported issues, causes, and solutions in software systems and LLM-based projects in Section 6.1. We then discuss LLM-based MAS for soft-ware engineering in Section 6.2, followed by studies ex-ploring challenges, failure patterns, and limitations of LLM-based MAS in Section 6.3. Finally, we summarize the re-search gaps motivating this study in Section 6.4. 
+
+6.1. Mining Software Repositories for Exploring Issues, Causes, and Solutions 
+
+Mining software repositories has become a widely used approach for understanding practitioner-reported is-sues, their underlying causes, and corresponding solutions. Waseem et al. (2021) conducted an empirical study to un-derstand issues in open-source microservice systems. They manually analyzed 1,345 closed GitHub issues from five projects and developed a taxonomy of 17 issue categories. Their results show that Technical Debt , Build , and Security 
+
+are the most frequently reported categories. They later ex-tended this work by analyzing 2,641 GitHub issues from 15 open-source microservice systems. They also conducted 15 practitioner interviews and surveyed 150 practitioners. Based on these findings, they developed comprehensive taxonomies of issues, root causes, and solutions in microser-vice systems. Zhao et al. (2023b) conducted a large-scale empirical study of 570 performance issues from 13 open-source projects. They identified eight common root causes and corresponding solutions. Their findings show that 27% of the issues require design-level optimization, highlighting the importance of architectural improvements for addressing performance issues. With the growing adoption of AI and LLMs in software engineering, researchers have extended repository mining to investigate practitioner-reported issues in LLM-based projects. Cai et al. (2025b) analyzed 994 GitHub issues from 15 open-source LLM projects. They de-veloped taxonomies of issue categories, root causes, and so-lutions. Their results show that Model Issue is the most com-mon issue category, while Model Problem , Configuration Problem , and Connection Problem are the most frequent root causes. Model Optimization is the predominant solution. Zhou et al. (2025b) investigated GitHub Copilot, an LLM-based AI programming assistant, by analyzing 473 GitHub issues, 706 GitHub discussions, and 142 Stack Overflow posts. Their findings show that Operation Issue and Com-patibility Issue are the most common problem categories. 
+
+Copilot Internal Error , Network Connection Error , and IDE Compatibility Issue are the most frequent causes, while Bug Fixed by Copilot , Modify Configuration , and Use Suitable Version are the predominant solutions. Collectively, these studies establish a foundation for understanding practitioner-reported issues, their root causes, and solutions through repository mining across different software domains. 
+
+6.2. LLM-based Multi-Agent Systems for Software Engineering 
+
+Recent advances in LLMs have led to the emergence of LLM-based MAS, where multiple specialized agents collaborate to automate software engineering tasks. Qian et al. (2024) introduced ChatDev, a chat-powered software development framework that assigns specialized roles (e.g., CEO, CTO, Programmer, Reviewer, and Tester) to LLM-based agents. By using a chat chain to decompose tasks and support sequential interactions among agents, ChatDev enables collaborative software development and achieves an 88% executability score, reflecting the proportion of software projects generated by ChatDev that successfully compile and execute. These results demonstrate the effec-tiveness of LLM-based MAS for software development. Likewise, Hong et al. (2024) introduced MetaGPT, a meta-programming framework that incorporates Standard Op-erating Procedures (SOPs) into multi-agent collaboration. By assigning specialized roles to agents and enforcing structured workflows, MetaGPT enables agents to collab-oratively perform software engineering tasks through role-based coordination. Similarly, Wu et al. (2024) introduced AutoGen, a generalized multi-agent conversation framework for developing LLM-based applications. AutoGen enables agents to perform tasks using LLMs, human feedback, and external tools, while supporting flexible communication pat-terns for designing complex multi-agent workflows. Auto-Gen achieves 69.48% accuracy on the MATH dataset, a standard benchmark comprising 12,500 high-school com-petition math problems, substantially outperforming vanilla GPT-4. In addition, Nguyen et al. (2025) introduced Ag-ileCoder, a multi-agent software development framework inspired by Agile methodology. AgileCoder assigns spe-cialized roles (e.g., Product Manager, Scrum Master, De-veloper, and Tester) to agents and organizes development into iterative sprints based on user feedback. It further intro-duces a Dynamic Code Graph Generator to maintain code dependencies and provide relevant context for code genera-tion and modification. Evaluations on HumanEval, MBPP, and ProjectDev show that AgileCoder outperforms existing frameworks such as ChatDev and MetaGPT, demonstrating   
+
+> A U Rehman et al.: Preprint submitted to Elsevier Page 27 of 30
+
+Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+the effectiveness of integrating Agile principles into multi-agent software development. To provide a broader perspec-tive on designing LLM-based MAS for software engineering tasks, Cai et al. (2025a) examined the quality attributes, design patterns, and design rationale adopted in existing LLM-based MAS. Their analysis shows that Code Gener-ation is the most frequently addressed software engineering task, Functional Suitability is the most emphasized quality attribute, and Role-Based Cooperation and Self-Reflection 
+
+are the most commonly adopted design patterns. They also report that improving code quality and simulating human problem-solving are the primary motivations behind these design choices. Together, these studies demonstrate the ef-fectiveness and growing adoption of LLM-based MAS for software engineering tasks. However, improving their real-world deployment requires a deeper understanding of the challenges practitioners encounter, their underlying causes, and potential solutions. 
+
+6.3. Exploration of Issues, Causes, and Solutions in LLM-based MAS 
+
+While existing studies have demonstrated the potential of LLM-based MAS for software engineering tasks, recent research has started investigating the practical challenges, limitations, and failure patterns of these systems. Liu et al. (2025) conducted an empirical study of open-source LLM-based MAS frameworks by analyzing over 42,000 commits and 4,700 resolved issues across eight frameworks. They identified common development and maintenance issues, including bugs, infrastructure problems, and agent coordi-nation challenges, highlighting the difficulties in building re-liable MAS. Similarly, (Asgari et al., 2026) investigated de-veloper challenges in LLM-based MAS frameworks through Stack Overflow discussions and GitHub issues. Their study identified several challenges related to retrieval, agent mem-ory, orchestration, execution control, and runtime reliability, which affect the development and maintenance of LLM-based MAS frameworks. Furthermore, Hamid et al. (2026) explored practitioner difficulties in agentic frameworks by analyzing 2,658 Stack Overflow posts. They identified chal-lenges related to framework configuration, tool integration, vector database operations, and agent execution behavior, with runtime-related issues emerging as particularly chal-lenging to address. In addition, Cemri et al. (2025) ana-lyzed over 1,600 execution traces from seven LLM-based MAS frameworks and proposed the MAS Failure Taxon-omy (MAST), identifying 14 failure modes across different stages of agent execution. These studies provide insights into LLM-based MAS challenges and failure patterns; however, a comprehensive understanding of practitioner-reported is-sues, their causes, and solutions remains limited. This study addresses this gap through empirical analysis of the issues of LLM-based MAS. 
+
+6.4. Conclusive Summary 
+
+Software repository mining has been widely used to investigate practitioner-reported issues, their root causes, 
+
+Table 10 
+
+Comparison of empirical studies on LLM-based MAS                             
+
+> Study Scope Data Source Issues Causes Solutions Mapping
+> He et al. (2025b) LLM-based MAS Literature review ✓✗✗✗
+> Liu et al. (2025) LLM-based MAS GitHub (com-mits/issues) ✓✗✗✗
+> Cemri et al. (2025) MAS Failure Patterns System logs ✓✓✗✗
+> Asgari et al. (2026) AI Agent Frameworks Stack Overflow + GitHub
+> ✓✗✗✗
+> Hamid et al. (2026) AI Agent Frameworks Stack Overflow ✓✗✗✗
+> Our Study Open-Source LLM-based MAS GitHub (944 closed issues) ✓✓✓✓
+
+and solutions in software systems, providing a foundation for understanding real-world development challenges (Waseem et al., 2026). With the increasing adoption of LLMs in software engineering, researchers have extended repository mining approaches to study issues in LLM-based software systems (Cai et al., 2025b). Recently, LLM-based MAS have attracted significant attention by enabling multiple LLM-powered specialized agents to collaboratively perform com-plex software engineering tasks beyond the capabilities of single-agent LLMs, leading to the development of various frameworks and techniques, such as ChatDev and Agile-Coder (Qian et al., 2024; Nguyen et al., 2025). However, relatively few studies have investigated the practical issues, failure patterns, and maintenance challenges of LLM-based MAS (Liu et al., 2025; Cemri et al., 2025). Consequently, existing studies on LLM-based MAS provide only limited understanding of the practical problems faced by practition-ers, their underlying causes, and the solutions adopted in real-world LLM-based MAS projects. To address this gap, we conducted an empirical analysis of closed GitHub issues from LLM-based MAS projects to derive taxonomies of is-sues, their underlying causes, and solutions. The comparison with existing studies is summarized in Table 10. 
+
+## 7. Conclusions 
+
+In this study, we investigated the issues that practitioners encounter when developing and using open-source LLM-based MAS, as well as their underlying causes and potential solutions. We collected 22,848 closed issues from open-source LLM-based MAS on GitHub that met our inclusion criteria, as shown in Table 2. Then, we applied a mixed auto-mated and manual filtering approach to reduce the dataset to 944 issues related to LLM-based MAS. Finally, we extracted 944 issues, 540 causes, and 427 solutions based on our data extraction criteria. Our results show that Orchestration & Execution Issue is the most common issue faced by practi-tioners. Workflow Problem (WP) , Tool Integration Problem (TIP) , and Memory Problem (MP) are identified as the most frequent causes of the issues, while Optimize Workflow (OW) 
+
+was employed as the predominant solution to address the issues. 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 28 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+Based on the study results, we provide implications for users, developers, and researchers of open-source LLM-based MAS. Users can address the most frequent Orches-tration & Execution Issue through explicit handoff design between agents and multi-agent execution controls, such as retry limits, timeouts, and monitoring mechanisms in LLM-based MAS. They can also refine prompt design to obtain more reliable responses from LLM-based MAS. Developers can improve tool integration reliability through schema vali-dation, execution controls, and tool connection management in LLM-based MAS. Researchers can explore methods to reproduce and diagnose unsolved issues and develop reliable memory management mechanisms to improve context prop-agation between agents, state synchronization across agents, and memory retrieval for agent interactions in LLM-based MAS. 
+
+## Data availability 
+
+The dataset used in this study is available in the replica-tion package (Rehman et al., 2026). 
+
+## Acknowledgments 
+
+This work has been partially supported by the National Natural Science Foundation of China (NSFC) with Grant No. 92582203 and No. 62402348. 
+
+## CRediT authorship contribution statement 
+
+Asad Ur Rehman: Conceptualization, Investigation, Data curation, Formal analysis, Writing - Original draft preparation. Syed Mohammad Kashif: Investigation, Data curation, Writing - Original draft preparation. Ruiyin Li: In-vestigation, Data curation, Writing - Original draft prepara-tion. Peng Liang: Conceptualization, Methodology, Investi-gation, Data curation, Supervision, Writing - Original draft preparation. Zengyang Li: Conceptualization, Methodol-ogy, Writing - review and editing. Arif Ali Khan: Concep-tualization, Methodology, Writing - review and editing. 
+
+## References 
+
+Alrashedy, K., Binjahlan, A., 2024. How do software engineering re-searchers use GitHub? an empirical study of artifacts & impact, in: Proceedings of the 24th IEEE International Conference on Source Code Analysis and Manipulation (SCAM), IEEE. pp. 118–130. Asgari, A., Panichella, A., Derakhshanfar, P., Olsthoorn, M., 2026. What challenges do developers face in ai agent systems? an empirical study on stack overflow & github issues. arXiv preprint arXiv:2510.25423 . Cai, Y., Li, R., Liang, P., Shahin, M., Li, Z., 2025a. Designing llm-based multi-agent systems for software engineering tasks: Quality attributes, design patterns and rationale. arXiv preprint arXiv:2511.08475 . Cai, Y., Liang, P., Wang, Y., Li, Z., Shahin, M., 2025b. Demystifying issues, causes, and solutions in llm open-source projects. Journal of Systems and Software 227, 112452. Cemri, M., Pan, M.Z., Yang, S., Agrawal, L.A., Chopra, B., Tiwari, R., Keutzer, K., Parameswaran, A., Klein, D., Ramchandran, K., et al., 2025. Why do multi-agent llm systems fail? arXiv preprint arXiv:2503.13657 .Chase, H., 2024. LangChain. GitHub repository. URL: https://github. com/langchain-ai/langchain . version 0.1.17. Cohen, J., 1960. A coefficient of agreement for nominal scales. Educational and Psychological Measurement 20, 37–46. Crupi, G., Tufano, R., Velasco, A., Mastropaolo, A., Poshyvanyk, D., Bavota, G., 2025. On the effectiveness of llm-as-a-judge for code generation and code summarization. IEEE Transactions on Software Engineering 51, 2329–2345. Dibia, V., Chen, J., Bansal, G., Syed, S., Fourney, A., Zhu, E., Wang, C., Amershi, S., 2024. Autogen studio: A no-code developer tool for building and debugging multi-agent systems, in: Proceedings of the 29th Conference on Empirical Methods in Natural Language Processing (EMNLP): System Demonstrations, ACL. pp. 72–79. Fan, A., Gokkaya, B., Harman, M., Lyubarskiy, M., Sengupta, S., Yoo, S., Zhang, J.M., 2023. Large language models for software engineering: Survey and open problems, in: Proceedings of the 45th IEEE/ACM International Conference on Software Engineering: Future of Software Engineering (ICSE-FoSE), IEEE. pp. 31–53. Guo, T., Chen, X., Wang, Y., Chang, R., Pei, S., Chawla, N.V., Wiest, O., Zhang, X., 2024. Large Language Model Based Multi-Agents: A survey of progress and challenges, in: Proceedings of the 33rd International Joint Conference on Artificial Intelligence (IJCAI), IJCAI. pp. 8048– 8057. Hamid, R., Pangas, J., Abdellatif, A., 2026. The hands behind the agents: Understanding practitioner challenges with agentic frameworks. Infor-mation and Software Technology 197, 108183. He, J., Shi, J., Zhuo, T.Y., Treude, C., Sun, J., Xing, Z., Du, X., Lo, D., 2025a. Llm-as-a-judge for software engineering: Literature review, vision, and the road ahead. arXiv preprint arXiv:2510.24367 . He, J., Treude, C., Lo, D., 2025b. Llm-based multi-agent systems for software engineering: Literature review, vision, and the road ahead. ACM Transactions on Software Engineering and Methodology 34, 1– 30. Hong, S., Zhuge, M., Chen, J., Zheng, X., Cheng, Y., Wang, J., Zhang, C., Yau, S.K.S., Lin, Z., Zhou, L., Ran, C., Xiao, L., Wu, C., Schmidhuber, J., 2024. Metagpt: Meta programming for a multi-agent collaborative framework, in: Proceedings of the 12th International Conference on Learning Representations (ICLR), OpenReview.net. pp. 23247–23275. Hou, X., Zhao, Y., Liu, Y., Yang, Z., Wang, K., Li, L., Luo, X., Lo, D., Grundy, J., Wang, H., 2024. Large language models for software engineering: A systematic literature review. ACM Transactions on Software Engineering and Methodology 33, 1–79. Lin, Z., Zhang, N., Liu, C., Zheng, Z., 2025. An empirical study of chatgpt-related projects and their issues on github. Expert Systems with Applications 267, 126113. Liu, D., Upadhyay, K., Chhetri, V., Siddique, A.B., Farooq, U., 2025. A large-scale study on the development and issues of multi-agent ai systems, in: Proceedings of the 13th IEEE International Conference on Big Data (BigData), IEEE. pp. 7785–7792. Liu, J., Wang, K., Chen, Y., Peng, X., Chen, Z., Zhang, L., Lou, Y., 2026. Large language model-based agents for software engineering: A survey. ACM Transactions on Software Engineering and Methodology . Microsoft, 2024. Semantic Kernel. GitHub repository. URL: https: //github.com/microsoft/semantic-kernel . version 1.12.0. Montes, C.M., Feldt, R., Martos, C.M., Ouhbi, S., Premanandan, S., Graziotin, D., 2025. Large language models in thematic analysis: Prompt engineering, evaluation, and guidelines for qualitative software engineering research. arXiv preprint arXiv:2510.18456 . Nguyen, M.H., Chau, T.P., Nguyen, P.X., Bui, N.D., 2025. Agilecoder: Dynamic collaborative agents for software development based on agile methodology, in: Proceedings of the 2nd IEEE/ACM International Con-ference on AI Foundation Models and Software Engineering (FORGE), IEEE. pp. 156–167. OpenAI, 2025. ChatGPT. URL: https://openai.com/index/chatgpt/ .[Accessed: September 7, 2025]. OpenAI, 2025. Openai agents sdk: Agent orchestration and handoffs. https: //openai.github.io/openai-agents-python/ . Accessed: September 7, 2025. Qian, C., Liu, W., Liu, H., Chen, N., Dang, Y., Li, J., Yang, C., Chen, W., Su, Y., Cong, X., Xu, J., Li, D., Liu, Z., Sun, M., 2024. Chatdev: 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 29 of 30 Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems 
+
+Communicative agents for software development, in: Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL), ACL. pp. 15174–15186. Rehman, A.U., Kashif, S.M., Li, R., Liang, P., , Li, Z., Khan, A.A., 2026. Dataset for the paper: Understanding issues, causes and solutions in open-source llm-based multi-agent systems. https://github.com/ Asad-r-Rehman/MASOSSIssuesDataset .Stol, K.J., Ralph, P., Fitzgerald, B., 2016. Grounded theory in software engineering research: a critical review and guidelines, in: Proceedings of the 38th IEEE/ACM International Conference on Software Engineering (ICSE), ACM. pp. 120–131. Wang, J., Huang, Y., Chen, C., Liu, Z., Wang, S., Wang, Q., 2024. Software testing with large language models: Survey, landscape, and vision. IEEE Transactions on Software Engineering 50, 911–936. Waseem, M., Liang, P., Ahmad, A., Khan, A.A., Shahin, M., Nasab, A.R., Mikkonen, T., Abrahamsson, P., 2026. Understanding the issues, their causes and solutions in microservices systems: An empirical study. Journal of Systems and Software 237, 112828. Waseem, M., Liang, P., Shahin, M., Ahmad, A., Nassab, A.R., 2021. On the nature of issues in five open source microservices systems: An empirical study, in: Proceedings of the 25th International Conference on Evaluation and Assessment in Software Engineering (EASE), ACM. pp. 201–210. Wu, Q., Bansal, G., Zhang, J., Wu, Y., Li, B., Zhu, E., Jiang, L., Zhang, X., Zhang, S., Liu, J., Awadallah, A.H., White, R.W., Burger, D., Wang, C., 2024. Autogen: Enabling next-gen llm applications via multi-agent conversation framework, in: Proceedings of the 1st Conference on Language Modeling (COLM), OpenReview.net. pp. 1–46. Zhao, W.X., Zhou, K., Li, J., Tang, T., Wang, X., Hou, Y., Min, Y., Zhang, B., Zhang, J., Dong, Z., Du, Y., 2023a. A survey of large language models. arXiv preprint arXiv:2303.18223 . Zhao, Y., Xiao, L., Bondi, A.B., Chen, B., Liu, Y., 2023b. A large-scale empirical study of real-life performance issues in open source projects. IEEE Transactions on Software Engineering 49, 924–946. Zhou, X., Kim, K., Zhang, T., Weyssow, M., Gomes, L.F., Yang, G., Liu, K., Xia, X., Lo, D., 2025a. An llm-as-judge metric for bridging the gap with human evaluation in SE tasks. arXiv preprint arXiv:2505.20854 . Zhou, X., Liang, P., Zhang, B., Li, Z., Ahmad, A., Shahin, M., Waseem, M., 2025b. Exploring the problems, their causes and solutions of ai pair programming: A study on github and stack overflow. Journal of Systems and Software 219, 112204. 
+
+A U Rehman et al.: Preprint submitted to Elsevier Page 30 of 30

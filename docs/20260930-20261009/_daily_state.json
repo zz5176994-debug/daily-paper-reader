@@ -1,0 +1,729 @@
+{
+  "date": "20260930-20261009",
+  "date_label": "2026-09-30 ~ 2026-10-09",
+  "generated_at": "2026-10-09 10:49:18 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.38817v1",
+      "route": "20260930-20261009/2609.38817v1-when-reasoning-goes-astray-attention-dynamics-of-uncontrolled-reasoning",
+      "title": "When Reasoning Goes Astray: Attention Dynamics of Uncontrolled Reasoning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "分析注意力动态以区分大型推理模型中的正常思考与失控推理",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.38938v1",
+      "route": "20260930-20261009/2609.38938v1-robust-risk-sensitive-reinforcement-learning-from-corrupted-human-feedback",
+      "title": "Robust Risk-Sensitive Reinforcement Learning from Corrupted Human Feedback",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "对抗偏好标签翻转下的稳健RLHF",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.38972v1",
+      "route": "20260930-20261009/2609.38972v1-making-llms-say-what-they-think-measuring-and-improving-cot-interpretability-alignment",
+      "title": "Making LLMs Say What They Think: Measuring and Improving CoT-Interpretability Alignment",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "思维链可解释性对齐度量",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.39034v1",
+      "route": "20260930-20261009/2609.39034v1-switching-linear-attention",
+      "title": "Switching Linear Attention",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "桥接softmax与线性注意力的新型序列层，用于高效推理",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.39183v1",
+      "route": "20260930-20261009/2609.39183v1-aligning-thoughts-with-answers-probability-rewards-to-tame-thinking-drift",
+      "title": "Aligning Thoughts with Answers: Probability Rewards to Tame Thinking Drift",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "针对思维-答案一致性的强化学习奖励，属于链式思考推理改进",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.39382v1",
+      "route": "20260930-20261009/2609.39382v1-skillfm-generating-skills-for-llm-agents-via-latent-flow-matching",
+      "title": "SkillFM: Generating Skills for LLM Agents via Latent Flow Matching",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "为LLM智能体生成任务条件的文本技能，无需测试时检索",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.39661v1",
+      "route": "20260930-20261009/2609.39661v1-the-evolution-of-attention-in-large-language-models-mechanisms-trade-offs-and-emerging-trends",
+      "title": "The Evolution of Attention in Large Language Models: Mechanisms, Trade-offs, and Emerging Trends",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "综述LLM中的注意力机制与效率权衡",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.00571v1",
+      "route": "20260930-20261009/2610.00571v1-interpreting-reasoning-of-large-language-models-via-partial-information-decomposition",
+      "title": "Interpreting Reasoning of Large Language Models via Partial Information Decomposition",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "引入SLIDER框架，利用部分信息分解评估推理质量，衡量重复推理",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.00613v1",
+      "route": "20260930-20261009/2610.00613v1-spatial-strategies-not-actions-vector-quantized-geodesics-as-tools-for-llm-driven-agents",
+      "title": "Spatial Strategies, Not Actions: Vector-Quantized Geodesics as Tools for LLM-Driven Agents",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "LLM驱动的智能体将向量量化测地线作为工具",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.00905v1",
+      "route": "20260930-20261009/2610.00905v1-understanding-issues-causes-and-solutions-in-open-source-llm-based-multi-agent-systems",
+      "title": "Understanding Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "对LLM多智能体系统挑战的实证研究",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.01195v1",
+      "route": "20260930-20261009/2610.01195v1-federated-agent-optimization",
+      "title": "Federated Agent Optimization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "提出联邦智能体优化问题，分布式LLM智能体在保护隐私的同时协作改进",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.04137v1",
+      "route": "20260930-20261009/2610.04137v1-dynamic-harness-search-building-multi-agent-systems-per-query-via-prediction",
+      "title": "Dynamic Harness Search: Building Multi-Agent Systems Per-Query via Prediction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "通过线束搜索按查询构建多智能体系统",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.04672v1",
+      "route": "20260930-20261009/2610.04672v1-masbench-benchmarking-llm-based-multi-agent-collaboration-under-partial-observability",
+      "title": "MASBench: Benchmarking LLM-based Multi-Agent Collaboration under Partial Observability",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "部分可观测性下基于LLM的多智能体协作基准测试",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.05176v1",
+      "route": "20260930-20261009/2610.05176v1-aecg-asymmetric-experience-consolidation-and-governance-in-multi-agent-systems",
+      "title": "AECG: Asymmetric Experience Consolidation and Governance In Multi-Agent Systems",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "在多智能体系统中整合与治理程序性知识",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.05481v1",
+      "route": "20260930-20261009/2610.05481v1-codeforge-ma-execution-verified-multi-agent-learning-with-language-conditioned-lora-for-multilingual-code-generation",
+      "title": "CodeForge-MA: Execution-Verified Multi-Agent Learning with Language-Conditioned LoRA for Multilingual Code Generation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多智能体数据锻造与语言条件 LoRA 适配器",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.05800v1",
+      "route": "20260930-20261009/2610.05800v1-adaptive-utilization-of-low-rank-adaptation-via-conditioned-gating",
+      "title": "Adaptive Utilization of Low-Rank Adaptation via Conditioned Gating",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于条件门控的令牌级自适应LoRA",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.06069v1",
+      "route": "20260930-20261009/2610.06069v1-attention-tax-handoff-tax-a-stylised-model-of-when-multi-agent-llm-systems-help",
+      "title": "Attention Tax, Handoff Tax: A Stylised Model of When Multi-Agent LLM Systems Help",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多智能体 LLM 系统的风格化可靠性模型",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.06293v1",
+      "route": "20260930-20261009/2610.06293v1-vepagent-bridging-causal-transition-via-tool-augmented-reinforcement-learning-for-video-event-prediction",
+      "title": "VepAgent: Bridging Causal-Transition via Tool-Augmented Reinforcement Learning for Video Event Prediction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "工具增强强化学习实现因果转移推理",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.06542v1",
+      "route": "20260930-20261009/2610.06542v1-a-fine-grained-analysis-of-the-lora-fine-tuning-landscape-with-implications-for-data-selection",
+      "title": "A Fine-Grained Analysis of the LoRA Fine-Tuning Landscape with Implications for Data Selection",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "LoRA微调景观分析与秩选择",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.06830v1",
+      "route": "20260930-20261009/2610.06830v1-mempilot-orchestrating-on-demand-multimodal-memory-curation-for-llm-agents",
+      "title": "MemPilot: Orchestrating On-Demand Multimodal Memory Curation for LLM Agents",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向 LLM 智能体的按需多模态记忆编排",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.06964v1",
+      "route": "20260930-20261009/2610.06964v1-principles-that-guide-actions-that-inform-agent-evolution-via-knowledge-abstraction",
+      "title": "Principles that Guide, Actions that Inform: Agent Evolution via Knowledge Abstraction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "LLM 智能体经验演化与外部记忆知识抽象",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.07553v1",
+      "route": "20260930-20261009/2610.07553v1-which-and-when-to-admit-gradient-admission-for-data-centric-small-language-model-finetuning",
+      "title": "Which and When to Admit: Gradient Admission for Data-Centric Small Language Model Finetuning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "通过梯度准入控制改进LoRA微调",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.07676v1",
+      "route": "20260930-20261009/2610.07676v1-exact-solution-volume-and-length-generalization-in-transformers",
+      "title": "Exact-Solution Volume and Length Generalization in Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "Transformer长度泛化的理论分析",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.07787v1",
+      "route": "20260930-20261009/2610.07787v1-oopmas-object-oriented-multi-agent-systems-for-query-level-workflow-generation",
+      "title": "OOPMAS: Object-Oriented Multi-Agent Systems for Query-Level Workflow Generation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向查询的多智能体工作流生成与面向对象设计",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.07835v1",
+      "route": "20260930-20261009/2610.07835v1-dhcg-dynamic-construction-of-hierarchical-collaboration-graphs-for-llm-based-multi-agent-reasoning",
+      "title": "DHCG: Dynamic Construction of Hierarchical Collaboration Graphs for LLM-Based Multi-Agent Reasoning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向LLM多智能体推理的动态层次协作图构建",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.07848v1",
+      "route": "20260930-20261009/2610.07848v1-dynamic-positional-attention-modulation-for-parameter-efficient-fine-tuning-of-large-language-models",
+      "title": "Dynamic Positional Attention Modulation for Parameter-Efficient Fine-Tuning of Large Language Models",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "提出DyPAM，一种动态调整注意力中位置贡献的参数高效微调方法",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.08155v1",
+      "route": "20260930-20261009/2610.08155v1-token-efficient-multi-agent-collaboration-via-system-one-guided-computational-division-of-labor",
+      "title": "Token-Efficient Multi-Agent Collaboration via System One-Guided Computational Division of Labor",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "通过将协调与推理解耦实现token高效的多智能体协作",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.08312v1",
+      "route": "20260930-20261009/2610.08312v1-code-lora-mitigating-the-orthogonality-dilemma-in-continual-learning-of-llms-via-knowledge-consolidation-and-decoupling",
+      "title": "CoDe-LoRA: Mitigating the Orthogonality Dilemma in Continual Learning of LLMs via Knowledge Consolidation and Decoupling",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于 LoRA 的知识整合与解耦持续学习方法",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.09858v1",
+      "route": "20260930-20261009/2610.09858v1-training-advisors-for-llm-agents-from-task-outcomes",
+      "title": "Training Advisors for LLM Agents from Task Outcomes",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "为LLM智能体训练提供自然语言建议的评论模型，用于多步骤工具使用任务",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.10114v1",
+      "route": "20260930-20261009/2610.10114v1-mechanics-of-long-context-hybrid-models-part-11-from-hybrid-attention-to-hybrid-position",
+      "title": "Mechanics of Long-Context Hybrid Models Part 1.1: From Hybrid Attention to Hybrid Position",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "混合注意力架构提升长上下文效率",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.10303v1",
+      "route": "20260930-20261009/2610.10303v1-on-the-necessity-of-attention-ffn-split-in-vision-transformers",
+      "title": "On the Necessity of Attention-FFN Split in Vision Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "研究Transformer架构，提出统一Attention-FFN模块",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.11345v1",
+      "route": "20260930-20261009/2610.11345v1-synco-data-synthesis-co-training-for-self-evolving-llms-via-multi-agent-reinforcement-learning",
+      "title": "SynCo: Data Synthesis Co-Training for Self-Evolving LLMs via Multi-Agent Reinforcement Learning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多智能体强化学习驱动的自进化数据合成训练",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.11472v1",
+      "route": "20260930-20261009/2610.11472v1-from-chain-of-thought-to-loops-non-autoregressive-latent-reasoning-via-looped-transformers",
+      "title": "From Chain-of-Thought to Loops: Non-Autoregressive Latent Reasoning via Looped Transformers",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "提出LLoCoT，用迭代精炼紧凑潜状态替代自回归链式思考",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.11620v1",
+      "route": "20260930-20261009/2610.11620v1-where-to-adapt-matters-layer-selective-fine-tuning-for-capability-retention",
+      "title": "Where to Adapt Matters: Layer-Selective Fine-Tuning for Capability Retention",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "PEFT 中层级选择性微调以保留通用能力",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.38809v1",
+      "route": "20260930-20261009/2609.38809v1-statetree-enhancing-long-term-dialogue-reasoning-via-reinforcement-learning",
+      "title": "StateTree: Enhancing Long-Term Dialogue Reasoning via Reinforcement Learning",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于强化学习的长期对话推理方法",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.38832v1",
+      "route": "20260930-20261009/2609.38832v1-scaling-parameter-and-context-in-attention-native-sparse-attention-from-mixture-of-head",
+      "title": "Scaling Parameter and Context in Attention: Native Sparse Attention from Mixture-of-Head",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "提出NAMOH，一种原生稀疏注意力，每token激活部分头，联合扩展参数和上下文",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.39306v1",
+      "route": "20260930-20261009/2609.39306v1-resail-mitigating-collapse-in-iterative-agent-self-distillation",
+      "title": "ReSAIL: Mitigating Collapse in Iterative Agent Self-Distillation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "缓解LLM智能体迭代自蒸馏中的性能崩溃",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.39740v1",
+      "route": "20260930-20261009/2609.39740v1-latentharness-learning-latent-actions-for-memory-and-reasoning-via-counterfactual-policy-distillation",
+      "title": "LatentHarness: Learning Latent Actions for Memory and Reasoning via Counterfactual Policy Distillation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "潜在动作统一记忆与多步推理",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.39394v1",
+      "route": "20260930-20261009/2609.39394v1-can-computation-from-earlier-problems-help-llms-solve-new-ones",
+      "title": "Can Computation from Earlier Problems Help LLMs Solve New Ones?",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "提出STAIR，利用早前问题的陈旧令牌注意力复用计算以改善后续推理",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2609.39701v1",
+      "route": "20260930-20261009/2609.39701v1-values-as-style-disentangling-values-from-semantics-with-one-way-mixing-for-low-damage-llm-steering",
+      "title": "Values as Style: Disentangling Values from Semantics with One-Way Mixing for Low-Damage LLM Steering",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向LLM对齐的价值观操控，同时保持语义不变",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.00689v1",
+      "route": "20260930-20261009/2610.00689v1-towards-robust-numerical-claim-verification",
+      "title": "Towards Robust Numerical Claim Verification",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "参数高效微调提高数值推理鲁棒性",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.00958v1",
+      "route": "20260930-20261009/2610.00958v1-role-aware-heuristic-episodic-attention-for-conversational-llms",
+      "title": "Role-aware Heuristic Episodic Attention for Conversational LLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "为对话LLM管理上下文记忆以缓解衰减",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.01170v1",
+      "route": "20260930-20261009/2610.01170v1-headedit-calibrating-language-model-behavior-through-the-frozen-unembedding-matrix",
+      "title": "HeadEdit: Calibrating Language Model Behavior Through the Frozen Unembedding Matrix",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "通过冻结解嵌入矩阵中的低秩子空间进行无梯度行为校准",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.02856v1",
+      "route": "20260930-20261009/2610.02856v1-adaptive-mutual-distillation-for-balanced-multi-task-post-training-of-large-language-models",
+      "title": "Adaptive Mutual Distillation for Balanced Multi-Task Post-Training of Large Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "通过自适应互蒸馏实现LLM多任务后训练的均衡",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    },
+    {
+      "paper_id": "2610.05564v1",
+      "route": "20260930-20261009/2610.05564v1-lend-me-your-eyes-instruction-aware-text-embeddings-via-attention-relay",
+      "title": "Lend Me Your Eyes: Instruction-Aware Text Embeddings via Attention Relay",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "通过注意力权重从LLM向嵌入器传递指令遵循能力",
+      "first_seen_at": "2026-10-09 10:49:18 UTC",
+      "updated_at": "2026-10-09 10:49:18 UTC"
+    }
+  ]
+}

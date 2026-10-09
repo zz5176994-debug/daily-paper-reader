@@ -1,0 +1,939 @@
+Title: CoDe-LoRA: Mitigating the Orthogonality Dilemma in Continual Learning of LLMs via Knowledge Consolidation and Decoupling
+
+URL Source: https://arxiv.org/pdf/2610.08312v1
+
+Published Time: Wed, 07 Oct 2026 01:58:43 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+# CoDe-LoRA: Mitigating the Orthogonality Dilemma in Continual Learning of LLMs via Knowledge Consolidation and Decoupling 
+
+Maoqi Liu 1, Quan Fang 1,B, Yufei He 21Beijing University of Posts and Telecommunications 
+
+> 2
+
+National University of Singapore 
+
+Abstract 
+
+Continual learning (CL) is essential for Large Language Models (LLMs) to sequentially adapt to evolving tasks. To mitigate catastrophic forgetting, recent advances im-plement low-rank adaptation with orthogonal projections (e.g., O-LoRA) to isolate task parameters. However, we reveal that such strict geometric constraints trigger an “Or-thogonality Dilemma”: rigid parameter isolation impedes the transfer and accumulation of shared representations across semantically related tasks. In this work, we pro-pose a new replay-free method, called Consolidation and Decoupling LoRA (CoDe-LoRA), for CL of LLMs. CoDe-LoRA disentangles the learning process into Consolidating Universal Knowledge and Decoupling Task-Specific Knowl-edge . To achieve this, CoDe-LoRA leverages an adaptive null space projection mechanism and semantic routing to balance knowledge accumulation with task-specific adap-tation. Experimental results across four backbones and three CL benchmarks show that CoDe-LoRA achieves the best average accuracy. Our code is available at https: //github.com/Estrellajer/CoDe-LoRA .
+
+1 Introduction 
+
+Large Language Models (LLMs) have redefined the boundaries of natural language processing, exhibit-ing remarkable capabilities across a wide range of tasks (Wei et al., 2021). However, adapting these models to a continuous stream of evolving tasks, known as Continual Learning (CL) (De Lange et al., 2021), remains challenging. While parameter-efficient fine-tuning (PEFT) methods, particularly low-rank adaptation (LoRA) (Hu et al., 2021), have significantly lowered the cost of adaptation, naively applying them to sequential tasks leads to catas-trophic forgetting (Li and Hoiem, 2017), where learning new tasks degrades previously acquired capabilities on earlier tasks. To mitigate forgetting, recent work combines PEFT with orthogonal projection strategies (Saha et al., 2021; Wang et al., 2023a). A representative example is O-LoRA (Wang et al., 2023a), which isolates task-specific parameters in mutually or-thogonal subspaces. Although effective at reducing  
+
+> BCorresponding author: qfang@bupt.edu.cn .
+
+inter-task interference, such rigid isolation intro-duces a trade-off between interference mitigation and knowledge transfer. When sequential tasks share semantic structure, their optimal parameter updates should naturally overlap. Enforcing strict orthogonality removes these shared components, reducing representation reuse and weakening cross-task transfer. As illustrated in Figure 1, this phe-nomenon reveals an “Orthogonality Dilemma”: the same geometric constraint that protects previous knowledge can also restrict transferable represen-tation learning across related tasks. This limitation highlights a key challenge in con-tinual adaptation: how to preserve prior knowl-edge while still accumulating transferable repre-sentations across related tasks. Motivated by this tension, we investigate two questions: 
+
+Q1. Why does strict orthogonality limit generalization across related tasks, and under what conditions is this limitation most severe? 
+
+Q2. How can we design a parameter-efficient frame-work that preserves transferable representations while maintaining task-specific expertise in a replay-free setting? 
+
+In this paper, we introduce Consolidation and Decoupling LoRA ( CoDe-LoRA ), a dual-branch continual adaptation framework motivated by the orthogonality-induced transfer limitation. We pro-vide a geometric characterization showing that strict orthogonal isolation becomes increasingly detrimental as task similarity grows. CoDe-LoRA separates transferable representa-tion consolidation from task-specific specialization through two complementary branches. Unlike strict orthogonal isolation methods that suppress over-lapping representations entirely, our framework preserves transferable components while constrain-ing interference-prone directions. Specifically, the 
+
+Consolidation Branch (Co-LoRA) maintains shared transferable representations through adaptive null-space projection with dynamic scaling to stabilize 
+
+1arXiv:2610.08312v1 [cs.AI] 6 Oct 2026 ∆𝐀 1 
+
+> ∆𝐀 2
+> Overlapping space
+> SeqLoRA
+> ∆𝐀 1
+> ∆𝐀 2
+> Orthogonal space
+> O-LoRA
+> ∆𝐀 1
+> ∆𝐀 2
+> Null Space Projection
+> CoDe-LoRA
+> Parameter Space Usage Comparison Figure 1. Conceptual illustration of parameter space utilization. Traditional LoRA suffers from interference, while O-LoRA’s strict orthogonality hinders knowledge sharing. CoDe-LoRA leverages null space projection to consolidate shared knowledge.
+
+long-horizon continual adaptation, as empirically verified in Appendix A.2 (Table 5). Meanwhile, the 
+
+Decoupling Branch (De-LoRA) maintains a pool of in-dependent LoRA experts together with a prototype-based semantic routing mechanism for robust infer-ence without explicit task identifiers. Importantly, CoDe-LoRA operates without relying on historical data replay, avoiding additional storage overhead and privacy concerns. Our main contributions are summarized as fol-lows: • We identify and analyze the Orthogonality Dilemma in PEFT-based continual learning, showing that strict parameter isolation becomes increasingly detrimental as task similarity grows. • We propose CoDe-LoRA , a dual-branch contin-ual adaptation framework that separates trans-ferable representation consolidation from task-specific specialization through adaptive null-space projection and prototype-based expert de-coupling. • Extensive experiments across four backbones and three continual learning benchmarks show that CoDe-LoRA achieves the best average ac-curacy while balancing knowledge transfer and interference mitigation. 
+
+2 Related Work 
+
+2.1 Parameter-Efficient Fine-Tuning 
+
+Parameter-Efficient Fine-Tuning (PEFT) adapts Large Language Models (LLMs) with minimal ad-ditional parameters. Early approaches such as Adapters (Houlsby et al., 2019) and Prompt/Prefix Tuning (Li and Liang, 2021; Lester et al., 2021) introduced lightweight modules while freezing the backbone. LoRA (Hu et al., 2021) further improves efficiency through low-rank matrices. Although ef-fective for static tasks, sequential adaptation with PEFT methods often leads to catastrophic forgetting of earlier tasks as training proceeds. 
+
+2.2 Continual Fine-Tuning for LLMs 
+
+Continual fine-tuning methods mainly rely on regu-larization (Kirkpatrick et al., 2017), replay (Qin and Joty, 2021; He et al., 2024), or parameter expan-sion (Razdaibiedina et al., 2023). Expansion-based methods avoid interference through task-specific parameters, but their parameter cost grows with the number of tasks. Replay and regularization methods preserve prior knowledge through mem-ory buffers or parameter constraints, yet often in-cur computational overhead or privacy concerns. Recently, mixture-of-experts (MoE) routing frame-works such as MoLE-CIE (Wang et al., 2025) have been introduced for continual adaptation; however, they typically still rely on historical exemplar replay to prevent routing drift and maintain stable perfor-mance over long task sequences and domains. More recently, orthogonality-based methods such as O-LoRA (Wang et al., 2023a), CLoRA (Lu et al., 2025), and N-LoRA (Yang et al., 2025b) mitigate forgetting by projecting updates into orthogonal or null subspaces. Although effective at reducing interference, strict orthogonal isolation may limit representation reuse across related tasks. In con-trast, CoDe-LoRA separates shared representation consolidation from task-specific specialization, bal-ancing knowledge transfer and interference mitiga-tion through adaptive null-space projection without historical data replay.         
+
+> 2Problem — The Orthogonality Dilemma Solution — Shared Knowledge Accumulation Figure 2. Preliminary evidence for the orthogonality dilemma and transferable representation accumulation. (a)
+> Orthogonality-induced degradation under different task similarity levels. (b) Transfer trajectories over repeated training with and without orthogonal constraints. (c) Next-task zero-shot transfer comparison across continual adaptation methods.
+> (d) Forward transfer dynamics across sequential tasks.
+
+3 Preliminary 
+
+3.1 Problem Definition 
+
+We consider continual learning (CL) over a se-quence of tasks {T (1) , T (2) , . . . , T (𝑇 ) }. Each task 
+
+T (𝑡 ) is associated with a dataset D (𝑡 ) = {( 𝑥, 𝑦 )} ,where 𝑥 denotes the input prompt and 𝑦 the target sequence. Under the PEFT setting, the backbone parameters 𝜃 base remain frozen while task-specific updates Δ𝜃 (𝑡 ) are learned with a small number of trainable parameters. We consider the replay-free setting, where no data from earlier tasks is stored, and task identity is not given at inference time. Se-quentially fine-tuning on new tasks often leads to catastrophic forgetting of previous ones. 
+
+3.2 Orthogonal Continual Adaptation 
+
+To mitigate forgetting, O-LoRA (Wang et al., 2023a) constrains each task update to be orthogonal to pre-vious task subspaces. For task 𝑡 , the LoRA update is parameterized as Δ𝑊 𝑡 = 𝐵 𝑡 𝐴 𝑡 , where 𝐴 𝑡 ∈ R𝑟 ×𝑑 in 
+
+and 𝐵 𝑡 ∈ R𝑑 out ×𝑟 . Orthogonality is imposed through: 
+
+𝐴 𝑖 𝐴 ⊤ 
+
+> 𝑡
+
+= 0, ∀𝑖 < 𝑡 (1) In practice it is enforced by a regularization penalty. 
+
+3.3 Orthogonality Dilemma 
+
+Although orthogonal constraints reduce interfer-ence, they may also suppress transferable represen-tations across closely related tasks. Let Δ𝑊 ∗ 
+
+> 𝑡
+
+be the update that unconstrained fine-tuning learns on task 𝑡 , and let 𝑃 <𝑡 be the orthogonal projector onto the row space of 𝐴 <𝑡 = [𝐴 1; . . . ; 𝐴 𝑡 −1]. We measure how much of this update is aligned with earlier tasks by 
+
+𝜌 𝑡 = ∥Δ𝑊 ∗ 
+
+> 𝑡
+
+𝑃 <𝑡 ∥2
+
+> 𝐹
+
+∥Δ𝑊 ∗ 
+
+> 𝑡
+
+∥2
+
+> 𝐹
+
+∈ [ 0, 1]. (2) Enforcing 𝐴 𝑖 𝐴 ⊤ 
+
+> 𝑡
+
+= 0 for all 𝑖 < 𝑡 forces Δ𝑊 𝑡 𝑃 <𝑡 = 0, so the closest feasible update is Δ𝑊 ∗ 
+
+> 𝑡
+
+(𝐼 −𝑃 <𝑡 ), which dis-cards exactly a 𝜌 𝑡 fraction of the update energy. The more related the tasks, the more reusable knowl-edge is lost. This creates an “Orthogonality Dilemma”: the constraint that protects previous knowledge also limits transfer between related tasks. 
+
+3.4 Preliminary Evidence and Mechanism Validation 
+
+Figure 2 demonstrates these dynamics: (a) orthogonality-induced degradation worsens as task similarity grows; (b) unconstrained fine-tuning accumulates transferable knowledge over itera-tions, whereas strict orthogonality suppresses it; (c) preserving shared representations improves zero-shot transfer; and (d) transfer gains remain positive across task sequences. 
+
+Mechanism Validation. To investigate the under-lying cause, we define task similarity as the cosine between task centroids, sim (T (𝑖 ) , T ( 𝑗 ) ) = 𝑐 (T (𝑖 ) ) · 
+
+𝑐 (T ( 𝑗 ) ), where 𝑐 (T ) is the L2-normalized mean of mask-pooled, L2-normalized frozen T5-large em-beddings of 200 training inputs, and measure up-date overlap by 𝜌 𝑡 (Eq. 2) on each task’s saved low-rank update. We compare O-LoRA (rank 10) with and without its orthogonality penalty, holding the Order-1 data, schedule, and seed fixed. The penalty ( 𝜆 = 0.5) suppresses the prior-subspace energy from 5.05–5.63% to 0.47–0.64% (89.0% on average), while removing it ( 𝜆 = 0) raises the mean next-task forward transfer from 43.70 to 49.45 (+5.75). This confirms that strict orthogonality suppresses update components that contribute to transfer, motivating our dual-branch design. 
+
+> 3
+
+Training Stage 
+
+𝐀 𝐀𵠀 𝐀 
+
+𝐀 𝐀𱐀𝐀𴀀 𝐀 
+
+Frozen LM 
+
+𝐀 1
+
+> William Vermilye Brady was the 68th Mayor of New York City from 1847 to 1848. Option: Company, Educational Institution, ……
+
+𝐀 𝐀𵠀 𝐀 
+
+𝐀 𝐀𱐀𝐀𴀀 𝐀 
+
+Frozen LM 
+
+> Someone who had a very bad flight might be given a trip in this to make up for it? Option: (A)first class (B)propi/ous (C)reputable (D)one (E)sufficient
+
+𝐀 2
+
+𝐀 𝐀𵠀 𝐀 
+
+𝐀 𝐀𱐀𝐀𴀀 𝐀 
+
+Frozen LM 
+
+> What is the sentiment of the following paragraph? Choose one from the option. Option: very negative, negative, neutral, positive, very positive
+
+𝐀 𝐀 
+
+> …
+
+𝐀 𝐀𵠀 𝐀 
+
+𝐀 𝐀𱐀𝐀𴀀 𝐀 
+
+𝐀 𝐀𵠀 𝐀 
+
+𝐀 𝐀𱐀𝐀𴀀 𝐀 
+
+𝐀 𝐀𵠀 𝐀 
+
+𝐀 𝐀𱐀𝐀𴀀 𝐀 
+
+> ∆𝐀 𝐀−𝐀
+> Row(∆𝐀 𝐀−𝐀 )Null(∆𝐀 𝐀−𝐀 )null Space
+
+…… 
+
+Inference Stage 
+
+> ∆𝐀 𝐀−𝐀
+> ∆𝐀 ∆𝐀 𝐀
+
+Consolidation Branch 
+
+> scaling
+
+…
+
+Prototype 
+
+Predictions 
+
+Prototype Routing 
+
+> Prediction 1
+> Prediction 2 Output Output
+> Threshold Check
+> Input Text
+
+Figure 3. The CoDe-LoRA framework. (Left) Training: Knowledge is disentangled into task-specific experts and a shared branch consolidated via null space projection. (Right) Inference: Inputs are routed to experts via prototype similarity, with a confidence-based fallback to the shared branch for robust prediction. 
+
+4 Methodology 
+
+4.1 Overall Framework 
+
+To resolve the orthogonality dilemma (Section 3.3), we propose CoDe-LoRA (illustrated in Figure 3), a dual-branch framework designed to consoli-date shared representations while decoupling task-specific expertise. Built upon a frozen backbone 
+
+𝜃 base , our architecture operates through two par-allel pathways: the Consolidation Branch (Co-LoRA, 𝜃 shared ), which accumulates transferable rep-resentations across tasks via null space projection (Sec. 4.2), and the Decoupling Branch (De-LoRA), which maintains a pool of independent task-specific LoRA experts {𝜃 𝑘 
+
+spec }𝑇 𝑘 =1 that captures domain nu-ances without interference (Sec. 4.3). These com-ponents are ultimately integrated via a confidence-based fallback selection strategy (Sec. 4.4) to en-sure robust inference. 
+
+4.2 Consolidating Shared Representations 
+
+While strict parameter isolation (e.g., O-LoRA) pre-vents catastrophic forgetting, it often hinders the ac-cumulation of shared representations across closely related tasks. Unlike strict orthogonal isolation methods that entirely discard overlapping update components, our consolidation branch preserves ac-cumulated shared representations while constrain-ing only newly introduced conflicting update di-rections. To achieve this objective, we propose a consolidation mechanism based on null space pro-jection and dynamic scaling. 
+
+Consolidation Algorithm. After training on each new task T (𝑡 ) , we update the parameters of the Con-solidation Branch (Co-LoRA) through a three-step consolidation process. The Consolidation Branch is parameterized by low-rank weights 𝑊 shared =
+
+𝐵 shared 𝐴 shared . Let 𝑊 (𝑡 −1)
+
+acc denote the accumulated shared weight matrix of Co-LoRA up to task 𝑡 − 1, and let Δ𝑊 (𝑡 )
+
+shared represent the parameter update learned in the Consolidation Branch during the training of task 𝑡 .
+
+Null Space Projection. We project Δ𝑊 (𝑡 )
+
+shared onto the null space of the existing representations repre-sented by 𝑊 (𝑡 −1)
+
+acc . Specifically, we perform Singular Value Decomposition (SVD) on 𝑊 (𝑡 −1)
+
+acc ∈ R𝑑 out ×𝑑 in to obtain its top-𝑑 𝑣 left singular vectors 𝑈 ∈ R𝑑 out ×𝑑 𝑣 ,which form an orthonormal basis for its column space. Here, 𝑑 𝑣 ≤ 𝑟 is the rank of the accumulated column space (we use 𝑑 𝑣 = 𝑟 ). The new component 
+
+Δ𝑊 null is then computed by removing the projection of Δ𝑊 (𝑡 )
+
+shared onto this subspace: 
+
+Δ𝑊 null = Δ𝑊 (𝑡 )
+
+shared − 𝑈𝑈 ⊤Δ𝑊 (𝑡 )
+
+shared (3) Intuitively, the projection keeps only what is new in each task, so earlier representations are not over-written. This projection reduces interference with previously consolidated representations. To im-prove scalability for large LLMs, we implement the projection using randomized low-rank SVD directly on factorized LoRA matrices. Details and efficiency analysis are provided in Appendix A.3. 
+
+4Dynamic Scaling Constraint. To maintain the stability of the parameter magnitude, we intro-duce time-varying scaling coefficients 𝑐 𝑡 =√︃ 𝑡 −1
+
+> 𝑡
+
+and 𝑠 𝑡 = 1√𝑡 satisfying the normalization identity 
+
+𝑐 2 
+
+> 𝑡
+
++ 𝑠 2 
+
+> 𝑡
+
+= 1. Since the null space projection en-sures that each new update is orthogonal to the existing parameters, we scale the null space up-date component by 𝑠 𝑡 . This constraint prevents the cumulative parameter magnitude from exploding or drifting as the number of sequential tasks in-creases. We provide the theoretical proof of the stable parameter bound and its empirical verifica-tion in Appendix A.2. The final consolidated weight matrix is updated by merging the scaled null space component with the previous state: 
+
+𝑊 (𝑡 ) 
+
+> acc
+
+= 𝑐 𝑡 𝑊 (𝑡 −1) 
+
+> acc
+
++ 𝑠 𝑡 Δ𝑊 null (4) This recursive formulation ensures that the consoli-dated weight matrix represents a normalized accu-mulation of orthogonal task updates. The choice of scaling coefficients stabilizes the parameter magni-tude across tasks as follows: 
+
+Proposition 1. Given the recursive update rule de-fined in Equation (4) , assuming the initial LoRA weights are zero ( 𝑊 (0) 
+
+> acc
+
+= 𝑊 (0) = 0) and that 𝑈 
+
+spans the column space of 𝑊 (𝑡 −1) 
+
+> acc
+
+, the distance be-tween the consolidated model and the pre-trained model remains bounded: 
+
+𝑊 (𝑡 ) 
+
+> acc
+
+− 𝑊 (0) 2
+
+> 𝐹
+
+≤ 𝑀 𝑡 (5) 
+
+where 𝑀 𝑡 = max 𝑖 ∈ [ 1,𝑡 ] Δ𝑊 (𝑖 )
+
+> shared
+> 2
+> 𝐹
+
+.
+
+4.3 Decoupling Task-Specific Expertise 
+
+While the Consolidation Branch captures trans-ferable representations, task-specific nuances are isolated within the Decoupling Branch (De-LoRA), consisting of a pool of task-specific experts 
+
+{𝜃 𝑘 
+
+> spec
+
+}𝑇 𝑘 =1. To enable task-agnostic inference, we introduce a semantic routing mechanism that leverages task prototypes to dynamically activate the most relevant De-LoRA expert for each input. 
+
+Prototype Construction. For each task, we con-struct a prototype 𝑃 𝑘 ∈ R𝑑 model as the normalized mean of the frozen-backbone embeddings 𝑓 𝜃 base (𝑥 𝑖 )
+
+of 𝑁 randomly selected training samples (fixed to 
+
+𝑁 = 10 throughout experiments). Crucially, be-cause prototypes and runtime query representa-tions are extracted solely using the frozen base model 𝜃 base rather than adapter-modulated layers, the semantic matching space does not drift over sequential learning phases. 
+
+Routing Procedure. During inference, the sys-tem identifies the optimal De-LoRA expert 𝜃 𝑘 ∗
+
+> spec
+
+for a given input 𝑥 by measuring the similarity be-tween the input embedding 𝑒 𝑥 = 𝑓 𝜃 base (𝑥 ) and the stored prototypes {𝑃 𝑘 }𝑇 𝑘 =1. Since prototypes are pre-normalized, the routing index 𝑘 ∗ = arg max 𝑘 𝑒 𝑥 ·𝑃 𝑘  
+
+> ∥𝑒 𝑥 ∥
+
+is the prototype with the highest cosine similar-ity. Routing stores only compact per-task statis-tics rather than raw samples, so it remains replay-free. The selected expert 𝜃 𝑘 ∗ 
+
+> spec
+
+is then activated and integrated with the Consolidation Branch for inference via the fallback strategy described in Sec-tion 4.4. This similarity-based routing facilitates positive forward transfer: for inputs that bridge multiple task distributions, the mechanism natu-rally selects the most semantically related expert, enabling the model to leverage relevant prior knowl-edge. Appendix A.5 compares the routers and the cost of routing errors. 
+
+4.4 Knowledge Integration and Fallback Selection 
+
+To produce the final prediction, we employ a confidence-based fallback selection strategy that prioritizes specialized expertise while leveraging the consolidated shared branch as a robust prior. Here, the routing confidence is defined as the max-imum cosine similarity between the input embed-ding and task prototypes. If the routing confi-dence exceeds a threshold 𝜏 (a hyperparameter set to 0 .75 by default), the system routes infer-ence to the task-specific expert 𝜃 𝑘 ∗
+
+> spec
+
+, executing ˆ𝑦 = Model (𝑥 ; 𝜃 base , 𝜃 𝑘 ∗
+
+> spec
+
+). Otherwise, the model falls back to the consolidated shared branch, exe-cuting ˆ 𝑦 = Model (𝑥 ; 𝜃 base , 𝜃 shared ). A higher 𝜏 trusts the router only on clear matches and sends the rest to the shared branch, whereas 𝜏 = 0 always trusts the routed expert. This fallback strategy dynami-cally balances stability and plasticity by preserving high-capacity specialized expertise while utilizing the consolidated branch as a robust safety net for ambiguous or out-of-distribution inputs. For classifi-cation tasks, candidate-label scores are additionally PMI-calibrated. The complete training and consoli-dation workflow is detailed in Appendix A.3. Both branches share the same frozen backbone, so no backbone parameters are updated.                                                                                                                                                     
+
+> 5Table 1. Performance comparison of different methods using the T5 model on Standard CL Benchmark and Large Number of Tasks. The average accuracy after training on the final task is reported. The top two results (excluding the oracle and MTL references) are bolded and underlined. Subscripts denote standard deviations across 3 random seeds.
+> Method Standard CL Benchmark Large Number of Tasks Order-1 Order-2 Order-3 Avg Order-4 Order-5 Order-6 Avg
+> Ref.  Per-LoRA (Oracle) 81.4 81.3 81.4 81.4 77.6 77.4 77.5 77.5 MTL 80.0 80.0 80.0 80.0 76.5 76.5 76.5 76.5
+> Seq. FT  SeqFT 18.9 24.9 41.7 28.5 7.4 7.4 7.5 7.4 SeqLoRA 44.6 32.7 53.7 43.7 0.6 1.9 1.6 1.4 IncLoRA 66.0 64.9 68.3 66.4 63.3 58.5 61.7 61.2
+> Classic CL  Replay 55.2 56.9 61.3 57.8 55.0 54.6 53.1 54.2 EWC 48.7 47.7 54.5 50.3 45.3 44.5 45.6 45.1 LwF 54.4 53.1 49.6 52.3 50.1 43.1 47.4 46.9 L2P 60.3 61.7 61.1 61.0 57.5 53.8 56.9 56.1 LFPT5 67.6 72.6 77.9 72.7 70.4 68.2 69.1 69.2
+> Advanced CL
+> O-LoRA 75.4 75.7 76.3 75.8 72.3 64.8 71.6 69.6 MIGU 77.1 77.0 75.6 76.6 67.3 68.5 74.2 70.0 N-LoRA 79.2 78.4 78.8 78.8 73.6 70.3 73.2 72.4 CLoRA 79.7 79.1 78.2 79.0 70.7 65.6 68.2 68.1 Co-LoRA 75.9 ±0.2 75.5 ±0.2 75.3 ±0.7 75.6 ±0.4 64.0 ±1.7 67.4 ±1.3 63.6 ±1.8 65.0 ±1.9
+> De-LoRA 79.4 ±0.3 79.2 ±0.1 79.3 ±0.1 79.3 ±0.2 76.7 ±0.4 76.6 ±0.8 76.2 ±0.8 76.5 ±0.7
+> CoDe-LoRA (Ours) 80.3 ±0.2 80.4 ±0.2 80.5 ±0.3 80.4 ±0.2 78.6 ±0.5 78.8 ±0.7 79.8 ±0.3 79.1 ±0.7
+
+5 Experiments 
+
+5.1 Experimental Setup Datasets. We evaluate CoDe-LoRA on three benchmarks: the Standard CL Benchmark (Zhang et al., 2015), the Large Number of Tasks Bench-mark (Razdaibiedina et al., 2023), and the TRACE benchmark (Wang et al., 2023b) which contains diverse generative tasks. Following Qin and Joty (2021), we evaluate across three distinct task or-ders for each benchmark to ensure robustness. The complete specifications, including task sequences, dataset statistics, and natural language instructions, are detailed in Appendix A.8 and A.9. 
+
+Evaluation Metrics. Let 𝑎 𝑖, 𝑗 denote the perfor-mance on task 𝑖 after training on task 𝑗 . To as-sess continual learning performance, we report two primary metrics: (1) Average Performance (AP) ,computed as the average task performance at the end of the continual sequence (Average Accuracy for classification benchmarks and Overall Perfor-mance for generative benchmarks); and (2) Back-ward Transfer (BWT) , which measures the reten-tion of previously learned knowledge across tasks. We additionally analyze forward transfer behav-ior to evaluate the model’s ability to accumulate transferable representations across sequential tasks. Formal definitions are provided in Appendix A.4. 
+
+Baselines. We compare CoDe-LoRA against four categories of continual learning baselines: (1) upper-reference baselines, including Multi-Task Learning (MTL) and Per-LoRA (Oracle); (2) sequen-tial fine-tuning methods, including SeqFT (de Mas-son D’Autume et al., 2019), SeqLoRA, and In-cLoRA; (3) continual learning methods, including EWC (Kirkpatrick et al., 2017), LwF (Li and Hoiem, 2017), Replay (Lopez-Paz and Ranzato, 2017), L2P (Wang et al., 2022), and LFPT5 (Qin and Joty, 2021); and (4) parameter-efficient continual learning methods, including O-LoRA (Wang et al., 2023a), MIGU (Du et al., 2024), N-LoRA (Yang et al., 2025b), CLoRA (Lu et al., 2025), and the routing-based MoLE-CIE (Wang et al., 2025). 
+
+Implementation Details. We evaluate CoDe-LoRA across different model families and scales using T5 (Raffel et al., 2020), Llama 2-7B (Tou-vron et al., 2023), Qwen3-0.6B (Yang et al., 2025a), and Qwen3.5-4B (Team, 2026). All models are opti-mized with AdamW (Loshchilov and Hutter, 2017), training each task for one epoch with LoRA rank 8. The learning rate is 10 −3 for T5 and 10 −4 for Llama 2-7B and Qwen3.5-4B; on Qwen3-0.6B, the per-
+
+> 6
+
+Table 2. Results across backbones. Std./Long: average accuracy on the Standard CL/Long Sequence benchmarks; OP/BWT: Trace metrics. Co/De-LoRA: single-branch ablations. Top two per column are bolded and underlined. 
+
+Method Llama-2-7B Qwen3-0.6B Qwen3.5-4B 
+
+Std. Long OP BWT Std. Long OP BWT Std. Long OP BWT CLoRA 78.0 67.8 45.3 −6.0 68.0 61.6 39.8 −10.6 80.7 82.1 60.8 −4.0 O-LoRA 77.0 67.8 44.2 −3.6 70.7 64.0 41.3 −5.2 80.4 83.3 60.2 −1.3 N-LoRA 73.9 57.4 44.0 −1.6 65.9 58.9 41.8 −4.3 79.0 81.6 58.4 −1.4 MoLE-CIE 68.1 70.6 36.2 −17.2 69.5 69.3 43.0 −6.1 70.9 78.4 49.1 −17.8 Co-LoRA 73.0 59.6 43.3 −2.0 66.4 60.1 41.3 −4.6 78.9 77.5 56.8 −2.3 De-LoRA 81.1 73.7 50.0 0.0 77.3 70.2 52.2 0.0 81.7 84.9 64.2 0.0 CoDe-LoRA 81.8 74.4 50.1 0.0 79.7 73.0 51.8 0.0 82.1 85.1 64.0 0.0           
+
+> (a) Task Order 1 (b) Task Order 2 (c) Task Order 3
+> (d) Task Order 4 (e) Task Order 5 (f ) Task Order 6
+
+Figure 5. Performance curves of different methods across six task orders on the Standard CL Benchmark (Orders 1-3) and Large Number of Tasks Benchmark (Orders 4-6). Results are averaged over three independent runs. 
+
+task-expert methods (De-LoRA, CoDe-LoRA) use 10 −3 and the single-shared-adapter methods use 10 −4. Results are averaged over three independent runs. Hyperparameters, routing details, and imple-mentation settings are provided in Appendix A.3. 
+
+5.2 Main Results 
+
+On the Standard CL Benchmark (Table 1), CoDe-LoRA achieves the highest average accuracy (80.4%), outperforming prior PEFT-based CL meth-ods and exceeding the MTL reference (80.0%). This result suggests that the decoupled expert pool provides task-specific capacity while avoiding the forgetting typical of sequential fine-tuning. On the Large Number of Tasks benchmark, the performance gap is more pronounced: CoDe-LoRA achieves 79.1% average accuracy, outperforming the strongest baseline, N-LoRA, by 6.7 points (79.1% vs. 72.4%). While O-LoRA reduces in-terference through strict orthogonal isolation, its performance degrades on longer sequences where transferable representations become increasingly important. These results indicate stronger scalabil-ity in long-horizon scenarios. 
+
+Generalization to Generative Tasks. We fur-ther evaluate CoDe-LoRA on the TRACE bench-mark (Wang et al., 2023b), which contains gen-erative tasks. As shown in Table 2, CoDe-LoRA achieves competitive generation quality (OP) and 
+
+7consistently improves knowledge retention (BWT) without relying on replay buffers, indicating im-proved retention in generative domains. 
+
+Generalization across Model Families. To evalu-ate generalization across model architectures and scales, we evaluate CoDe-LoRA on Qwen3-0.6B, Qwen3.5-4B, and Llama 2-7B against isolation-based PEFT (O-LoRA, N-LoRA) and routing-based MoE (MoLE-CIE (Wang et al., 2025)) baselines (Ta-ble 2). CoDe-LoRA outperforms every baseline on every backbone and benchmark. On Qwen3-0.6B it improves over the strongest baseline by 9.0 points on standard CL (79.7 vs. 70.7) and by 3.7 points on the long-sequence benchmark (73.0 vs. 69.3); the corresponding margins are 3.8 and 3.8 on Llama 2-7B and 1.4 and 1.8 on Qwen3.5-4B, and TRACE OP improves by 3.2 to 8.8 points. Because every task retains its own frozen expert, both De-LoRA and CoDe-LoRA show no measurable backward transfer loss on TRACE (BWT = 0.0 on all three backbones), whereas the strongest baseline per backbone still loses between 1.3 and 4.3 points, and MoLE-CIE loses up to 17.8. The single-branch ablations locate the gain: Co-LoRA alone is the weakest of the three, De-LoRA already accounts for most of the accuracy, and adding the consolidation branch adds a further 0.4 to 2.8 points on Std. CL and Long Seq. On TRACE, where the two branches cannot be com-bined, CoDe-LoRA matches De-LoRA. All of this is achieved without maintaining historical replay buffers. 
+
+5.3 Ablation Studies and Analysis Capacity Control. We re-train O-LoRA and N-LoRA with 𝑟 = 10 on T5-Large so that their per-task adapter footprint matches CoDe-LoRA at 𝑟 = 8, keeping every other setting identical (three task orders, three seeds each). Raising the baseline rank changes little: O-LoRA moves from 76.5 to 76.4 on the Standard CL Benchmark and from 70.2 to 70.4 on the Long Sequence Benchmark, and N-LoRA does not improve either. Against the strongest capacity-matched baseline, CoDe-LoRA leads by 4.0 points (80.4 vs. 76.4) and by 8.7 points (79.1 vs. 70.4), respectively. The gains therefore stem from decoupled knowledge consolidation rather than from parameter capacity. 
+
+Ensemble Strategy. We compare CoDe-LoRA with LoRAHub (Huang et al., 2023), which directly merges task-specific LoRA modules. As shown in Figure 6, LoRAHub exhibits severe catastrophic for-                
+
+> Table 3. Efficiency on Order 1 (T5-large, one H20 GPU). Train and inference are seconds per task and per evaluated test set; CoDe-LoRA is a single seed, the others are means over three seeds. Params are the stored adapter parameters (CoDe-LoRA stores only the experts) and their share of the backbone.
+> Method Train (s) Infer (s) Params
+> O-LoRA 108.8 30.1 9.4M (1.28%) N-LoRA 98.0 29.9 9.4M (1.28%) MoLE-CIE 861.0 142.7 32.4M (4.40%) CoDe-LoRA 98.4 43.1 9.4M (1.28%)
+
+getting, yielding a BWT of -20.2% compared to -0.2% for CoDe-LoRA. This suggests that direct pa-rameter merging introduces significantly stronger cross-task interference. 
+
+Forward Transfer. Figure 7 shows the zero-shot forward transfer matrix on Qwen3-0.6B (Order 1). CoDe-LoRA achieves consistently higher forward transfer than O-LoRA, particularly after progres-sively accumulating knowledge across tasks (e.g., +19.1 points on Yahoo after training on dbpedia and amazon). This suggests that the consolidation branch effectively accumulates transferable repre-sentations that benefit future unseen tasks. 
+
+Impact of Prototype Samples. We analyze the sensitivity of routing performance to the number of prototype samples 𝑁 . Figure 6 (right) shows that routing accuracy improves as 𝑁 increases, with per-formance saturating around 𝑁 = 10. This indicates that only a small number of samples are required for reliable task routing. 
+
+Contribution of Each Branch. To further analyze the necessity of the proposed dual-branch design, we compare the Consolidation Branch alone (Co-LoRA), the Decoupling Branch alone (De-LoRA), and the full CoDe-LoRA architecture on the Stan-dard CL Benchmark, as reported in the correspond-ing rows of Table 1. The consolidation branch (Co-LoRA) alone captures shared representations, while the decoupling branch (De-LoRA) alone preserves task-specific adaptation. Combining both branches yields the best overall performance across all task sequences (Table 1). Appendix A.6 reports the com-plementarity of the two branches and the attempts to exploit it. 
+
+Efficiency and Scalability Analysis. CoDe-LoRA trains one adapter per task on top of the consoli-dated branch, so a task costs as much as for O-LoRA and N-LoRA (98.4 s vs. 108.8 s and 98.0 s on the               
+
+> 8Figure 6. Ablation analysis of CoDe-LoRA showing task-wise accuracy and BWT under different ensemble strategies (left) and routing accuracy across varying prototype sample sizes 𝑁 (right). Amazon Yahoo AG News
+> Dbpedia + Amazon + Yahoo
+> 28.6 32.3 46.5
+> 32.3 46.6
+> 46.7
+> O-LoRA
+> Amazon Yahoo AG News
+> 48.9 32.9 25.3
+> 51.4 39.0
+> 56.6
+> CoDe-LoRA
+> Figure 7. Zero-shot forward transfer on Qwen3-0.6B (Order 1). “N/A” indicates trained tasks.
+
+Standard benchmark, 50.1 s vs. 53.2 s and 47.9 s on the Long benchmark) and about 9 × less than MoLE-CIE (Table 3). It stores only the experts, the same 9.4M adapter parameters as O-LoRA and N-LoRA on four tasks (1.28% of the backbone, and 35.4M or 4.80% on the fifteen tasks of the Long benchmark; Appendix Table 11); the consolidated branch and the per-task contexts are rebuilt by re-playing the folds. The price is inference: replaying the context of the routed expert makes an evalua-tion pass about 1 .4× slower than O-LoRA (43.1 s vs. 30.1 s). 
+
+6 Conclusion 
+
+We revisit orthogonal continual adaptation from the perspective of transferable representation learning. We show that while strict orthogonal isolation miti-gates catastrophic forgetting, it can also suppress transferable representation accumulation across re-lated tasks. To address this limitation, we propose CoDe-LoRA, a dual-branch continual adaptation framework that balances shared representation con-solidation and task-specific adaptation. Extensive experiments demonstrate strong continual learn-ing performance together with robust forward and backward transfer across diverse task sequences and model families. 
+
+Limitations 
+
+Although CoDe-LoRA demonstrates strong perfor-mance across both classification and generative con-tinual learning benchmarks, our evaluation is lim-ited to pre-trained language models. Extending the framework to multi-modal continual learning settings remains an important direction for future work. In addition, the effectiveness of the routing mechanism depends on the quality of task proto-types in the embedding space. Under severe task distribution shifts or highly overlapping task bound-aries, routing reliability may degrade and require more adaptive prototype estimation strategies. 
+
+Acknowledgements 
+
+This work was supported by Beijing Natural Sci-ence Foundation (JQ24019). This work was sup-ported by the National Natural Science Foundation of China (No. 62576047). This work is being spon-sored by CIPS-SMP-Zhipu Large Model Fund (No. CIPS-SMP20250313) and supported by the Open Fund of the Key Laboratory for Civil Aviation Col-laborative Air Traffic Management Technology and Applications (No. 2025-001). 
+
+References  
+
+> Matthias De Lange, Rahaf Aljundi, Marc Masana, Sarah Parisot, Xu Jia, Aleš Leonardis, Gregory Slabaugh, and Tinne Tuytelaars. 2021. A continual learning survey: De-fying forgetting in classification tasks. IEEE transactions on pattern analysis and machine intelligence , 44(7):3366– 3385. Cyprien de Masson D’Autume, Sebastian Ruder, Lingpeng Kong, and Dani Yogatama. 2019. Episodic memory in life-9
+
+long language learning. Advances in Neural Information Processing Systems , 32. Wenyu Du, Shuang Cheng, Tongxu Luo, Zihan Qiu, Zeyu Huang, Ka Chun Cheung, Reynold Cheng, and Jie Fu. 2024. Unlocking continual learning abilities in language models. In Conference on Empirical Methods in Natural Language Processing .Jinghan He, Haiyun Guo, Kuan Zhu, Zihan Zhao, Ming Tang, and Jinqiao Wang. 2024. Seekr: Selective attention-guided knowledge retention for continual learning of large language models. In Proceedings of the 2024 Confer-ence on Empirical Methods in Natural Language Processing ,pages 3254–3266. Neil Houlsby, Andrei Giurgiu, Stanislaw Jastrzebski, Bruna Morrone, Quentin De Laroussilhe, Andrea Gesmundo, Mona Attariyan, and Sylvain Gelly. 2019. Parameter-efficient transfer learning for nlp. In International confer-ence on machine learning , pages 2790–2799. PMLR. Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. 2021. Lora: Low-rank adaptation of large language models. arXiv preprint arXiv:2106.09685 .Chengsong Huang, Qian Liu, Bill Yuchen Lin, Tianyu Pang, Chao Du, and Min Lin. 2023. Lorahub: Efficient cross-task generalization via dynamic lora composition. Preprint ,arXiv:2307.13269. James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Veness, Guillaume Desjardins, Andrei A. Rusu, Kieran Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska, Demis Hassabis, Claudia Clopath, Dharshan Kumaran, and Raia Hadsell. 2017. Overcoming catas-trophic forgetting in neural networks. Proceedings of the National Academy of Sciences , 114(13):3521–3526. Brian Lester, Rami Al-Rfou, and Noah Constant. 2021. The power of scale for parameter-efficient prompt tuning. 
+
+arXiv preprint arXiv:2104.08691 .Xiang Lisa Li and Percy Liang. 2021. Prefix-tuning: Opti-mizing continuous prompts for generation. arXiv preprint arXiv:2101.00190 .Zhizhong Li and Derek Hoiem. 2017. Learning without for-getting. IEEE transactions on pattern analysis and machine intelligence , 40(12):2935–2947. David Lopez-Paz and Marc’Aurelio Ranzato. 2017. Gradient episodic memory for continual learning. Advances in neural information processing systems , 30. Ilya Loshchilov and Frank Hutter. 2017. Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101 .Yuheng Lu, Bingshuo Qian, Caixia Yuan, Huixing Jiang, and Xiaojie Wang. 2025. Controlled low-rank adaptation with subspace regularization for continued training on large language models. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 19165–19181. Andrew Maas, Raymond E Daly, Peter T Pham, Dan Huang, Andrew Y Ng, and Christopher Potts. 2011. Learning word vectors for sentiment analysis. In Proceedings of the 49th annual meeting of the association for computational linguistics: Human language technologies , pages 142–150. Chengwei Qin and Shafiq Joty. 2021. Lfpt5: A unified framework for lifelong few-shot language learning based on prompt tuning of t5. arXiv preprint arXiv:2110.07298 .Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J. Liu. 2020. Exploring the limits of transfer learning with a unified text-to-text transformer. Journal of Machine Learning Research , 21(1). Anastasia Razdaibiedina, Yuning Mao, Rui Hou, Madian Khabsa, Mike Lewis, and Amjad Almahairi. 2023. Progres-sive prompts: Continual learning for language models. 
+
+arXiv preprint arXiv:2301.12314 .Gobinda Saha, Isha Garg, and Kaushik Roy. 2021. Gradient projection memory for continual learning. arXiv preprint arXiv:2103.09762 .Qwen Team. 2026. Qwen3.5: Accelerating productivity with native multimodal agents. Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, Dan Bikel, Lukas Blecher, Cristian Canton Ferrer, Moya Chen, Guillem Cucurull, David Esiobu, Jude Fernandes, Jeremy Fu, Wenyin Fu, and 49 others. 2023. Llama 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288 .Alex Wang, Yada Pruksachatkun, Nikita Nangia, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, and Samuel Bowman. 2019. Superglue: A stickier benchmark for general-purpose language understanding systems. Ad-vances in neural information processing systems , 32. Alex Wang, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, and Samuel R. Bowman. 2018. GLUE: A multi-task benchmark and analysis platform for natu-ral language understanding. In Proceedings of the 2018 EMNLP Workshop BlackboxNLP: Analyzing and Interpret-ing Neural Networks for NLP , pages 353–355. Association for Computational Linguistics. Xiao Wang, Tianze Chen, Qiming Ge, Han Xia, Rong Bao, Rui Zheng, Qi Zhang, Tao Gui, and Xuanjing Huang. 2023a. Orthogonal subspace learning for language model continual learning. arXiv preprint arXiv:2310.14152 .Xiao Wang, Yuansen Zhang, Tianze Chen, Songyang Gao, Senjie Jin, Xianjun Yang, Zhiheng Xi, Rui Zheng, Yicheng Zou, Tao Gui, et al. 2023b. Trace: A comprehensive benchmark for continual learning in large language mod-els. arXiv preprint arXiv:2310.06762 .Zifeng Wang, Zizhao Zhang, Chen-Yu Lee, Han Zhang, Ruoxi Sun, Xiaoqi Ren, Guolong Su, Vincent Perot, Jen-nifer Dy, and Tomas Pfister. 2022. Learning to prompt for continual learning. In Proceedings of the IEEE/CVF con-ference on computer vision and pattern recognition , pages 139–149. Zitao Wang, Xinyi Wang, and Wei Hu. 2025. Mixture of LoRA experts for continual information extraction with LLMs. In Findings of the Association for Computational Lin-
+
+10 guistics: EMNLP 2025 , pages 13324–13339. Association for Computational Linguistics. Jason Wei, Maarten Bosma, Vincent Y Zhao, Kelvin Guu, Adams Wei Yu, Brian Lester, Nan Du, Andrew M Dai, and Quoc V Le. 2021. Finetuned language models are zero-shot learners. arXiv preprint arXiv:2109.01652 .An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al. 2025a. Qwen3 technical report. arXiv preprint arXiv:2505.09388 .Shuo Yang, Kun-Peng Ning, Yu-Yang Liu, Jia-Yu Yao, Yong-Hong Tian, Yi-Bing Song, and Li Yuan. 2025b. Is param-eter collision hindering continual learning in LLMs? In 
+
+Proceedings of the 31st International Conference on Com-putational Linguistics , pages 4243–4259. Association for Computational Linguistics. Xiang Zhang, Junbo Zhao, and Yann LeCun. 2015. Character-level convolutional networks for text classifica-tion. Advances in neural information processing systems ,28. 
+
+A Appendix 
+
+A.1 Notation 
+
+We summarize the key notations used throughout this paper in Table 4. 
+
+Table 4. Summary of key notations. 
+
+Notation Description 
+
+T (𝑡 ) The 𝑡 -th task in the sequence 
+
+D (𝑡 ) Dataset associated with task T (𝑡 ) 
+
+> 𝜃 base
+
+Parameters of the frozen backbone  
+
+> 𝜃 shared
+
+Parameters of consolidation branch  
+
+> 𝜃 𝑘
+> spec
+
+Parameters of 𝑘 -th task expert   
+
+> 𝑊 (𝑡 )
+> acc
+
+Accumulated shared weights up to task 𝑡   
+
+> Δ𝑊 (𝑡 )
+> shared
+
+Consolidation branch update at task 𝑡  
+
+> Δ𝑊 null
+
+Null space projected update component   
+
+> 𝑐 𝑡 , 𝑠 𝑡
+
+Dynamic scaling coefficients at task 𝑡 𝑃 𝑘 Semantic prototype for task 𝑘 𝑒 𝑥 Embedding of input 𝑥 from backbone  
+
+> 𝜏
+
+Fallback confidence threshold 
+
+A.2 Theoretical Justification for Dynamic Scaling 
+
+In the model merging process, the dynamic time-varying scaling coefficients are introduced to main-tain the deviation magnitude between the merged model and the pre-trained model. 
+
+General Formulation of Scaling. For clarity, we denote the parameter deviation at step 𝑡 as 
+
+𝐷 𝑡 = 𝑊 (𝑡 ) 
+
+> acc
+
+− 𝑊 (0) , the null-space projected up-date component as 𝑉 𝑡 = Δ𝑊 (𝑡 ) 
+
+> null
+
+= 𝑃 null Δ𝑊 (𝑡 )
+
+> shared
+
+,and the running average norm of task updates as 
+
+𝜇 𝑡 = 1
+
+> 𝑡
+
+Í𝑡 𝑖 =1 ∥Δ𝑊 (𝑖 ) 
+
+> shared
+
+∥𝐹 . In our study, the general-ized scaling factor 𝜆 𝑡 is defined as the inverse of the scaling coefficient 𝑠 𝑡 (i.e., 𝜆 𝑡 = 1/𝑠 𝑡 ), and can be computed as: 
+
+𝜆 𝑡 = 𝜆 𝑡 −1 · ∥𝐷 𝑡 −1 + 𝑉 𝑡 ∥𝐹 
+
+𝜇 𝑡 
+
+(6) where 𝑃 null denotes the null space projection oper-ator. 
+
+Derivation of Scaling Coefficients. 
+
+Proof of Proposition 1. To simplify notation in this proof, we denote the consolidated weight matrix 
+
+𝑊 (𝑡 ) 
+
+> acc
+
+as 𝑊 𝑡 , and the null-space projected update component Δ𝑊 (𝑡 ) 
+
+> null
+
+as 𝑉 𝑡 . Recall that we assume 
+
+𝑊 (0) = 𝑊 0 = 0. Under the update rule defined in Eq. (4), the consolidated weight matrix at task 𝑡 is updated recursively as: 
+
+𝑊 𝑡 = 𝑐 𝑡 𝑊 𝑡 −1 + 𝑠 𝑡 𝑉 𝑡 (7) where the scaling coefficients 𝑐 𝑡 =√︁ (𝑡 − 1)/ 𝑡 and 
+
+𝑠 𝑡 = 1/√𝑡 satisfy the normalization identity 𝑐 2 
+
+> 𝑡
+
++ 𝑠 2 
+
+> 𝑡
+
+=
+
+1. By definition, the projected component 𝑉 𝑡 lies in the null space of the accumulated representations 
+
+𝑊 𝑡 −1, which implies they are orthogonal under the Frobenius inner product (exactly when 𝑈 spans the column space of 𝑊 𝑡 −1, approximately for a trun-cated basis): 
+
+⟨𝑊 𝑡 −1, 𝑉 𝑡 ⟩𝐹 = 0 (8) Using this orthogonality, and given the boundary condition 𝑊 0 = 0, we have ∥𝑊 𝑡 − 𝑊 0 ∥2 
+
+> 𝐹
+
+= ∥𝑊 𝑡 ∥2 
+
+> 𝐹
+
+.Applying the Pythagorean theorem to the update rule in Eq. (7) yields: 
+
+∥𝑊 𝑡 ∥2 
+
+> 𝐹
+
+= 𝑐 2 
+
+> 𝑡
+
+∥𝑊 𝑡 −1 ∥2 
+
+> 𝐹
+
++ 𝑠 2 
+
+> 𝑡
+
+∥𝑉 𝑡 ∥2 
+
+> 𝐹
+
+(9) Let 𝑀 𝑡 = max 𝑖 ∈ [ 1,𝑡 ] ∥Δ𝑊 (𝑖 ) 
+
+> shared
+
+∥2 
+
+> 𝐹
+
+. We prove that 
+
+∥𝑊 𝑡 ∥2 
+
+> 𝐹
+
+≤ 𝑀 𝑡 by induction on 𝑡 .For the base case 𝑡 = 1, since 𝑐 1 = 0 and 𝑠 1 = 1, we have: 
+
+∥𝑊 1 ∥2 
+
+> 𝐹
+
+= ∥𝑉 1 ∥2 
+
+> 𝐹
+
+≤ 𝑀 1 (10) where the inequality holds because the projection operator is a contraction mapping, i.e., ∥𝑉 𝑡 ∥𝐹 ≤∥Δ𝑊 (𝑡 ) 
+
+> shared
+
+∥𝐹 .Now, assume that the bound holds up to task 𝑡 −1, i.e., ∥𝑊 𝑡 −1 ∥2 
+
+> 𝐹
+
+≤ 𝑀 𝑡 −1. For task 𝑡 , substituting the induction hypothesis and the contraction property 
+
+11 into Eq. (9): 
+
+∥𝑊 𝑡 ∥2 
+
+> 𝐹
+
+≤ 𝑐 2 
+
+> 𝑡
+
+𝑀 𝑡 −1 + 𝑠 2 
+
+> 𝑡
+
+∥Δ𝑊 (𝑡 ) 
+
+> shared
+
+∥2 
+
+> 𝐹
+
+(11) 
+
+≤ 𝑐 2 
+
+> 𝑡
+
+𝑀 𝑡 + 𝑠 2 
+
+> 𝑡
+
+𝑀 𝑡 (12) 
+
+= (𝑐 2 
+
+> 𝑡
+
++ 𝑠 2 
+
+> 𝑡
+
+)𝑀 𝑡 = 𝑀 𝑡 (13) This completes the induction, showing that the Frobenius norm of the accumulated parameter de-viation is bounded by the maximum individual task update norm: 
+
+∥𝑊 (𝑡 ) 
+
+> acc
+
+− 𝑊 (0) ∥2 
+
+> 𝐹
+
+≤ 𝑀 𝑡 (14) This bound prevents the parameters of the consoli-dated branch from exploding or drifting away from the pre-trained manifold, mitigating catastrophic forgetting without sacrificing stability. □
+
+Remark on Knowledge Dilution. One might be concerned that the 𝑠 𝑡 = 1/√𝑡 scaling in Eq. (4) dilutes the historical knowledge in the shared mem-ory. We argue that this scaling acts as a variance normalization mechanism rather than informa-tion loss. Without scaling, the norm of the shared branch would grow linearly with √𝑡 (assuming or-thogonal updates), eventually overwhelming the task-specific branch. The 𝑠 𝑡 = 1/√𝑡 factor ensures that the shared memory remains a stable “anchor” while the specific branch (Section 4.3) preserves the distinct decision boundaries for each task. This dual-branch design effectively decouples stability (via normalized shared memory) from plasticity (via preserved specific experts). 
+
+Empirical Verification of 1/√𝑡 Scaling. To em-pirically verify the stabilizing effect of our derived 1/√𝑡 scaling factor against standard linear aver-aging (1 /𝑡 ) or no scaling (1), we conduct a com-parative analysis on the Standard CL Benchmark (Order-1, T5-Large). Table 5 reports the final aver-age accuracy and the Frobenius norm of the accu-mulated parameters ∥𝑊 (𝑡 ) 
+
+> acc
+
+− 𝑊 (0) ∥𝐹 . Without scal-ing, the parameter norm explodes, pushing weights outside the LLM’s effective optimization manifold. Conversely, linear averaging (1 /𝑡 ) overly dilutes the historical knowledge. Only our derived 1 /√𝑡 fac-tor maintains a stable norm and achieves the peak accuracy. 
+
+A.3 Implementation Details 
+
+Following existing CL works (Qin and Joty, 2021; Wang et al., 2023a; Yang et al., 2025b), all                    
+
+> Table 5. Scaling factors on the Standard CL Benchmark (Order-1, T5-Large), measured on the null-space consoli-dation path where this rule is defined. “Avg Accuracy” is the full model; “Shared Branch” evaluates the consolidated branch alone, which is what the scaling factor controls. Three seeds.
+> Method 𝑐 𝑡 , 𝑠 𝑡 Avg Accuracy Shared Branch
+> No Scaling 1,176 .5±0.560 .3±1.3
+> Linear Avg 𝑡 −1
+> 𝑡 ,1
+> 𝑡 77 .5±0.473 .6±1.0
+> CoDe-LoRA √︃ t−1t,1√t77 .8±0.475 .6±0.6
+
+methods are implemented with instruction tun-ing (Qin and Joty, 2021) and optimized with AdamW (Loshchilov and Hutter, 2017) ( 𝛽 =
+
+(0.9, 0.999 ), no weight decay, gradient clipping at 1.0) under a constant learning rate, in bfloat16. Ev-ery method trains each task for one epoch with an effective batch size of 64, and inputs are truncated to 512 source and 50 target tokens. The learning rate is set per backbone: 10 −3 for T5-large, and 10 −4 for Llama 2-7B and Qwen3.5-4B. On Qwen3-0.6B the per-task-expert methods (De-LoRA, CoDe-LoRA) use 10 −3, while the methods built on a single shared adapter use 10 −4. For all LoRA-based ar-chitectures we set rank 𝑟 = 8, 𝛼 = 32 and dropout 0.1, targeting the query and value projections of every Transformer block. Routing uses an LDA clas-sifier on frozen-backbone embeddings estimated from 1000 support samples per task (Appendix A.5), the consolidation uses a randomized low-rank SVD with retained rank 8, and classification tasks are scored over their candidate labels with PMI calibra-tion while TRACE is evaluated by generation. All experiments use NVIDIA H20 or A100 (80 GB) GPUs; the efficiency measurements in Appendix A.7 are taken on a single GPU to avoid inter-GPU com-munication effects. Each experiment is repeated over three independent runs with different random seeds. 
+
+Learning rates. The learning rate is set per backbone because no single value works for all of them. At 10 −3 the methods built on a single shared adapter (LoRA, CLoRA) diverge on Llama 2-7B and Qwen3.5-4B (gradient norms of 100–340), and on Qwen3-0.6B they forget catastrophically (LoRA on the Long benchmark reaches an AP of only 10.5 with a BWT of −62). At 10 −4 the per-task experts of De-LoRA and CoDe-LoRA cannot learn the small-est tasks (CB and COPA, 4–6 optimizer steps per 
+
+> 12
+
+epoch) on Qwen3-0.6B, and De-LoRA falls from 71.2 to 59.5. 
+
+Practical Implementation Details of SVD and Null Space Projection. To resolve the computa-tional bottleneck of null space projection in large-scale LLMs, we adopt an optimized consolidation strategy. Specifically, we replace full Singular Value Decomposition (SVD) with a randomized low-rank SVD ( torch.svd_lowrank ) to efficiently extract singular vectors 𝑈 from the column space of consol-idated parameters. To further reduce complexity, the projection is performed directly on the low-rank factor 𝐵 ∈ R𝑑 𝑜𝑢𝑡 ×𝑟 rather than the full update 
+
+Δ𝑊 ∈ R𝑑 𝑜𝑢𝑡 ×𝑑 𝑖𝑛 . The orthogonalized factor is com-puted as 𝐵 orth = 𝐵 − 𝑈 (𝑈 ⊤ 𝐵 ), and the resulting up-date is Δ𝑊 null = 𝐵 orth 𝐴 . This optimization reduces the projection matrix dimensions from 𝑑 𝑜𝑢𝑡 × 𝑑 𝑖𝑛 
+
+to 𝑑 𝑜𝑢𝑡 × 𝑟 , where 𝑟 ≪ 𝑑 𝑖𝑛 , achieving significant speedup while preserving mathematical accuracy. In practice, we set the number of randomized SVD iterations ( svd_niter ) to 1 to balance precision and performance. 
+
+Computational Complexity and SVD Efficiency Bridge. As introduced in Section 4.2, standard SVD on the full weight matrix update Δ𝑊 ∈ R𝑑 𝑜𝑢𝑡 ×𝑑 𝑖𝑛 
+
+requires O( 𝑑 𝑜𝑢𝑡 𝑑 𝑖𝑛 min (𝑑 𝑜𝑢𝑡 , 𝑑 𝑖𝑛 )) operations, which is prohibitively expensive for large language models where 𝑑 𝑜𝑢𝑡 , 𝑑 𝑖𝑛 can scale to thousands or tens of thousands. In contrast, by projecting directly on the low-rank factor 𝐵 ∈ R𝑑 𝑜𝑢𝑡 ×𝑟 and leveraging the randomized low-rank SVD method (torch.svd_lowrank ), the computational complex-ity is reduced to O( 𝑑 𝑜𝑢𝑡 𝑟 2) where 𝑟 is the LoRA rank (typically 𝑟 ∈ [ 8, 32 ]). Because 𝑟 ≪ 𝑑 𝑖𝑛 , 𝑑 𝑜𝑢𝑡 , this optimization achieves a speedup of several orders of magnitude. In practice, the SVD consolidation is negligible: over a whole T5-large run it takes 0.7 s for the four tasks of the Standard benchmark and 4.1 s for the fifteen tasks of the Long benchmark, while preserving the mathematical guarantee of null space projection. This provides a direct, highly efficient bridge between the theoretical null space projection in Section 4.2 and the practical scalability of our framework. 
+
+Sensitivity to Approximate Orthogonality. 
+
+While randomized SVD inevitably introduces approximation noise, CoDe-LoRA remains theoreti-cally and architecturally robust to this relaxation. Theoretically, our dynamic scaling factor dampens noise accumulation, bounding the approximation error. Architecturally, the Decoupling Branch serves as a safety net; if approximation noise compromises the shared branch, routing dynamically isolates predictions to task-specific experts. To verify this, we vary the SVD retained rank on the Order-1 benchmark (T5-large, three seeds). Table 6 reports the accuracy of the consolidation branch alone and of the full model. The consolidation branch            
+
+> Table 6. SVD retained rank on the Standard CL Benchmark (Order 1, T5-large). Rank 8 is the default.
+> Retained rank Co-LoRA alone CoDe-LoRA
+> 166.84 79.13 272.11 79.13 475.86 79.13 876.67 79.13
+
+alone improves monotonically with the retained rank, since a lower rank discards more of the accumulated update. The full model does not move because the routed expert answers every input, so the shared branch does not enter the prediction. The retained rank therefore matters for the quality of the consolidated weights, not for the routed accuracy. 
+
+Step-by-Step Training and Consolidation Work-flow. During the learning of each sequential task 
+
+T𝑡 , CoDe-LoRA decouples and consolidates knowl-edge through a structured step-by-step procedure: 1. Initialization: The Consolidation Branch pa-rameters 𝜃 shared are initialized from the previ-ously consolidated state 𝑊 (𝑡 −1) 
+
+> acc
+
+to enable im-mediate knowledge reuse and positive transfer, while a new task-specific expert 𝜃 (𝑡 ) 
+
+> spec
+
+is initial-ized to zero. 2. Joint Training: Both branches are optimized jointly on the current task dataset D (𝑡 ) using in-struction tuning. This joint optimization allows the Consolidation Branch to assimilate shared representation updates while the Decoupling Branch captures task-specific nuances. 3. Null Space Consolidation: Post-training, the parameter update learned in the Consolidation Branch, denoted as Δ𝑊 (𝑡 ) 
+
+> shared
+
+= 𝑊 (𝑡 ) 
+
+> shared
+
+− 𝑊 (𝑡 −1) 
+
+> acc
+
+,is extracted. We project this update onto the null space of the accumulated representation history 𝑊 (𝑡 −1) 
+
+> acc
+
+using randomized low-rank SVD (as detailed above) to eliminate representational interference. 
+
+> 13
+
+4. Dynamic Scaling & Archive: The projected up-date is scaled via our dynamic scaling coefficient 
+
+𝑠 𝑡 = 1/√𝑡 to prevent parameter norm explosion, and merged into the consolidated weight matrix 
+
+𝑊 (𝑡 ) 
+
+> acc
+
+recursively using 𝑐 𝑡 =√︁ (𝑡 − 1)/ 𝑡 . Concur-rently, the trained task-specific expert 𝜃 (𝑡 ) 
+
+> spec
+
+is archived in the expert pool, and its prototype 𝑃 𝑡 
+
+is computed and stored. 
+
+Evaluation Protocol and Analysis Setup. For text classification tasks (e.g., Yahoo, DBpedia), can-didate labels are obtained from task metadata and tokenized. The main performance results are re-ported using the generate() method; classification tasks are additionally scored over their candidate labels via forward() . For the ablation studies and prototype sensitivity analysis in Figure 6, we vary the number of support samples 𝑁 to find the op-timal balance between routing performance and inference speed. 
+
+A.4 Evaluation Metrics 
+
+We evaluate sequential learning performance using two standard metrics in continual learning: 
+
+Average Performance (AP) represents the over-all model capacity across all learned tasks after completing the continual learning sequence. For a sequence of 𝑇 tasks, it is defined as: AP = 1
+
+𝑇 
+
+> 𝑇
+
+∑︁ 
+
+> 𝑖 =1
+
+𝑎 𝑖,𝑇 (15) where 𝑎 𝑖,𝑇 denotes the evaluation performance (accuracy for classification benchmarks, or task-specific generative metrics like ROUGE/Exact Match for generative benchmarks) on task 𝑖 af-ter training on the final task 𝑇 . In classification benchmarks, this corresponds to the standard Average Accuracy ( 𝐴 𝑇 ), while in generative bench-marks (such as TRACE), it is referred to as Overall Performance (OP). 
+
+Backward Transfer (BWT) (Lopez-Paz and Ran-zato, 2017) measures the influence of learning sub-sequent tasks on the performance of previously ac-quired knowledge: BWT = 1
+
+𝑇 − 1 
+
+> 𝑇 −1
+
+∑︁ 
+
+> 𝑖 =1
+
+(𝑎 𝑖,𝑇 − 𝑎 𝑖,𝑖 ) (16) where 𝑎 𝑖,𝑖 is the performance on task 𝑖 immediately after training on task 𝑖 . A negative BWT value indi-cates catastrophic forgetting (performance degra-dation), whereas a value closer to 0 or positive indicates stable knowledge retention or positive backward transfer (where learning new tasks im-proves performance on older tasks). By employing BWT as our unified metric for backward retention across all benchmarks, we avoid the redundancy of using separate forgetting indicators for classifica-tion and generative tasks. 
+
+Forward Transfer (FWT) measures the zero-shot accuracy on a task that has not been trained yet. After learning the first 𝑘 tasks, FWT 𝑘 → 𝑗 = 𝑎 𝑗,𝑘 for 
+
+𝑗 > 𝑘 , which we compare with the accuracy of the untrained backbone and of the other methods on the same task. 
+
+A.5 Router Choice 
+
+The main experiments route with a linear discrimi-nant analysis (LDA) classifier on frozen-backbone sentence embeddings. For every task we store the mean embedding and one covariance matrix shared by all tasks, estimated from 1000 support samples per task, and an input goes to the task with the largest discriminant score. No raw sample is stored, so the method stays replay-free and the per-task storage is one vector, as for a prototype, plus a sin-gle shared matrix. The cosine prototype router of Section 4.3 is also implemented.               
+
+> Table 7. Routing errors and their cost on T5-large (three seeds). Loss is the AP of the true-task expert minus that of the routed expert.
+> Standard (Order 1) Long (Order 4) Router Misrouted Loss Misrouted Loss Cosine prototype 2.03% 1.43 10.07% 4.74 LDA 0.15% 0.10 1.24% 0.20
+
+The cosine router fails by confusing tasks of the same family, because it compares only the direction of the mean embedding and ignores the within-task variance. On Order 4 the largest confusions are MNLI →RTE (22.7% of MNLI in-puts), MNLI →CB (13.0%), Yahoo →QQP (6.9%), Yelp →Amazon (5.1%) and Amazon →IMDB (4.0%). LDA whitens with the shared within-task covariance and removes most of these errors. Figure 8 varies the number of support samples per task: cosine routing with 𝑁 = 10 is still below its plateau and does not close the gap to LDA on the Long bench-mark, and mean-centering the embeddings helps on the Standard benchmark but hurts on the Long benchmark. On the Long benchmark LDA already reaches 94.2% routing accuracy with 𝑁 = 10, while 
+
+> 14
+
+the cosine router with 𝑁 = 100 reaches 93.3%; LDA saturates beyond about 500 samples per task. 1 2 5 10 20 50 100 Support samples per task, N       
+
+> 60 70 80 90 100 Routing accuracy (%)
+> Standard CL (4 tasks)
+> cosine prototype cosine, mean-centred LDA (ours)
+> 12510 20 50 100 Support samples per task, N
+> Long Sequence (15 tasks)
+
+Figure 8. Routing accuracy versus support samples per task 
+
+𝑁 (T5-large). 
+
+A.6 Co/De Synergy: Attempts and Limits 
+
+We summarise what we tried to make the consoli-dation branch (Co) improve on the routed expert (De). All numbers are T5-large, three seeds, AP on the Standard (Order 1) and Long (Order 4) bench-marks, reported as Std / Long; rules are selected on a development subset and reported on test. 
+
+The two branches are complementary, but no selection rule exploits it. Taking the better of Co and the routed expert per example (the oracle) exceeds the routed expert by 4.7 (Std) to 9.5 (Long) points (Table 9, Figure 9). The oracle is a diagnostic of how many examples Co answers correctly while the expert fails, not an attainable bound. Yet no rule chosen on development data captures it. With the LDA router the posterior is almost always above any useful threshold, so Co answers at most 0.3% of the inputs and CoDe-LoRA reduces to De-LoRA. With the cosine router the fallback does fire, but the routing itself first loses 4.7 points on the Long benchmark, more than Co recovers. The thresholds chosen on development data degenerate to “never use Co”. mnli cb wic copa qqp boolqa rte imdb yelp amazon sst2 dbpedia agnews multirc yahoo 
+
+> 020 40 60 80 100 Accuracy (%)
+> Complementarity exists per task, but no dev-selectable rule reaches the oracle
+> Co Routed expert Oracle(Co, expert)
+
+Figure 9. Per-task accuracy of Co, the routed expert and their oracle on the Long benchmark (Order 4). 
+
+Inference-time schemes. We replayed twelve rounds of schemes on the same checkpoints, the same development subset and the same selection protocol (Table 8). Confidence-threshold fallbacks, per-expert gating, output selectors and a 1480-feature selector produced no development-qualified rule or gains below one point that did not hold across protocols. Fusing the two branches on candidate-label scores with a per-task weight was the only scheme that was positive across backbones, and it is the one used in the main tables. Without calibration, summing the two branches hurts on the Long benchmark ( −1.0 to −1.6) because the label prior of Co is not removed. 
+
+Table 8. Inference-time schemes for combining Co with the routed expert. 
+
+Scheme family Outcome 
+
+Confidence-threshold fallback best threshold on development is “never use Co” Per-expert branch choice 
+
+≈ routed expert Co as an extra expert no development-qualified can-didate Output selectors (mar-gin, entropy, agree-ment) below calibrated De, or kept De 1480-feature selectors none passed development; 26 rescues vs. 26 breaks on test Closed-form combina-tions (PoE, averaging, Dawid–Skene) do not solve the selection prob-lem Calibrated label-score fusion (per-task weight) positive across backbones; used in the main tables 
+
+Decoding-time mixing. Mixing the log-probabilities of Co and the routed expert at every decoding step, (1 − 𝑤 ) log 𝑝 De + 𝑤 log 𝑝 Co ,does not help either. The weight chosen on develop-ment data is 𝑤 = 0 on both benchmarks; a per-task weight gives +0.13 (Std) and +0.44 (Long), 2.8% and 5.2% of the oracle gap, at 2.0–2.25 × the decoding cost. The branches agree on the top-1 token in 95% (Std) and 91% (Long) of the steps, with log-probability correlations of 0.94 and 0.92, so a mixture with 𝑤 = 0.3 changes the argmax in only 1.4–1.6% of the steps, and the gains and losses cancel. The complementarity exists at the example level but not at the token level. 
+
+Constructions of Co. Table 9 changes only how Co is merged. Projecting against the historical fac-tor space, on one or both sides, or distilling after the SVD, does not improve Co. Merging experts that were trained in isolation from the base model 
+
+15 into Co fails, because that shared block is never trained and the generation format collapses (41.87 / 11.06). The null-space merge of Section 4.2 gives a weaker Co that is the most complementary to the experts (oracle 84.53 / 86.00). 
+
+Table 9. Constructions of Co (generative, test): Co alone and the oracle that takes the better of Co and the routed expert per example. The routed expert alone scores 79.13 / 76.3–76.5 (Std / Long).                   
+
+> Construction Co alone Oracle
+> Trained, SVD merge (main) 76.67 / 66.33 83.79 / 84.61 + null space, paper scaling 75.61 / 63.78 84.53 / 86.00 + distillation after SVD 74.77 / 66.34 83.66 / 84.51 + left-space projection 76.16 / 65.67 83.74 / 84.08 + two-sided projection 74.88 / 63.91 83.14 / 84.60 Isolated experts, SVD merge 41.87 / 11.06 81.84 / 73.99 + left projection 51.31 / 21.96 –+ two-sided projection 58.03 / 46.96 –
+
+Using Co at training time. Initialising each new expert from Co, either by transferring the update or its input subspace, did not pass the development gate across both benchmarks. A family-level initial-isation gives +2.30 ± 0.31 on the Long benchmark (positive in 18 of 18 runs over two independent seed sets), but 93% of it comes from the single task CB ( +34 .1); without CB and COPA it falls to +0.08, and it is no better than a global Co initialisation (+0.03). We therefore report it as a local effect. 
+
+A measurement pitfall: routing compensation. 
+
+With the cosine router (89.9% accurate), fusing paper-style Co with the experts improves over the same calibrated single-branch baseline by +0.49 (Std, 3/3 seeds) and +1.60 (Long, 3/3). Replac-ing the router by LDA (98.8% accurate) with Co unchanged reduces these to +0.13 (Std, 2/3) and 
+
++0.77 (Long, 3/3): about half of the apparent gain was the fusion repairing routing errors, not new in-formation from Co, and 94% of the rest comes from CB and COPA (26 and 40 development examples). When evaluating a two-branch fusion, the routing quality must be fixed and a calibrated single-branch baseline must be reported. 
+
+A.7 Detailed Efficiency Statistics 
+
+Table 10 gives the training and inference seconds of every task on the Standard benchmark (Order 1, T5-large, one H20 GPU, seed 41). Inference is the evaluation stage after the task, and the last stage scores all four tasks. Stored adapter parameters are 9.4M (1.28%) for O-LoRA, N-LoRA and CoDe-LoRA and 32.4M (4.40%) for MoLE-CIE; peak GPU memory is 42.6, 42.6, 31.7 and 41.3 GiB for O-LoRA, N-LoRA, MoLE-CIE and CoDe-LoRA. 
+
+Table 10. Training and inference seconds per task on the Standard benchmark (Order 1, T5-large, one H20 GPU, seed 41). 
+
+Method Task Train (s) Infer (s) 
+
+O-LoRA DBpedia 141 25 Amazon 65 27 Yahoo 186 43 AG News 44 117 N-LoRA DBpedia 128 26 Amazon 60 27 Yahoo 172 42 AG News 36 116 MoLE-CIE DBpedia 767 128 Amazon 626 110 Yahoo 1484 201 AG News 587 566 
+
+CoDe-LoRA 
+
+DBpedia 124 39 Amazon 60 50 Yahoo 171 84 AG News 38 128 
+
+Long Sequence Efficiency (T=15). Table 11 re-ports the total training and inference minutes and the stored adapter parameters after the fifteen tasks of the Long Sequence Benchmark (Order 4, T5-large, one H20 GPU). Because only the experts are 
+
+Table 11. End-to-end efficiency on the Long Sequence Benchmark (T=15 tasks). CoDe-LoRA is a single seed, the others are means over three seeds. 
+
+Method Train (min) Infer (min) Params 
+
+O-LoRA 13.3 9.4 35.4M (4.80%) N-LoRA 12.0 9.4 35.4M (4.80%) MoLE-CIE 140.3 49.5 60.0M (8.14%) 
+
+CoDe-LoRA 12.5 13.4 35.4M (4.80%) 
+
+stored, the parameter growth of CoDe-LoRA over the fifteen tasks is the same as for O-LoRA and N-LoRA. 
+
+A.8 Datasets 
+
+In our experiments, we utilize 15 datasets from standard classification and NLU benchmarks (as detailed in Table 12), as well as the generation-heavy TRACE benchmark (Wang et al., 2023b). Specifically, the classification datasets are sourced 
+
+16 Table 12. Datasets and their tasks, categories, domains, and metrics. 
+
+No. Dataset name Category Task Domain Metric 
+
+1 Yelp CL Benchmark sentiment analysis Yelp reviews accuracy 2 Amazon CL Benchmark sentiment analysis Amazon reviews accuracy 3 DBpedia CL Benchmark topic classification Wikipedia accuracy 4 Yahoo CL Benchmark topic classification Yahoo Q&A accuracy 5 AG News CL Benchmark topic classification news accuracy 6 MNLI GLUE NLI various accuracy 7 QQP GLUE paragraph detection Quora accuracy 8 RTE GLUE NLI news, Wikipedia accuracy 9 SST-2 GLUE sentiment analysis movie reviews accuracy 10 WiC SuperGLUE word sense disambiguation lexical databases accuracy 11 CB SuperGLUE NLI various accuracy 12 COPA SuperGLUE QA blogs, encyclopedia accuracy 13 BoolQA SuperGLUE boolean QA Wikipedia accuracy 14 MultiRC SuperGLUE QA various accuracy 15 IMDB SuperGLUE sentiment analysis movie reviews accuracy from well-established suites such as the CL bench-mark (Zhang et al., 2015), GLUE (Wang et al., 2018), and SuperGLUE (Wang et al., 2019), as well as the IMDB movie review dataset (Maas et al., 2011). These cover natural language inference (NLI), sentiment classification (SC), and topic clas-sification (TC). Crucially, to evaluate generalization on more com-plex, generation-heavy tasks, we also incorporate the TRACE benchmark (Wang et al., 2023b). Un-like standard classification tasks, TRACE features multi-turn, complex generative tasks that assess the structural reasoning and domain adaptation of LLMs. In particular, we evaluate on code genera-tion (completion) using the Py150 dataset, where even a single syntax error can lead to a compilation failure, making it highly fragile under sequential fine-tuning. 
+
+A.9 Task Sequence and Instructions 
+
+To evaluate the robustness of our method, we em-ploy a diverse set of task instructions and evaluate across multiple task orders. Table 13 summarizes the specific natural language prompts used for each task category, following the instruction-tuning for-mat described in Qin and Joty (2021). The task sequences for the T5 and Llama 2-7B experiments, together with the TRACE benchmark sequence, are provided in Table 14. 
+
+Table 13. Task descriptions and corresponding prompts.         
+
+> Task Prompts
+> NLI What is the logical relationship between the “sentence 1” and the “sentence 2”? Choose one from the option. QQP Whether the “first sentence” and the “second sentence” have the same meaning? Choose one from the option. SC What is the sentiment of the following paragraph? Choose one from the option. TC What is the topic of the following paragraph? Choose one from the option. BoolQA According to the following passage, is the question true or false? Choose one from the option. MultiRC According to the following passage and question, is the candidate answer true or false? Choose one from the option. WiC Given a word and two sentences, whether the word is used with the same sense in both sentences? Choose one from the option.
+
+Table 14. Task sequences for different model and bench-mark settings.                                                                                                                             
+
+> Order Setting Task Sequence
+> 1T5, Llama 2-7B dbpedia →amazon →yahoo →ag 2T5, Llama 2-7B dbpedia →amazon →ag →yahoo 3T5, Llama 2-7B yahoo →amazon →ag →dbpedia 4T5 mnli →cb →wic →copa →qqp →boolqa →
+> rte →imdb →yelp →amazon →sst-2 →
+> dbpedia →ag →multirc →yahoo 5T5 multirc →boolqa →wic →mnli →cb →copa
+> →qqp →rte →imdb →sst-2 →dbpedia →ag
+> →yelp →amazon →yahoo 6T5 yelp →amazon →mnli →cb →copa →qqp →
+> rte →imdb →sst-2 →dbpedia →ag →yahoo
+> →multirc →boolqa →wic 1TRACE C-STANCE →FOMC →MeetingBank →Py150
+> →ScienceQA →NumGLUE-cm →NumGLUE-ds
+> →20Minuten
+
+17

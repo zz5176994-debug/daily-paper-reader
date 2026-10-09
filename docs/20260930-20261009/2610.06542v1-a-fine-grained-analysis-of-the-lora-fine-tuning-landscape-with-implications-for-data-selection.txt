@@ -1,0 +1,2893 @@
+Title: A Fine-Grained Analysis of the LoRA Fine-Tuning Landscape with Implications for Data Selection
+
+URL Source: https://arxiv.org/pdf/2610.06542v1
+
+Published Time: Tue, 06 Oct 2026 03:28:48 GMT
+
+Number of Pages: 50
+
+Markdown Content:
+# A Fine-Grained Analysis of the LoRA Fine-Tuning Landscape with Implications for Data Selection 
+
+Bowen Zhang 1, Changrui Fang 1, Xinsong Ma 1, Jiaye Teng 2, Ziye Ma 1* 1City University of Hong Kong 
+
+> 2
+
+Shanghai University of Finance and Economics 
+
+Abstract 
+
+Low-Rank Adaptation (LoRA) has become a standard approach for parameter-efficient fine-tuning, yet a fundamental practical question remains unresolved: how should the adapter rank be chosen? An overly small rank may lead to a poorly conditioned optimization landscape, whereas an unnecessarily large rank sacrifices the efficiency that motivates LoRA in the first place. Existing theoretical analyses provide only limited guidance on this trade-off, and their guarantees are typically established under restrictive theoretical settings. We address this gap by developing a substantially sharper landscape theory for LoRA, building on modern results from nonconvex low-rank matrix sensing. Our central insight is that the appropriate adapter rank should depend on the quality of the data-induced optimization geometry, rather than on the model alone. To formalize this connection, we introduce LoRA-RIP, a data-dependent restricted-isometry metric that characterizes the conditioning of the cross-entropy (CE) objective along LoRA-relevant low-rank directions. We prove that sufficient rank over-parameterization, with the required rank explicitly determined by the LoRA-RIP constant, eliminates spurious local minima, thereby extending existing RIP-based guarantees beyond the classical 1/3 regime. This characterization further enables principled data selection under a fixed rank budget. Experiments across language and vision tasks support these theoretical predictions, showing that rank and data quality are two coupled resources that should be jointly considered for more efficient and reliable LoRA fine-tuning. 
+
+# 1 Introduction 
+
+Low-Rank Adaptation (LoRA) is a standard parameter-efficient method for fine-tuning large models (Hu et al., 2022). Given a pretrained weight matrix W0 ∈ Rn1×n2 , LoRA freezes W0 and learns an additive low-rank update W = W0 +γM , where M = U V ⊤, U ∈ Rn1×r, V ∈ Rn2×r, and γ is a scaling factor. With 
+
+r ≪ min( n1, n 2), this factorization reduces the trainable parameter count for the adapted matrix from n1n2
+
+to r(n1 +n2), lowering optimizer-state and memory requirements while often maintaining strong downstream performance. Realizing these efficiency gains, however, requires an appropriate choice of the adapter rank. Although larger ranks offer greater expressivity (Zeng and Lee, 2024), their practical value cannot be judged from representational capacity alone. In linearized fine-tuning experiments, Jang et al. (2024) observe that lower ranks converge more slowly even when they ultimately reach the same loss. Conversely, increasing rank need not improve downstream performance. For example, Albert et al. (2024) report that, when fine-tuning Phi3 on 15,000 examples, increasing the LoRA rank from 16 to 32 reduces the reported mean accuracy across eight commonsense reasoning tasks from 81 .8% to 80 .3% . These observations illustrate the cost of an unsuitable rank choice: an overly restrictive rank can slow optimization, whereas an unnecessarily large rank can consume additional resources without corresponding performance gains. Adaptive methods such 
+
+> *Corresponding author.
+
+1arXiv:2610.06542v1 [cs.LG] 5 Oct 2026 as AdaLoRA improve the allocation of rank across weight matrices, but still require a prespecified target budget (Zhang et al., 2023). This leaves a complementary question: how should adapter rank be chosen to support effective fine-tuning without unnecessary parameter overhead? This question naturally leads us to nonconvex low-rank optimization: LoRA learns a factorized update, with the adapter rank r controlling its degree of parameterization (Burer and Monteiro, 2003). A long line of work has characterized the landscapes of factorized problems and established conditions excluding spurious local minima (Bhojanapalli et al., 2016; Ge et al., 2017; Zhu et al., 2018; Zhang et al., 2021). In classical matrix sensing, the restricted isometry property (RIP) is a key metric that characterizes the optimization landscape, and it measures how uniformly the sensing data capture low-rank structure, making its constant a natural indicator of the underlying data geometry (Recht et al., 2010). More recent advances show that rank over-parameterization can improve the landscape by eliminating spurious local minima under weaker RIP conditions (Zhang, 2025a;b), directly connecting search rank with data-induced geometry. Classical sensing, however, assumes a fixed ℓ2 objective in matrix space, whereas LoRA settings have cross-entropy loss coupling with the base model structure. Its geometry therefore varies with the model’s responses to the data and the adapter update, making the extension of classical rank–RIP analysis nontrivial. Specifically for the LoRA fine-tuning landscape, Jang et al. (2024) establish no-spurious-minima guarantees in the neural tangent kernel (NTK) regime, while Liu et al. (2025) further relate adapter rank to local optimization geometry under 
+
+ℓ2 loss. These results demonstrate the relevance of landscape theory, but their reliance on local linearization or squared-loss settings limits the guidance they provide for nonlinear cross-entropy fine-tuning. More recently, Kim et al. (2025) move beyond linearization by adapting established low-rank optimization arguments (Zhu et al., 2018; Ha et al., 2020), showing how RIP-type conditions still govern the landscapes in nonlinear LoRA settings and providing numerical evidence for their applicability. Their global-optimality guarantee in the analyzed region corresponds to a RIP constant below 1/3, while larger values allow a “fails-loudly” alternative. However, their analysis leaves two important aspects insufficiently characterized: the CE-specific structure of the RIP constant in LoRA, and how the adapter rank r shapes the optimization landscape beyond the small-RIP regime. Since RIP is strongly determined by the geometry of the fine-tuning data, these two questions are closely connected: understanding LoRA optimization requires relating data-induced RIP to the role of rank in shaping the landscape. Clarifying this relationship is therefore a key step toward a more principled theory of rank choice in LoRA fine-tuning. In this work, we build on theoretical tools from classical low-rank optimization and matrix sensing (Zhang et al., 2021; Zhang, 2025b; Yalçın et al., 2023) and extend them to develop a fine-grained landscape characterization of LoRA under cross-entropy loss. We introduce a new data-dependent LoRA-RIP constant, denoted by δLoRA  
+
+> k
+
+. Under the stated assumptions, we establish an explicit relation between r/r ⋆ and δLoRA 
+
+> k
+
+that guarantees a landscape free of spurious local minima, where r⋆ refers to the rank of the global solution. This implies that any algorithm that can converge to a second-order stationary point (SOSP) 1 in polynomial time can reach the global solution reliably. More importantly, our results hold in the regime where δLoRA 
+
+> k
+
+exceeds 1/3, and show that larger ranks permit larger LoRA-RIP values in the guarantee. Under common curvature bounds covering the ranks considered, this characterization yields a sufficient constant-factor rank requirement relative to r⋆, with the factor determined by the LoRA-RIP bound. Once this requirement is met, further rank is unnecessary for the same guarantee within that range. Therefore it means that in most LoRA settings, r does not need to be excessively large to ensure good performance, preserving its parameter efficiency. Viewed from the data side, the same relationship suggests a complementary route to effective fine-tuning: improving the optimization geometry through data selection under a fixed rank budget. We therefore analyze the CE-specific structure of LoRA-RIP, revealing how certain properties of fine-tuning data affect its value and deriving corresponding data-selection principles. Together, these results connect rank requirements with data composition, providing theoretical guidance for choosing adapter rank and selecting 
+
+> 1For definition of SOSP please see Appendix B.1
+
+2data for more parameter-and data-efficient LoRA fine-tuning. 
+
+Main Contributions: 
+
+• We develop a theoretical framework linking adapter rank r and a newly introduced notion LoRA-RIP δLoRA  
+
+> k
+
+to global optimality in the balanced LoRA landscape. We show that as long as r/r ⋆ >
+
+ 2δLoRA  
+
+> k
+
+/(1 − δLoRA  
+
+> k
+
+)2 , no spurious local minima exist in the landscape of Eq. (2), where r⋆ denotes the rank of the global solution M ∗ in Assumption3.1. This result establishes a sufficient rank threshold for a benign landscape. Our experiments further illustrate rank-dependent optimization trends consistent with this characterization. • We identify theoretically motivated data-selection principles such as latent-space coverage and pre-tuning softmax saturation. Our analysis links data composition to LoRA-RIP and shows how more favorable data geometry reduces the amount of rank-over-parameterization needed for a benign landscape. This yields a landscape-guided view of data selection in which data quality and adapter rank act as complementary resources. 
+
+# 2 Related Work 
+
+LoRA methods and theory. Low-Rank Adaptation (LoRA) (Hu et al., 2022) has become a central parameter-efficient fine-tuning method, and numerous variants have been built on its structure, including quantized adapters (Dettmers et al., 2023), adaptive rank allocation (Zhang et al., 2023), and modified factor updates (Hayou et al., 2024). Other work studies geometric updates and stabilization mechanisms (Zhang and Pilanci, 2024; Yen et al., 2025; Wu et al., 2026; Zhao et al., 2024). Recent theory has studied LoRA from complementary angles. Expressivity results characterize what a given adapter rank can represent (Zeng and Lee, 2024). From the view of optimization, NTK-regime analysis gives benign landscape guarantees for a linearized fine-tuning model (Jang et al., 2024). Other works analyze nonlinear LoRA landscapes or gradient-flow dynamics under structural assumptions (Liu et al., 2025; Kim et al., 2025; Xu et al., 2025). 
+
+Low-rank optimization. Low-rank matrix optimization provides a geometric foundation for understanding factorized objectives. A rank-constrained variable is often written as X = U V ⊤ by Burer-Monteiro factorization (Burer and Monteiro, 2003), which replaces the rank constraint by a nonconvex optimization problem over the factors. For matrix recovery and related objectives, restricted curvature or RIP-type conditions can imply benign landscape properties, such as the absence of spurious local minima or strict-saddle geometry (Ge et al., 2017; Zhu et al., 2018). Similar geometric analyses have also been developed for more general low-rank objectives (Zhang et al., 2021). A more recent direction studies rank over-parameterization: when the search rank exceeds the target rank r⋆, the required amount of over-parameterization can be expressed through RIP quantities (Zhang, 2025a;b). 
+
+Data selection and training geometry. As innovations in model architecture hit a plateau, the strategic selection of training data becomes increasingly crucial. Existing work includes Shapley-based data valua-tion (Ghorbani and Zou, 2019; Wang et al., 2024), gradient-based data attribution and selection (Pruthi et al., 2020; Xia et al., 2024; Wang et al., 2026) and similarity-based data filtering (Sachdeva et al., 2026; Das et al., 2026). Meanwhile, recent theoretical work explores the statistical properties (Allouah et al., 2026; Rezaei et al., 2026). Complementary work studies training geometry through Hessian spectra and cross-entropy dynamics (Ghorbani et al., 2019; Garrod et al., 2025). In this work, we connect data composition to LoRA rank requirements through the optimization geometry of the cross-entropy objective. 33 Preliminaries 
+
+One-layer LoRA Fine-tuning We freeze all pretrained parameters and apply a trainable LoRA update to a single weight matrix W0 ∈ Rn1×n2 . A LoRA update takes the form W = W0 + M, M = U V ⊤, U ∈
+
+Rn1×r, V ∈ Rn2×r. The LoRA scaling factor can often be absorbed into the factors, so we adopt the normalized format M = U V ⊤ throughout. Given a training set S = {(xi, y i)}Ni=1 , define the empirical loss as bL(M ) := 1
+
+> N
+
+PNi=1 ℓ fW0+M (xi), y i
+
+. With weight decay (λ > 0) on the LoRA factors, the standard regularized LoRA objective is 
+
+ehλ(U, V ) := bL(U V ⊤) + λ
+
+2
+
+ ∥U ∥2 
+
+> F
+
++ ∥V ∥2
+
+> F
+
+. (1) The factorizations are not unique: if R is invertible, then (U R, V R −⊤ ) represents the same product as 
+
+U V ⊤. Thus the same product can have an infinite number of factorized representations. For the landscape analysis, we introduce a balancing term ∥U ⊤U − V ⊤V ∥2 
+
+> F
+
+. This balancing term improves the factor-space geometry without restricting the set of representable updates. Such balancing principles are well established in asymmetric low-rank optimization and have recently been explored in LoRA (Zhu et al., 2018; Castin et al., 2026). This leads to our main formulation: 
+
+hμ,λ (U, V ) := bL(U V ⊤) + μ
+
+4 ∥U ⊤U − V ⊤V ∥2 
+
+> F
+
++ λ
+
+2
+
+ ∥U ∥2 
+
+> F
+
++ ∥V ∥2
+
+> F
+
+, (2) where μ > 0 is the balancing weight. In Section 4, we first establish results for Eq. (2) and then transfer them back to the standard objective Eq. (1). 
+
+The Traditional Restricted Isometry Property(RIP) Notion In classic matrix sensing, one often considers the quadratic loss of ∥A (M ) − y∥22/2, where A is a linear operator consisting of a number (for example 
+
+m) of sensing matrices {Ai}mi=1 that each take an inner product with M to give a m-dimensional vector. Here we assume the target y = A(M ∗), the observation of the ground truth low-rank matrix M ∗. In such classical settings, it is well understood that the landscape and recovery guarantees are mostly determined by one metric, the restricted isometry property (RIP) constant (Recht et al., 2010; Ge et al., 2017). We say A
+
+satisfies RIP with constant δk if 
+
+(1 − δk)∥H∥2 
+
+> F
+
+≤ ∥A (H)∥22 ≤ (1 + δk)∥H∥2
+
+> F
+
+for every low-rank matrix H with rank( H) ≤ k. The RIP constant can be understood as the conditioning of the Hessian restricted to the low-rank manifold of rank at most k, with smaller values corresponding to more uniform restricted curvature. Under the simple ℓ2 loss, the Hessian will stay constant over the entire landscape, but for our LoRA objective Eq. (2), Hessians vary across points, complicating direct RIP-based arguments. 
+
+Low-rank global minimizer exists One important distinction between our LoRA formulation and classical low-rank matrix recovery is that LoRA does not assume the existence of a “ground-truth” matrix M ∗.Nevertheless, the optimization objective is analogous: in both settings, we seek global minima because they correspond to the best achievable empirical fit and, ultimately, the solutions expected to yield the strongest performance. In low-rank recovery, this target coincides with the ground-truth matrix M ∗ by construction, whereas in LoRA fine-tuning it corresponds to the globally optimal low-rank adaptation under the training objective. Motivated by evidence that fine-tuning can exploit low-dimensional parameterizations (Aghajanyan et al., 2021), we make the following assumption that the global solution to the matrix lasso objective Fλ(M ) has rank r⋆, which is lower than the LoRA search rank r:4Assumption 3.1 (Existence of low-rank global minimizer) .
+
+M λ⋆ ∈ argmin  
+
+> M∈Rn1×n2
+
+Fλ(M ), rank( M λ⋆ ) = r⋆, r ≥ r⋆. (3) Here, Fλ(M ) := bL(M ) + λ∥M ∥∗ is the matrix lasso formulation of the main objective hμ,λ (U, V ), and in Appendix B.2 we prove that inf U,V hμ,λ (U, V ) = inf rank( M )≤r Fλ(M ).
+
+# 4 LoRA-RIP and Rank Thresholds for Benign Landscape 
+
+4.1 Definition of LoRA-RIP 
+
+Assumption 4.1 (Rank-k restricted strong convexity / restricted strong smoothness (RSC/RSS)) . For a candidate LoRA update M = U V ⊤, define the line segment as Mt = M λ⋆ + t(M − M λ⋆ ), t ∈ [0 , 1] . For a fixed rank order k ≥ r + r⋆, assume that bL has restricted curvature bounds 0 < α k ≤ βk < ∞ along this segment: 
+
+αk∥H∥2 
+
+> F
+
+≤ ⟨∇ 2 bL(Mt)[ H], H ⟩ ≤ βk∥H∥2 
+
+> F
+
+(4) for all t ∈ [0 , 1] and all directions H with rank( H) ≤ k.
+
+LoRA-RIP constant Under Assumption 4.1, we define the rank-k LoRA-RIP constant by 
+
+δLoRA  
+
+> k
+
+:= βk − αk
+
+βk + αk
+
+.
+
+For clarity, we state the main result with the balancing weight μ = αk/2. The corresponding guarantee for general 0 < μ < α k is given in Appendix B.3.2. 
+
+4.2 Main Landscape Results 
+
+We now state the main landscape guarantee for the balanced LoRA objective. For notational convenience, we first define an augmented variable X := [ UV ] ∈ R(n1+n2)×r, which contains both our LoRA factors. Writing 
+
+J := Diag( In1 , −In2 ), we define the augmented objective as 
+
+gμ,λ (X) := 4 hμ,λ (U, V ) = 4 bL(U V ⊤) + 2 λ∥X∥2 
+
+> F
+
++ μ∥X⊤JX ∥2 
+
+> F
+
+. (5) Accordingly, we also define the augmented global solution as Z := [ U⋆ 
+
+> V⋆
+
+] ∈ R(n1+n2)×r⋆ and let the lifted matrix error be E := XX ⊤ − ZZ ⊤. Since the (1 , 2) -block of XX ⊤ is U V ⊤, exact recovery follows once we prove that no second-order stationary point (SOSP) can have E̸ = 0 . The proof follows the negative-certificate strategy of Zhang et al. (2019); Zhang (2025b). Assuming E̸ = 0 , we build a nonnegative combination of first- and second-order stationarity tests that must be nonnegative at an SOSP, but is in fact strictly negative. By contradiction, it follows that E = 0 , certifying global optimality. The exact certificate we construct is 
+
+ψλ, bL(t1, t 2) := t1 ∇gμ,λ (X), D 0 + t2
+
+2
+
+> r⋆
+
+X
+
+> i=1
+
+∇2gμ,λ (X)[ Di, D i], t1, t 2 ≥ 0.
+
+At an SOSP, the gradient term vanishes and every Hessian quadratic form is nonnegative, so ψλ, bL(t1, t 2) ≥ 0
+
+for all t1, t 2 ≥ 0, while our main result shows that this is impossible when E̸ = 0 . The construction decomposes the lifted error into a tangent part visible to the current factor span and a normal part missed by it: 
+
+E = ET + EN , EN = −(I − XX †)ZZ ⊤(I − XX †).
+
+5The direction D0 is chosen so that D0X⊤ + XD ⊤ 
+
+> 0
+
+= −ET , and therefore its gradient pairing tests the tangent error (see Eq. (23)). The directions Di are built from Z⊥ = ( I − XX †)Z and satisfy Pr⋆ 
+
+> i=1
+
+DiD⊤ 
+
+> i
+
+= −EN ,
+
+so their Hessian terms probe the missing normal directions (see Eq. (24)). The weights t1, t 2 then choose the right mixture of these two probes. If the error is mostly tangent, D0 already gives a negative certificate; if it is mostly normal, the directions Di expose negative curvature; and in the mixed case the proof uses an interpolating certificate. The geometric heart of the argument is Lemma B.5, derived from the scalar clipping and blockwise Eckart–Young bounds in Lemmas B.3 and B.4. It shows that the extra r − r⋆ LoRA directions are sufficient to make some certificate strictly negative whenever (βk − αk)/β k < 1/(1 + pr⋆/r ). All directions have rank at most k, so the RSC/RSS bounds in Assumption 4.1 apply. Hence E̸ = 0 contradicts second-order stationarity. Therefore, every SOSP must satisfy XX ⊤ = ZZ ⊤. With that, we’re ready to introduce our main landscape result: 
+
+Theorem 4.2 (Global optimality of SOSPs for balanced regularized LoRA) . Suppose Assumption 3.1 holds with 1 ≤ r⋆ ≤ r. Fix k ≥ r + r⋆, 0 < α k < β k < ∞ and μ = αk/2. Every SOSP (U, V ) of hμ,λ 
+
+whose product M = U V ⊤ satisfies Assumption 4.1 with these constants is globally optimal and satisfies 
+
+U V ⊤ = M λ⋆ whenever 
+
+rr⋆
+
+>
+
+ 2δLoRA 
+
+> k
+
+1 − δLoRA 
+
+> k
+
+2
+
+. (6) 
+
+Specifically, if X := [ UV ] ∈ R(n1+n2)×r and Z := [ U⋆ 
+
+> V⋆
+
+] ∈ R(n1+n2)×r⋆ , we have XX ⊤ = ZZ ⊤.
+
+In particular, if the same curvature bounds hold for all rank-at-most-r candidate updates, the rank condition rules out spurious local minima throughout the factorized landscape. The proof is given in Appendix B.3. The guarantee transfers to the standard LoRA objective because standard stationary points are already balanced. 
+
+Proposition 4.3 (Stationarity of standard LoRA implies balance) . Let (U, V ) be a first-order stationary point of the standard LoRA objective in Eq. (1) . Then U ⊤U = V ⊤V. Consequently, if (U, V ) is a second-order stationary point of Eq. (1) , then it is also a second-order stationary point of the balanced objective in Eq. (2) .
+
+Combining Theorem 4.2 with Proposition 4.3 gives the following transfer. 
+
+Corollary 4.4 (Global optimality of SOSPs for standard LoRA) . Under Assumption 3.1 and the rank condition of Theorem 4.2, every SOSP of the standard LoRA objective Eq. (1) whose product satisfies Assumption 4.1 with the same constants is globally optimal and satisfies U V ⊤ = M λ⋆ .
+
+The proofs of Proposition 4.3 and Corollary 4.4 are given in Appendix B.4. The rank condition reveals a continuous tradeoff between parameterization and restricted geometry, rather than only a single sufficient threshold. For a fixed LoRA-RIP level, it quantifies how much rank over-parameterization is sufficient to exclude spurious local minima. Conversely, for a fixed adapter rank, the condition can be written as 
+
+δLoRA  
+
+> k
+
+<
+
+√r/r ⋆
+
+> 2+
+
+√r/r ⋆
+
+, showing that additional rank enlarges the range of restricted geometries covered by the guarantee. This dual view also makes the role of data geometry explicit: improving restricted conditioning reduces the amount of parameterization needed for the same global-optimality guarantee. Thus rank and data-induced geometry act as complementary resources in shaping the LoRA optimization landscape. 
+
+# 5 Towards Improved Data Selection via Landscape Analysis 
+
+5.1 Decomposition of the LoRA-RIP metric 
+
+We next explain how the LoRA-RIP condition depends on the choice of training data. Let ν denote the empirical distribution over the supervised prediction instances used for fine-tuning. Changing the dataset, 6reweighting groups, or duplicating examples can be represented as changing ν, and therefore changes the empirical cross-entropy objective 
+
+bLν (M ) := Ex∼ν [− ⟨ qx, log softmax( zx(M )) ⟩] . (7) Here zx(M ) ∈ RK is the pre-softmax logit vector produced by the model with LoRA update matrix M ,
+
+qx is the target distribution, and px(M ) = softmax( zx(M )) . This formulation is important because the curvature constants in the landscape theorem are exactly curvature constants of bLν along low-rank LoRA directions. Thus the LoRA-RIP constant is not only a property of the architecture; it also depends on which examples are averaged in bLν . We write M λν,⋆ for the corresponding regularized target in Assumption 3.1, and 
+
+rν,⋆ := rank( M λν,⋆ ). For a LoRA direction H, define the first-order logit response Ax,M [H] := Dz x(M )[ H].
+
+Since cross-entropy is invariant to adding the same constant to every logit, only the centered response 
+
+P⊥Ax,M [H], with P⊥ = I − 11 ⊤/K , contributes meaningful curvature. We measure how well the data observe the direction H by Qν (M, H ) := Ex∼ν ∥P⊥Ax,M [H]∥22. Large Qν (M, H ) means that the selected data are sensitive to this LoRA direction; small Qν (M, H ) means that the direction is nearly invisible. Good data should therefore give a large coverage floor over all relevant low-rank directions, without placing excessive curvature on only a few dominant directions. For cross-entropy, the Hessian decomposes into a Gauss–Newton term and a residual term: 
+
+D
+
+∇2 bLν (M )[ H], H 
+
+E
+
+= Gν (M, H ) + Rν (M, H ). (8) To define these terms, let 
+
+Bx,M [H, H ] := D2zx(M )[ H, H ], Ωx(M ) := Diag( px(M )) − px(M )px(M )⊤.
+
+Here Bx,M [H, H ] is the second-order logit response, and Ωx(M ) is the softmax covariance. Then 
+
+Gν (M, H ) := Ex∼ν ⟨Ax,M [H], Ωx(M )Ax,M [H]⟩,Rν (M, H ) := Ex∼ν ⟨px(M ) − qx, Bx,M [H, H ]⟩.
+
+The term Gν captures curvature created by first-order logit changes, weighted by the local softmax covariance. The term Rν is the residual Hessian term caused by the nonlinearity of the logit map M 7 → zx(M ). In particular, if the logits were affine in M , then Bx,M [H, H ] = 0 , and hence Rν (M, H ) = 0 . Highly concentrated softmax predictions limit the softmax-side weighting of first-order responses, motivating the joint consideration of saturation and directional coverage (see Appendix C.2 and Appendix C.6). For fixed ν, r, over the admissible family Tk(ν, r ), defined precisely in Appendix C, we summarize the data-side curvature by five quantities. The constants cν,k and Cν,k are the minimum and maximum of the coverage Qν (M, H ). Thus cν,k is the weakest observed LoRA-relevant direction, while Cν,k measures the strongest observed direction. The constants ω− 
+
+> ν,k
+
+and ω+ 
+
+> ν,k
+
+measure the lower and upper softmax-weighting strength on these observed logit responses, and ρν,k bounds the residual term Rν . The data-side restricted curvature condition is 
+
+cν,k > 0, 0 < ω − 
+
+> ν,k
+
+≤ ω+ 
+
+> ν,k
+
+< ∞, ρν,k < ω −
+
+> ν,k
+
+cν,k .
+
+This is a restricted observability condition, not a global strong-convexity assumption for cross-entropy. It only requires the selected data to see the low-rank LoRA directions used by the theorem, and it requires the residual Hessian term to stay below the Gauss–Newton curvature floor. Under this condition, the cross-entropy loss has valid restricted curvature constants 
+
+αCE  
+
+> ν,k
+
+= ω−
+
+> ν,k
+
+cν,k − ρν,k , βCE  
+
+> ν,k
+
+= ω+
+
+> ν,k
+
+Cν,k + ρν,k .
+
+7Substituting these constants into the LoRA-RIP normalization gives the conservative certificate 
+
+δLoRA  
+
+> ν,k
+
+≤ δLoRA  
+
+> ν,k
+
+:= ω+
+
+> ν,k
+
+Cν,k − ω−
+
+> ν,k
+
+cν,k + 2 ρν,k 
+
+ω+
+
+> ν,k
+
+Cν,k + ω−
+
+> ν,k
+
+cν,k 
+
+. (9) Thus data selection can improve the LoRA-RIP certificate by increasing the weakest observed LoRA-relevant directions, avoiding excessive concentration on a few dominant directions, and reducing the residual nonlinear curvature. Duplicate or imbalanced data can hurt because they reinforce already-visible directions instead of improving the missing-direction floor, formalized in Appendix C.4. 
+
+5.2 Data Selection Criteria Based on LoRA-RIP 
+
+The certificate above turns data selection into the problem of improving the data-side LoRA-RIP certificate, which leads to several selection rules we discuss below: 
+
+Latent-space coverage. Here latent-space coverage refers to whether hidden-state directions are both sensitive to data change and visible through the downstream Jacobian in the projected logit space. Coverage primarily affects cν,k and Cν,k . For a rank-one direction H = uv ⊤, with u ∈ Rn1 and v ∈ Rn2 , Ax,M [uv ⊤] = 
+
+Jx,M u⟨v, a x(M )⟩, where ax(M ) ∈ Rn2 is the hidden state entering this matrix, and Jx,M ∈ RK×n1 is the Jacobian from the adapted-layer output to the logits. Therefore, 
+
+Qν (M, uv ⊤) = Eν
+
+⟨v, a x(M )⟩2 ∥P⊥Jx,M u∥22
+
+ . (10) This formula shows that coverage has two sides: the selected examples must excite the input-side hidden direction v, and the downstream Jacobian must make the output-side direction u visible in the shift-orthogonal logit space. If a direction is weakly represented, then Qν (M, H ) can be small and cν,k decreases. If examples are repeatedly drawn from the same mode, Cν,k can increase without improving cν,k , which worsens the LoRA-RIP certificate. This perspective can be formalized through group-balanced selection. Suppose νπ = PGg=1 πgνg is a mixture over groups formed by hidden-state, gradient, or logit-response similarity, where g ∈ { 1, . . . , G }
+
+indexes groups of examples, νg is the empirical distribution within group g, and πg ≥ 0 is the sampling mass assigned to that group with PGg=1 πg = 1 . Then, for fixed M, H ,
+
+Qνπ (M, H ) = XGg=1 πgQνg (M, H ).
+
+Appendix C.4 formalizes how such group masses affect the coverage floor and ceiling. Although the infimum and supremum defining cν,k and Cν,k do not decompose linearly, this identity shows how group weights move curvature mass across directions. Increasing the weight of groups that cover weak directions can raise cν,k ; oversampling redundant groups can mainly raise Cν,k . This motivates allocating data across complementary response groups while avoiding severe undercoverage. We use approximately balanced group quotas as a practical implementation of this principle in our experiments. The clustering criteria shall be proxies for LoRA-relevant low-rank directions, such as hidden states, gradients with respect to the adapted matrix, or projected logit-response sketches. In Section 6, we use the gradient sketches as the practical proxy. Appendix C.5 explains why such sketches are aligned with the Gauss–Newton coverage operator. 
+
+Softmax saturation. Saturation primarily affects ω− 
+
+> ν,k
+
+and ω+
+
+> ν,k
+
+. The relevant object is the softmax covari-ance Ωx(M ), not the loss value alone. For any logit response s = Ax,M [H], the Gauss–Newton contribution 8is ⟨s, Ωx(M )s⟩, which is upper bounded by λmax (Ω x(M )) ∥s∥22. Therefore, when Ωx(M ) is small, the same covered direction produces only weak softmax-weighted curvature. If pmax = 1 − ϵ, then 
+
+λmax (Ω x(M )) ≤ tr(Ω x(M )) = 1 − ∥ px(M )∥22 ≤ 2ϵ − ϵ2.
+
+Appendix C.6 gives the variance identity behind Ωx(M ) and the corresponding curvature-leverage bound. Thus highly confident examples contribute little softmax-weighted curvature even if their LoRA-relevant directions are covered; they can reduce ω−
+
+> ν,k
+
+. On the other hand, extremely ambiguous examples are not automatically optimal: their curvature may concentrate on already-covered directions, increasing ω+
+
+> ν,k
+
+Cν,k ,or they may correspond to noisy examples that increase the residual gap. These observations motivate confidence-aware selection alongside directional coverage, favoring examples that provide nontrivial softmax curvature without excessively concentrating it on a few directions. 
+
+# 6 Experiments 
+
+We run some numerical experiments to validate our qualitative view on data selection and landscape results. Relevant code can be found in the supplementary materials. 
+
+Experimental setup. We consider one language task and one vision task. For NLP, we fine-tune MPNet-base (Song et al., 2020) on MNLI (Williams et al., 2018), a natural-language inference task in GLUE (Wang et al., 2018). For vision, we fine-tune a ViT-B/16 model (Dosovitskiy et al., 2020) on CIFAR-100 (Krizhevsky and Hinton, 2009). In each run, we apply LoRA to the query projection in layer/block 10. Each experiment controls all other training choices except for the single factor being tested. Full protocols and complete results for the main-text experiments are provided in Appendix D. We further offer curvature diagnostics, multi-seed evaluations, and robustness studies across datasets and adaptation settings in Appendix E. 
+
+Rank sweep. The rank sweep isolates the role of the search rank while keeping the data distribution fixed. Because our theory concerns the cross-entropy objective rather than classification accuracy alone, we report validation CE as the primary metric. Figure 1 shows an extended sweep over r ∈ { 1, 4, 16 , 32 , 64 , 128 , 256 , 512 }.Increasing rank leads to clear reductions in validation CE on MNLI, while the gains on CIFAR-100 are considerably smaller, although higher ranks still provide modest improvements overall. These trends are qualitatively consistent with the optimization role of rank highlighted by our rank–LoRA-RIP analysis. The landscape diagnostics in Appendix E.2 provide complementary evidence: higher-rank runs reach lower-loss states with more favorable local second-order geometry in the shared diagnostic subspace. Together, these results connect the empirical effect of rank to the optimization perspective developed in our theory. Table 1: Representative rank-sweep summary at the best validation checkpoint.                                     
+
+> Rank MNLI Rank CIFAR-100 Val acc Test acc Val CE Val acc Test acc Val CE 40.6199 0.6167 0.8501 40.7392 0.7267 1.2299 16 0.6360 0.6324 0.8318 16 0.7400 0.7251 1.2291 64 0.6547 0.6506 0.8018 64 0.7414 0.7279 1.2254 256 0.6696 0.6634 0.7752 256 0.7422 0.7318 1.2244
+
+90 20000 40000 60000 80000 100000 Global Step 0.76 0.78 0.80 0.82 0.84 0.86 0.88 0.90 0.92 CE         
+
+> rank=1 rank=4 rank=16 rank=32 rank=64 rank=128 rank=256 rank=512
+> 02500 5000 7500 10000 12500 15000 17500 20000 Global Step 1.220 1.225 1.230 1.235 1.240 CE
+> rank=1 rank=4 rank=16 rank=32 rank=64 rank=128 rank=256 rank=512
+
+Figure 1: Rank-sweep validation CE. Left: MNLI with MPNet. Right: CIFAR-100 with ViT-B/16. 
+
+Gradient-coverage intervention. The second experiment tests the data-selection prediction from Sec-tion 5.2 on MNLI. We keep the subset size and label counts fixed, and change only how examples are distributed across gradient groups. These groups are built from a random-projected margin-Jacobian feature at the adapted matrix, so they act as a practical proxy for which LoRA directions the data cover; see Ap-pendix C.5. We compare balanced coverage with light and heavy long-tail coverage. Figure 2 shows that balanced coverage performs best overall. Long-tail sampling hurts validation accuracy, especially under heavy long-tail sampling and at smaller ranks. This matches the LoRA-RIP view: if too many examples come from the same gradient groups, the data repeatedly cover the same directions while leaving other useful directions weakly observed. In the notation of Section 5.2, this worsens the balance between the coverage floor cν,k and ceiling Cν,k .The gap shrinks as rank increases. By r = 64 , balanced and light long-tail sampling have similar validation accuracy, although balanced sampling still gives better test accuracy. The remaining gains at larger ranks underscore the complementary roles of adapter rank and data composition, consistent also with our landscape results. Additional multi-seed robustness and curvature diagnostics are provided in Appendices E.4, E.5, and E.6. 
+
+Figure 2: Validation-accuracy trajectories for the MNLI gradient-coverage intervention. 
+
+Saturation-band intervention. The third experiment evaluates confidence-aware selection while keeping subset size, label counts, and gradient-group quotas fixed. Within each group, we select easy, middle, or near-boundary examples using the shared reference model; Appendix D.5 describes the construction. Figure 3 shows that both Middle and Boundary outperform Easy in the controlled MNLI comparison. The multi-seed results in Appendix E.7 also show higher mean validation accuracy for both less-saturated bands than for Easy at every tested rank, while their relative ordering varies with rank. These performance results are qualitatively consistent with the limited softmax-side curvature leverage of highly saturated examples in Section 5.2. The practical implication is to use confidence alongside directional coverage and avoid concentrating the data 10 budget on highly saturated examples. 
+
+Figure 3: Validation-accuracy trajectories for the MNLI saturation-band intervention. 
+
+# 7 Conclusion 
+
+We studied how adapter rank and fine-tuning data jointly shape LoRA’s optimization landscape under cross-entropy loss. Under the stated assumptions, rank over-parameterization relative to the target rank rules out spurious local minima, with the required factor explicitly determined by our data-dependent LoRA-RIP constant δLoRA  
+
+> k
+
+. The guarantee also covers LoRA-RIP values above 1/3, quantifying how additional rank can compensate for less favorable geometry to achieve a benign landscape. Our framework further motivates data selection under a fixed rank budget, yielding principles based on latent-space coverage and pre-tuning softmax saturation. Experiments support these insights into the interplay between rank and data composition. However, most of the bounds presented in this work are sufficient, and an important future direction is to shorten their gap with necessary ones. 
+
+# References 
+
+Armen Aghajanyan, Sonal Gupta, and Luke Zettlemoyer. Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning. In Chengqing Zong, Fei Xia, Wenjie Li, and Roberto Navigli, editors, 
+
+Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers) , pages 7319– 7328, Online, 2021. Association for Computational Linguistics. Paul Albert, Frederic Z. Zhang, Hemanth Saratchandran, Cristian Rodriguez-Opazo, Anton van den Hengel, and Ehsan Abbasnejad. RandLoRA: Full rank parameter-efficient fine-tuning of large models. In The Thirteenth International Conference on Learning Representations , 2024. Youssef Allouah, Rachid Guerraoui, and Sanmi Koyejo. Distributional machine unlearning via selective data removal. In The Fourteenth International Conference on Learning Representations , 2026. Srinadh Bhojanapalli, Behnam Neyshabur, and Nati Srebro. Global optimality of local search for low rank matrix recovery. In D. Lee, M. Sugiyama, U. Luxburg, I. Guyon, and R. Garnett, editors, Advances in Neural Information Processing Systems , volume 29. Curran Associates, Inc., 2016. Samuel Burer and Renato D.C. Monteiro. A nonlinear programming algorithm for solving semidefinite programs via low-rank factorization. Mathematical Programming , 95(2):329–357, 2003. Valérie Castin, Kimia Nadjahi, Pierre Ablin, and Gabriel Peyré. Balanced LoRA: Removing Parameter Invariance to Accelerate Convergence. In Forty-Third International Conference on Machine Learning ,2026. 11 Arnav Mohanty Das, Gantavya Bhatt, Sahil Verma, Yiping Wang, Viswa Virinchi Muppirala, and Jeff Bilmes. Matched data, better models: Target aligned data filtering with sparse autoencoders. In The Fourteenth International Conference on Learning Representations , 2026. Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer. Qlora: Efficient finetuning of quantized llms. In Advances in Neural Information Processing Systems , 2023. URL https://arxiv. org/abs/2305.14314 .Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Un-terthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, Jakob Uszkoreit, and Neil Houlsby. An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. In International Conference on Learning Representations , 2020. Connall Garrod, Jonathan P. Keating, and Christos Thrampoulidis. Diagonalizing the Softmax: Hadamard Initialization for Tractable Cross-Entropy Dynamics, 2025. Rong Ge, Chi Jin, and Yi Zheng. No spurious local minima in nonconvex low rank problems: A unified geometric analysis. In Proceedings of the 34th International Conference on Machine Learning , volume 70 of Proceedings of Machine Learning Research , pages 1233–1242. PMLR, 2017. URL https:// proceedings.mlr.press/v70/ge17a.html .Amirata Ghorbani and James Zou. Data shapley: Equitable valuation of data for machine learning. In 
+
+International conference on machine learning , pages 2242–2251. PMLR, 2019. Behrooz Ghorbani, Shankar Krishnan, and Ying Xiao. An investigation into neural net optimization via hessian eigenvalue density. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Proceedings of the 36th International Conference on Machine Learning , volume 97 of Proceedings of Machine Learning Research , pages 2232–2241. PMLR, 09–15 Jun 2019. URL https://proceedings.mlr.press/ v97/ghorbani19b.html .Wooseok Ha, Haoyang Liu, and Rina Foygel Barber. An equivalence between critical points for rank constraints versus low-rank factorizations. SIAM Journal on Optimization , 30(4):2927–2955, 2020. Soufiane Hayou, Nikhil Ghosh, and Bin Yu. Lora+: Efficient low rank adaptation of large models. Proceedings of Machine Learning Research , 235, 2024. Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. Lora: Low-rank adaptation of large language models. In International Conference on Learning Representations , 2022. Uijeong Jang, Jason D. Lee, and Ernest K. Ryu. Lora training in the ntk regime has no spurious local minima. 
+
+Proceedings of Machine Learning Research , 235:21306–21328, 2024. Junsu Kim, Jaeyeon Kim, and Ernest K. Ryu. Lora training provably converges to a low-rank global minimum or it fails loudly (but it probably won’t fail). In International Conference on Machine Learning , 2025. doi: 10.48550/arXiv.2502.09376. URL https://arxiv.org/abs/2502.09376 .Alex Krizhevsky and Geoffrey Hinton. Learning multiple layers of features from tiny images. Technical report, University of Toronto, Toronto, Ontario, 2009. URL https://www.cs.toronto.edu/ ~kriz/learning-features-2009-TR.pdf .Jason D. Lee, Max Simchowitz, Michael I. Jordan, and Benjamin Recht. Gradient Descent Only Converges to Minimizers. In Conference on Learning Theory , pages 1246–1257. PMLR, 2016. 12 Xu-Hui Liu, Yali Du, Jun Wang, and Yang Yu. On the optimization landscape of low rank adaptation methods for large language models. In International Conference on Learning Representations , 2025. Garima Pruthi, Frederick Liu, Satyen Kale, and Mukund Sundararajan. Estimating training data influence by tracing gradient descent. Advances in Neural Information Processing Systems , 33:19920–19930, 2020. Benjamin Recht, Maryam Fazel, and Pablo A Parrilo. Guaranteed minimum-rank solutions of linear matrix equations via nuclear norm minimization. SIAM review , 52(3):471–501, 2010. Parham Rezaei, Filip Kovaˇ cevi´ c, Francesco Locatello, and Marco Mondelli. High-dimensional analysis of synthetic data selection. In The Fourteenth International Conference on Learning Representations , 2026. Noveen Sachdeva, Benjamin Coleman, Wang-Cheng Kang, Jianmo Ni, Lichan Hong, Ed H. Chi, James Caverlee, Julian McAuley, and Derek Zhiyuan Cheng. How to train data-efficient LLMs. In The Fourteenth International Conference on Learning Representations , 2026. Kaitao Song, Xu Tan, Tao Qin, Jianfeng Lu, and Tie-Yan Liu. MPNet: Masked and Permuted Pre-training for Language Understanding. In Advances in Neural Information Processing Systems , 2020. Andreas M. Tillmann and Marc E. Pfetsch. The computational complexity of the restricted isometry property, the nullspace property, and related concepts in compressed sensing. IEEE Transactions on Information Theory , 60(2):1248–1259, 2014. doi: 10.1109/TIT.2013.2290112. URL https://arxiv.org/abs/ 1205.2081 .Akiyoshi Tomihari and Issei Sato. Understanding Linear Probing then Fine-tuning Language Models from NTK Perspective. In The Thirty-eighth Annual Conference on Neural Information Processing Systems ,2024. Alex Wang, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, and Samuel Bowman. GLUE: A multi-task benchmark and analysis platform for natural language understanding. In Tal Linzen, Grzegorz Chrupała, and Afra Alishahi, editors, Proceedings of the 2018 EMNLP Workshop Black-boxNLP: Analyzing and Interpreting Neural Networks for NLP , pages 353–355, Brussels, Belgium, November 2018. Association for Computational Linguistics. doi: 10.18653/v1/W18-5446. URL 
+
+https://aclanthology.org/W18-5446/ .Jiachen T Wang, Prateek Mittal, Dawn Song, and Ruoxi Jia. Data shapley in one training run. arXiv preprint arXiv:2406.11011 , 2024. Shaobo Wang, Xuan Ouyang, Tianyi Xu, Yuzheng Hu, Jialin Liu, Guo Chen, Tianyu Zhang, Junhao Zheng, Kexin Yang, Xingzhang Ren, et al. Opus: Towards efficient and principled data selection in large language model pre-training in every iteration. arXiv preprint arXiv:2602.05400 , 2026. Jonathan Weed. Approximately certifying the restricted isometry property is hard. IEEE Transactions on Information Theory , 64(8):5488–5497, 2018. doi: 10.1109/TIT.2017.2776131. URL https://arxiv. org/abs/1704.00468 .Adina Williams, Nikita Nangia, and Samuel Bowman. A broad-coverage challenge corpus for sentence understanding through inference. In Marilyn Walker, Heng Ji, and Amanda Stent, editors, Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long Papers) , pages 1112–1122, New Orleans, Louisiana, June 2018. Association for Computational Linguistics. doi: 10.18653/v1/N18-1101. URL https: //aclanthology.org/N18-1101/ .13 Yize Wu, Ke Gao, Ling Li, and Yanjun Wu. Stable-lora: Stabilizing feature learning of low-rank adaptation. In International Conference on Learning Representations , 2026. Mengzhou Xia, Sadhika Malladi, Suchin Gururangan, Sanjeev Arora, and Danqi Chen. LESS: Selecting influential data for targeted instruction tuning. In Forty-first International Conference on Machine Learning ,2024. Ziqing Xu, Hancheng Min, Lachlan Ewen MacDonald, Jinqi Luo, Salma Tarmoun, Enrique Mallada, and Rene Vidal. Understanding the learning dynamics of lora: A gradient flow perspective on low-rank adaptation in matrix factorization. In Yingzhen Li, Stephan Mandt, Shipra Agrawal, and Emtiyaz Khan, editors, Proceedings of The 28th International Conference on Artificial Intelligence and Statistics , volume 258 of Proceedings of Machine Learning Research , pages 4636–4644. PMLR, 03–05 May 2025. URL 
+
+https://proceedings.mlr.press/v258/xu25h.html .Baturalp Yalçın, Ziye Ma, Javad Lavaei, and Somayeh Sojoudi. Semidefinite programming versus burer-monteiro factorization for matrix sensing. In Proceedings of the AAAI Conference on Artificial Intelligence ,volume 37, pages 10702–10710, 2023. Jui-Nan Yen, Si Si, Zhao Meng, Felix Yu, Sai Surya Duvvuri, Inderjit S. Dhillon, Cho-Jui Hsieh, and Sanjiv Kumar. Lora done rite: Robust invariant transformation equilibration for lora optimization. In International Conference on Learning Representations , 2025. Yuchen Zeng and Kangwook Lee. The expressive power of low-rank adaptation. In International Conference on Learning Representations , 2024. Fangzhao Zhang and Mert Pilanci. Riemannian preconditioned lora for fine-tuning foundation models. 
+
+Proceedings of Machine Learning Research , 235, 2024. Haixiang Zhang, Yingjie Bi, and Javad Lavaei. General Low-rank Matrix Optimization: Geometric Analysis and Sharper Bounds. In Advances in Neural Information Process-ing Systems , 2021. URL https://proceedings.neurips.cc/paper/2021/file/ e60e81c4cbe5171cd654662d9887aec2-Paper.pdf .Qingru Zhang, Minshuo Chen, Alexander Bukharin, Pengcheng He, Yu Cheng, Weizhu Chen, and Tuo Zhao. Adaptive budget allocation for parameter-efficient fine-tuning. In International Conference on Learning Representations , 2023. Richard Y. Zhang. Improved global guarantees for the nonconvex Burer–Monteiro factorization via rank overparameterization. Mathematical Programming , 213(1-2):1009–1038, September 2025a. Richard Y. Zhang. Sharp Global Guarantees for Nonconvex Low-rank Recovery in the Noisy Overparameter-ized Regime. SIAM Journal on Optimization , 2025b. Early version available as arXiv:2104.10790. Richard Y Zhang, Somayeh Sojoudi, and Javad Lavaei. Sharp restricted isometry bounds for the inexistence of spurious local minima in nonconvex matrix recovery. Journal of Machine Learning Research , 20(114): 1–34, 2019. Jiawei Zhao, Zhenyu Zhang, Beidi Chen, Zhangyang Wang, Anima Anandkumar, and Yuandong Tian. Galore: Memory-efficient llm training by gradient low-rank projection. arXiv preprint arXiv:2403.03507 , 2024. Zhihui Zhu, Qiuwei Li, Gongguo Tang, and Michael B. Wakin. Global optimality in low-rank matrix optimization. IEEE Transactions on Signal Processing , 66(13):3614–3628, 2018. URL https:// arxiv.org/abs/1702.07945 .14 A Appendix Overview 
+
+The appendix contains the detailed proofs for the matrix-space reformulation and the rank–LoRA-RIP theorem in Sections 3–5: • Appendix B.1 gives the full definition of first- and second-order stationary point. • Appendix B.2 proves that ℓ2 regularization induces a nuclear-norm target in Assumption 3.1. • Appendix B.3 gives the detailed proof of Theorem 4.2. • Appendix B.3.1 records the admissible-class / universal-envelope formulation behind the certificate argument. • Appendix B.4 proves Proposition 4.3 and Corollary 4.4. • Appendix C derives the cross-entropy Hessian identity, the data-side LoRA-RIP certificate, the coverage and saturation facts behind Section 5. • Appendix D gives the experimental protocols, compute resources, full result tables, and additional plots for Section 6. • Appendix E presents landscape diagnostics, multi-seed stability, and cross-backbone, cross-dataset, and adapter-location evaluations. • Appendix F gives the limitations. 
+
+# B Detailed Proofs for Sections 3 and 4 
+
+B.1 Stationarity notions 
+
+Let g : Rm×n → R be twice-continuously differentiable. We say that Y ∈ Rm×n is a first-order stationary point if ∇g(Y ) = 0 . We say that Y ∈ Rm×n is a second-order stationary point (SOSP) if ∇g(Y ) = 0 and 
+
+∇2g(Y )[ H, H ] ≥ 0 for any direction H ∈ Rm×n. We say that Y is a local minimum if there exists an open ball B containing Y such that g(Y ) ≤ g(Y ′) for every Y ′ ∈ B. Y is a global minimum if g(Y ) ≤ g(Y ′)
+
+for every Y ′ ∈ Rm×n. A spurious local minimum is a local minimum that is not global. A standard result shows that gradient descent with random initialization avoids strict saddles almost surely; when the iterates converge, this makes SOSPs the relevant local optimality objects (Lee et al., 2016). In particular, every local minimum is an SOSP. 
+
+B.2 Proof that l2 regularization induces a nuclear-norm target 
+
+Proof. Fix a matrix M ∈ Rn1×n2 with rank( M ) ≤ r. For every factorization U V ⊤ = M , the balancing term is nonnegative, and the standard variational characterization of the nuclear norm gives 
+
+∥M ∥∗ ≤ 12
+
+ ∥U ∥2 
+
+> F
+
++ ∥V ∥2
+
+> F
+
+.
+
+Therefore μ
+
+4 ∥U ⊤U − V ⊤V ∥2 
+
+> F
+
++ λ
+
+2
+
+ ∥U ∥2 
+
+> F
+
++ ∥V ∥2
+
+> F
+
+ ≥ λ∥M ∥∗.
+
+15 Taking the infimum over all pairs (U, V ) with U V ⊤ = M yields the lower bound 
+
+inf    
+
+> U,V :U V ⊤=M
+
+ μ
+
+4 ∥U ⊤U − V ⊤V ∥2 
+
+> F
+
++ λ
+
+2
+
+ ∥U ∥2 
+
+> F
+
++ ∥V ∥2
+
+> F
+
+
+
+≥ λ∥M ∥∗.
+
+To prove the reverse inequality, let 
+
+M = P ΣQ⊤
+
+be a compact SVD, where Σ ∈ Rs×s and s = rank( M ) ≤ r. Define the square-root lift 
+
+U := [ P Σ1/2, 0n1×(r−s)], V := [ QΣ1/2, 0n2×(r−s)].
+
+Then U V ⊤ = M , and 
+
+U ⊤U = V ⊤V = diag(Σ , 0r−s),
+
+so the balancing penalty vanishes. Moreover, 
+
+λ
+
+2
+
+ ∥U ∥2 
+
+> F
+
++ ∥V ∥2
+
+> F
+
+ = λ
+
+2
+
+ tr Σ + tr Σ  = λ tr(Σ) = λ∥M ∥∗.
+
+Hence the infimum over factorizations with fixed product M is λ∥M ∥∗.Now minimize first over all factor pairs with fixed product M , and then over all matrices with rank( M ) ≤
+
+r. This gives 
+
+inf  
+
+> U,V
+
+hμ,λ (U, V ) = inf  
+
+> rank( M)≤r
+
+bL(M ) + λ∥M ∥∗
+
+ = inf   
+
+> rank( M)≤r
+
+Fλ(M ),
+
+which is the matrix-space equivalence used in the main text. 
+
+B.3 Detailed Proof of Theorem 4.2 
+
+The proof is organized around one lifted error matrix. We compare the candidate factors with the balanced lift of the regularized matrix target, and then show that any nonzero lifted error creates a descent-or-negative-curvature certificate. This is why the proof is carried out in the stacked factor variable X, rather than directly in the product U V ⊤: the SOSP condition is a factor-space condition, while the curvature assumption is a matrix-space condition. The stacked notation lets us pass between the two. We retain a general balancing weight 0 < μ < α k throughout the certificate construction and specialize to μ = αk/2 when concluding the main theorem. The corresponding general-μ guarantee is stated in Appendix B.3.2. Throughout this subsection, fix a candidate pair (U, V ), write 
+
+M := U V ⊤, ∆ := M − M λ⋆ , X := 
+
+UV
+
+
+
+, Z := 
+
+U⋆
+
+V⋆
+
+
+
+, E := XX ⊤ − ZZ ⊤,
+
+and let 
+
+J := diag( In1 , −In2 ).
+
+Recall that U⋆V ⊤ 
+
+> ⋆
+
+= M λ⋆ and U ⊤ 
+
+> ⋆
+
+U⋆ = V ⊤ 
+
+> ⋆
+
+V⋆, so 
+
+Z⊤JZ = 0 .
+
+If E = 0 , then the (1 , 2) -block of XX ⊤ = ZZ ⊤ already gives U V ⊤ = M λ⋆ . The proof therefore assumes 
+
+E̸ = 0 and derives a contradiction with second-order stationarity. 16 KKT slack for the regularized target. The theorem targets the nuclear-norm-regularized matrix-space minimizer M λ⋆ , so the correct stationarity condition is a KKT condition rather than ∇bL(M λ⋆ ) = 0 . The slack form below is the device that keeps the regularized target in the proof: it creates a positive-semidefinite term that vanishes on the target lift Z, and hence can only help when we upper-bound the certificate. 
+
+Proposition B.1 (KKT slack form of the regularized target) . There exists a matrix 
+
+S⋆ = P⋆Q⊤ 
+
+> ⋆
+
++ W⋆ ∈ ∂∥M λ⋆ ∥∗
+
+such that 
+
+∇bL(M λ⋆ ) + λS ⋆ = 0 , (11) 
+
+where 
+
+P ⊤ 
+
+> ⋆
+
+W⋆ = 0 , W⋆Q⋆ = 0 , ∥W⋆∥op ≤ 1.
+
+If 
+
+eS⋆ := 
+
+ 0 S⋆
+
+S⊤ 
+
+> ⋆
+
+0
+
+
+
+,
+
+then 
+
+I − eS⋆ ⪰ 0, (I − eS⋆)Z = 0 . (12) 
+
+Proof. Since M λ⋆ minimizes Fλ(M ) = bL(M ) + λ∥M ∥∗ and bL is differentiable, Fermat’s rule gives 
+
+0 ∈ ∇ bL(M λ⋆ ) + λ ∂ ∥M λ⋆ ∥∗.
+
+Hence Eq. (11) holds for some S⋆ ∈ ∂∥M λ⋆ ∥∗. Writing the compact SVD M λ⋆ = P⋆Σ⋆Q⊤ 
+
+> ⋆
+
+, the standard subgradient formula for the nuclear norm yields 
+
+S⋆ = P⋆Q⊤ 
+
+> ⋆
+
++ W⋆, P ⊤ 
+
+> ⋆
+
+W⋆ = 0 , W⋆Q⋆ = 0 , ∥W⋆∥op ≤ 1.
+
+Because ∥ eS⋆∥op = ∥S⋆∥op ≤ 1, we have I − eS⋆ ⪰ 0. Moreover, 
+
+S⋆V⋆ = ( P⋆Q⊤ 
+
+> ⋆
+
++ W⋆)Q⋆Σ1/2 
+
+> ⋆
+
+= P⋆Σ1/2 
+
+> ⋆
+
+= U⋆,
+
+because W⋆Q⋆ = 0 . Similarly, 
+
+S⊤ 
+
+> ⋆
+
+U⋆ = V⋆.
+
+Therefore 
+
+eS⋆Z =
+
+ S⋆V⋆
+
+S⊤ 
+
+> ⋆
+
+U⋆
+
+
+
+=
+
+U⋆
+
+V⋆
+
+
+
+= Z, 
+
+which proves Eq. (12). 
+
+Lifted operators and differential identities. We next rewrite the first- and second-order conditions of the factorized objective in lifted coordinates. The averaged operator below comes from expanding the matrix-space loss along the segment from M λ⋆ to M = U V ⊤; the pointwise operator is the Hessian that appears in the SOSP condition at the current factor pair. Both inherit the same lower and upper curvature constants after lifting, up to the balancing curvature. Define the segment-average Hessian 
+
+H∆[H] := 
+
+Z 10
+
+∇2 bL(M λ⋆ + t∆)[ H] dt, 
+
+17 its block lift 
+
+eH∆[E] := 
+
+ 0 H∆[E12 ]
+
+H∆[E12 ]⊤ 0
+
+
+
+,
+
+and the composite lifted operator 
+
+Havg 
+
+> μ, ∆
+
+[E] := 2 eH∆[E] + 2 μJEJ. 
+
+Also define 
+
+gμ,λ (X) := 4 hμ,λ (U, V ), GM := ∇bL(M ), eGM := 
+
+ 0 GM
+
+G⊤ 
+
+> M
+
+0
+
+
+
+.
+
+For a lifted direction D =
+
+∆U
+
+∆V
+
+
+
+, set 
+
+eHM [E] := 
+
+"
+
+0 ∇2 bL(M )[ E12 ]
+
+∇2 bL(M )[ E12 ]⊤ 0
+
+#
+
+, Hpt  
+
+> μ,X
+
+[E] := 2 eHM [E] + 2 μJEJ. 
+
+A direct differentiation gives 
+
+∇gμ,λ (X), D =
+
+D
+
+2 eGM + 2 μJXX ⊤J + 2 λI, DX ⊤ + XD ⊤E
+
+, (13) 
+
+12 ∇2gμ,λ (X)[ D], D =
+
+D
+
+2 eGM + 2 μJXX ⊤J + 2 λI, DD ⊤E
+
+(14) 
+
++ 12
+
+D
+
+Hpt  
+
+> μ,X
+
+[DX ⊤ + XD ⊤], DX ⊤ + XD ⊤E
+
+. (15) By the pathwise rank-k RSC/RSS assumption for the candidate product M , the curvature bounds apply along the segment {M λ⋆ + t∆ : t ∈ [0 , 1] } and at the current point M corresponding to t = 1 . In particular, let 
+
+mμ := 2 min {μ, α k − μ}, Lμ := 2 max {μ, β k − μ},κμ := Lμ
+
+mμ
+
+, sμ := Lμ + mμ
+
+2 , dμ := Lμ − mμ
+
+2 .
+
+For a lifted symmetric matrix 
+
+B =
+
+B11 B12 
+
+B⊤ 
+
+> 12
+
+B22 
+
+
+
+with rank( B12 ) ≤ k, the RSC/RSS assumption and the identity ⟨JBJ, B ⟩ = ∥B11 ∥2 
+
+> F
+
++ ∥B22 ∥2 
+
+> F
+
+− 2∥B12 ∥2
+
+> F
+
+give 
+
+Havg 
+
+> μ, ∆
+
+[B], B = 4 
+
+Z 10
+
+⟨∇ 2 bL(M λ⋆ + t∆)[ B12 ], B 12 ⟩ dt + 2 μ⟨JBJ, B ⟩.
+
+Therefore Havg 
+
+> μ, ∆
+
+[B], B ≥ 2μ(∥B11 ∥2 
+
+> F
+
++ ∥B22 ∥2 
+
+> F
+
+) + (4 αk − 4μ)∥B12 ∥2 
+
+> F
+
+,
+
+Havg 
+
+> μ, ∆
+
+[B], B ≤ 2μ(∥B11 ∥2 
+
+> F
+
++ ∥B22 ∥2 
+
+> F
+
+) + (4 βk − 4μ)∥B12 ∥2 
+
+> F
+
+.
+
+Since ∥B∥2 
+
+> F
+
+= ∥B11 ∥2 
+
+> F
+
++ ∥B22 ∥2 
+
+> F
+
++ 2 ∥B12 ∥2 
+
+> F
+
+, this implies 
+
+mμ∥E∥2 
+
+> F
+
+≤ Havg 
+
+> μ, ∆
+
+[E], E ≤ Lμ∥E∥2 
+
+> F
+
+(16) 18 for every lifted symmetric matrix E whose off-diagonal block has rank at most k. The same calculation at the point M gives 
+
+mμ∥H∥2 
+
+> F
+
+≤ Hpt  
+
+> μ,X
+
+[H], H ≤ Lμ∥H∥2 
+
+> F
+
+(17) for every lifted direction H whose off-diagonal block has rank at most k.The next decomposition is the algebraic hinge of the proof. It rewrites the first-order expression at X as the sum of a curvature term applied to the lifted error E and a PSD slack Nμ,λ . The slack is harmless in the later upper bounds because it is positive semidefinite and annihilates Z.
+
+Lemma B.2 (Exact decomposition with KKT slack) . Define 
+
+Nμ,λ := 2 μJZZ ⊤J + 2 λ(I − eS⋆).
+
+Then 
+
+2 eGM + 2 μJXX ⊤J + 2 λI = Havg 
+
+> μ, ∆
+
+[E] + Nμ,λ . (18) 
+
+Moreover, 
+
+Nμ,λ ⪰ 0, Nμ,λ Z = 0 . (19) 
+
+Proof. By the fundamental theorem of calculus, 
+
+GM = ∇bL(M λ⋆ ) + H∆[∆] .
+
+Using Eq. (11), this becomes 
+
+GM = −λS ⋆ + H∆[∆] .
+
+Since E12 = ∆ , we have 
+
+2 eGM = −2λ eS⋆ + 2 eH∆[E].
+
+Also, 
+
+JXX ⊤J = JEJ + JZZ ⊤J. 
+
+Substituting these identities yields 
+
+2 eGM + 2 μJXX ⊤J + 2 λI = 2 eH∆[E] + 2 μJEJ + 2 μJZZ ⊤J + 2 λ(I − eS⋆),
+
+which is Eq. (18). By Eq. (12), I − eS⋆ ⪰ 0 and (I − eS⋆)Z = 0 . Also, (JZ )( JZ )⊤ ⪰ 0 and 
+
+(JZ )( JZ )⊤Z = JZ (Z⊤JZ ) = 0 
+
+because Z⊤JZ = 0 . Therefore Eq. (19) follows. 
+
+B.3.1 Admissible Loss Class and Universal Envelope 
+
+The direct theorem proof can be carried out using only the actual empirical loss bL. For the Section 5 interface, however, it is helpful to separate the certificate calculation from the specific loss and retain only the matrix-space target condition and curvature bounds actually used by the argument. For the fixed pair (X, Z ), define the matrix-space path 
+
+Mt := M λ⋆ + t∆, t ∈ [0 , 1] .
+
+19 Relative to the fixed curvature parameters (αk, β k) and a rank level k ≥ r + r⋆, define the admissible loss class 
+
+F(k)  
+
+> λ,α k,β k
+
+(X, Z ) := 
+
+
+
+h ∈ C2(Rn1×n2 ; R) : M λ⋆ ∈ argmin 
+
+> M
+
+h(M ) + λ∥M ∥∗
+
+,αk∥H∥2 
+
+> F
+
+≤ ⟨∇ 2h(Mt)[ H], H ⟩ ≤ βk∥H∥2 
+
+> F
+
+,
+
+for all t ∈ [0 , 1] and all H with rank( H) ≤ k
+
+
+
+. (20) For each h ∈ F (k)  
+
+> λ,α k,β k
+
+(X, Z ), let 
+
+ghμ,λ (X) := 4 
+
+
+
+h(U V ⊤) + μ
+
+4 ∥U ⊤U − V ⊤V ∥2 
+
+> F
+
++ λ
+
+2
+
+ ∥U ∥2 
+
+> F
+
++ ∥V ∥2
+
+> F
+
+
+
+denote the lifted objective obtained by replacing bL with h. The corresponding fixed-loss certificate is 
+
+ψλ,h (t1, t 2) := t1 ∇ghμ,λ (X), D 0 + t2
+
+2
+
+> r⋆
+
+X
+
+> i=1
+
+∇2ghμ,λ (X)[ Di], D i , (21) and the universal envelope is 
+
+Ψλ(t1, t 2) := sup  
+
+> h∈F (k)
+> λ,α k ,β k(X,Z )
+
+ψλ,h (t1, t 2). (22) Here the curvature parameters (αk, β k) are fixed throughout the subsection, so we suppress them from the notation of Ψλ. Under Assumptions 3.1 and 4.1, the actual loss bL belongs to F(k)  
+
+> λ,α k,β k
+
+(X, Z ). Hence 
+
+ψλ, bL(t1, t 2) ≤ Ψλ(t1, t 2).
+
+The detailed proof below still bounds ψλ, bL directly. We keep the envelope formulation because it makes explicit which ingredients of the proof are loss-specific and which are purely geometric, and this is the separation reused later in Section 5. 
+
+Certificate family. We now construct the directions used to test second-order stationarity. The lifted error has a part seen by the current column space of X and a part orthogonal to it. The direction D0 probes the former through the first-order condition, while the directions Di probe the latter through the second-order condition. The scalar weights t1, t 2 choose how much of each probe to use. Let 
+
+ΠX := XX †, Z⊥ := ( I − ΠX )Z. 
+
+Split the lifted error into tangent and normal components: 
+
+ET := Π X E + EΠX − ΠX EΠX , EN := ( I − ΠX )E(I − ΠX ) = −Z⊥Z⊤⊥ ,
+
+so that E = ET + EN and ⟨ET , E N ⟩ = 0 .Choose a unit vector u ∈ Rr satisfying 
+
+u⊤X⊤Xu = λmin (X⊤X),
+
+and define 
+
+D0 := 
+
+
+
+I − 12 XX †
+
+
+
+Z(X†Z)⊤ − 12 X, Di := Z⊥eiu⊤, i = 1 , . . . , r ⋆.
+
+20 Direct expansion gives the basic identities 
+
+D0X⊤ + XD ⊤ 
+
+> 0
+
+= −ET , (23) 
+
+> r⋆
+
+X
+
+> i=1
+
+DiD⊤ 
+
+> i
+
+= −EN . (24) In the nontrivial case X̸ = 0 and Z⊥̸ = 0 , define 
+
+a := ∥Z⊥Z⊤⊥ ∥F
+
+∥E∥F
+
+, bgeo := λmin (X⊤X) tr( Z⊥Z⊤⊥ )
+
+∥E∥F ∥Z⊥Z⊤⊥ ∥F
+
+.
+
+For τ ∈ [0 , a ], let 
+
+t1(τ ) := 
+
+r 1 − τ 2
+
+1 − a2 , t2(τ ) := τa , Fτ := t1(τ )ET + t2(τ )EN .
+
+Then 
+
+∥Fτ ∥F = ∥E∥F , ⟨E, F τ ⟩ =  p 1 − a2p1 − τ 2 + aτ ∥E∥2 
+
+> F
+
+. (25) All averaged-curvature applications below are admissible under Assumption 4.1: the lifted matrices E,
+
+Fτ , and their linear combinations have column space contained in span( X, Z ), hence rank at most r + r⋆,and therefore their (1 , 2) -blocks have rank at most r + r⋆ ≤ k. For the pointwise Hessian terms, each 
+
+˙Ei := DiX⊤ + XD ⊤ 
+
+> i
+
+has rank at most two, so its (1 , 2) -block also has rank at most 2 ≤ k.Specializing Eq. (21) to the actual empirical loss bL, define 
+
+ψλ(t1, t 2) := ψλ, bL(t1, t 2). (26) If (U, V ) is an SOSP of hμ,λ , then 
+
+ψλ(t1, t 2) ≥ 0 for all t1, t 2 ≥ 0. (27) For η ≥ 0, define 
+
+ϕη(τ ; a, b geo ) := p1 − a2p1 − τ 2 +  a − (1 + η)bgeo 
+
+τ − η. 
+
+The remaining lemmas justify that this certificate family is rich enough. The scalar clipping and blockwise Eckart–Young bounds are purely geometric; they quantify how the extra r − r⋆ factor directions contribute to the certificate. This is the only place where the rank threshold enters the proof. 
+
+ϕη(τ ; a, b geo ) =  1 + bgeo τ  " √1 − a2√1 − τ 2 + aτ − bgeo τ
+
+1 + bgeo τ − η
+
+#
+
+. (28) 
+
+Lemma B.3 (Scalar clipping bound) . Let p be positive, let u1, . . . , u p ≥ s ≥ 0, and let d ∈ Rp 
+
+> +
+
+satisfy 
+
+S := 1⊤d > 0 and Q := ∥d∥22 > 0. Then 
+
+> p
+
+X
+
+> j=1
+
+u2 
+
+> j
+
+−
+
+> p
+
+X
+
+> j=1
+
+(uj − dj )2+ ≥
+
+
+
+s2S2/Q, sS ≤ Q, 
+
+2sS − Q, sS > Q. 
+
+21 Proof. If s = 0 , both claimed lower bounds reduce to zero and are immediate. Assume s > 0, and write 
+
+xj := dj /s , T := 1⊤x, and R := ∥x∥22. For fixed d ≥ 0, the map φd(t) := t2 − (t − d)2+ is nondecreasing on t ≥ 0. Hence pX
+
+> j=1
+
+u2 
+
+> j
+
+−
+
+> p
+
+X
+
+> j=1
+
+(uj − dj )2+ ≥ s2
+
+p −
+
+> p
+
+X
+
+> j=1
+
+(1 − xj )2+
+
+ .
+
+First suppose T ≤ R. Let γ := T /R ≤ 1 and w := γx . Then 1⊤w = ∥w∥22 = T 2/R . We claim 
+
+p − ∥ w∥22 ≥ ∥ (1 − w)+∥22.
+
+Indeed, using 1⊤w = ∥w∥22,
+
+X 
+
+> wj≤1
+
+wj (1 − wj ) = X 
+
+> wj>1
+
+wj (wj − 1) ≥ X 
+
+> wj>1
+
+(wj − 1) ,
+
+which is exactly the displayed inequality after expanding both sides. Since γ ≤ 1, we also have (1 − wj )+ ≥
+
+(1 − xj )+ for every j. Therefore 
+
+p −
+
+> p
+
+X
+
+> j=1
+
+(1 − xj )2+ ≥ T 2/R. 
+
+Multiplying by s2 gives s2S2/Q .Now suppose T > R . For each coordinate, 
+
+1 − (1 − xj )2+ ≥ 2xj − x2 
+
+> j
+
+:
+
+the two sides are equal when xj ≤ 1, while for xj > 1 this reduces to (xj − 1) 2 ≥ 0. Summing gives 
+
+p −
+
+> p
+
+X
+
+> j=1
+
+(1 − xj )2+ ≥ 2T − R. 
+
+Multiplying by s2 yields 2sS − Q.
+
+Lemma B.4 (Blockwise regularized Eckart–Young bound) . Let A ⪰ 0 be an r × r matrix with eigenvalues 
+
+s1 ≥ · · · ≥ sr = s, and let D ⪰ 0 be an r⋆ × r⋆ matrix with eigenvalues 0 ≤ d1 ≤ · · · ≤ dr⋆ , not all zero. For any Y ∈ Rr×r⋆ , define 
+
+E(A, Y, D ) := ∥A − Y Y ⊤∥2 
+
+> F
+
++ 2 ⟨D, Y ⊤Y ⟩ + ∥D∥2 
+
+> F
+
+.
+
+Set S := tr D = P 
+
+> j
+
+dj and Q := ∥D∥2 
+
+> F
+
+= P 
+
+> j
+
+d2 
+
+> j
+
+. Then 
+
+E(A, Y, D ) ≥ Q + rr⋆
+
+(sS )2
+
+Q whenever sS ≤ Q, 
+
+and 
+
+E(A, Y, D ) ≥ 2sS − Q + r − r⋆
+
+r⋆
+
+(sS )2
+
+Q whenever sS > Q. 
+
+Proof. Let p := r⋆. The objective is invariant under orthogonal changes of basis, so diagonalize A and D.Let z1 ≥ · · · ≥ zp ≥ 0 be the eigenvalues of Y ⊤Y . The trace inequalities give 
+
+⟨A, Y Y ⊤⟩ ≤ 
+
+> p
+
+X
+
+> j=1
+
+sj zj , ⟨D, Y ⊤Y ⟩ ≥ 
+
+> p
+
+X
+
+> j=1
+
+dj zj ,
+
+22 where the second inequality pairs the largest zj ’s with the smallest eigenvalues of D. Thus, for every Y ,
+
+E(A, Y, D ) ≥ Q +
+
+> r
+
+X
+
+> i=1
+
+s2 
+
+> i
+
++
+
+> p
+
+X
+
+> j=1
+
+z2 
+
+> j
+
+− 2( sj − dj )zj
+
+ .
+
+Minimizing the right-hand side over zj ≥ 0 gives 
+
+E(A, Y, D ) ≥ Q +
+
+> r
+
+X
+
+> i=p+1
+
+s2 
+
+> i
+
++
+
+> p
+
+X
+
+> j=1
+
+s2 
+
+> j
+
+− (sj − dj )2+
+
+ .
+
+Since si ≥ s, the inactive directions contribute Pri=p+1 s2 
+
+> i
+
+≥ (r − p)s2, and Lemma B.3 applied to uj = sj
+
+yields 
+
+E(A, Y, D ) ≥
+
+
+
+Q + ( r − p)s2 + s2S2/Q, sS ≤ Q, 
+
+2sS + ( r − p)s2, sS > Q. 
+
+Finally, Cauchy’s inequality gives S2 ≤ pQ . Hence (r − p)s2 ≥ r−pp 
+
+> (sS )2
+> Q
+
+, which proves the first regime. The same inequality also gives 
+
+2sS + ( r − p)s2 ≥ 2sS − Q + r − pp
+
+(sS )2
+
+Q ,
+
+proving the second regime. 
+
+Lemma B.5 (Admissible geometry for (a, b geo )). In the nontrivial case X̸ = 0 and Z⊥̸ = 0 , the scalars a
+
+and bgeo satisfy 
+
+a2 + rr⋆
+
+b2geo ≤ 1 + (bgeo − a)+
+
+2. (29) 
+
+Proof. This lemma isolates the only step where the search rank r enters the SOSP recovery argument. We reduce the geometry to a block decomposition, and then use the regularized Eckart–Young mechanism to extract the extra r − r⋆ degrees of freedom into an explicit coefficient r/r ⋆.Because a and bgeo are invariant under left orthogonal changes of coordinates, we may assume that the lifted factors are written in block form as 
+
+X =
+
+X1
+
+0
+
+
+
+, Z =
+
+Z1
+
+Z2
+
+
+
+,
+
+where X1 ∈ Rr×r, Z1 ∈ Rr×r⋆ , and Z2 ∈ R(n−r)×r⋆ with n := n1 + n2. Let 
+
+si := λi(X1X⊤ 
+
+> 1
+
+), i = 1 , . . . , r, 
+
+and 
+
+di := λi(Z⊤ 
+
+> 2
+
+Z2), i = 1 , . . . , r ⋆.
+
+Then 
+
+sr = λmin (X⊤X), ∥d∥2 = ∥Z⊥Z⊤⊥ ∥F , 1⊤d = tr( Z⊥Z⊤⊥ ),
+
+so the two geometric scalars become 
+
+a = ∥d∥2
+
+∥E∥F
+
+, bgeo = sr 1⊤d
+
+∥E∥F ∥d∥2
+
+. (30) 23 Now expand the lifted error blockwise: 
+
+∥E∥2 
+
+> F
+
+= ∥X1X⊤ 
+
+> 1
+
+− Z1Z⊤ 
+
+> 1
+
+∥2 
+
+> F
+
++ 2 ⟨Z⊤ 
+
+> 2
+
+Z2, Z ⊤ 
+
+> 1
+
+Z1⟩ + ∥Z⊤ 
+
+> 2
+
+Z2∥2 
+
+> F
+
+.
+
+The right-hand side is exactly E(A, Z 1, D ) from Lemma B.4, with 
+
+A := X1X⊤ 
+
+> 1
+
+, D := Z⊤ 
+
+> 2
+
+Z2, s := sr.
+
+Moreover, by Eq. (30), the regimes bgeo ≤ a and bgeo > a are equivalent to sr 1⊤d ≤ ∥ d∥22 and sr 1⊤d > 
+
+∥d∥22, respectively. Applying Lemma B.4 therefore yields 
+
+∥E∥2 
+
+> F
+
+≥ rr⋆
+
+(sr 1⊤d)2
+
+∥d∥22
+
++ ∥d∥22 when bgeo ≤ a, (31) 
+
+∥E∥2 
+
+> F
+
+≥ 2sr 1⊤d − ∥ d∥22 + r − r⋆
+
+r⋆
+
+(sr 1⊤d)2
+
+∥d∥22
+
+when bgeo > a. (32) The factor r/r ⋆ is thus a geometric consequence of the block decomposition: the r − r⋆ inactive singular directions of X contribute extra s2 
+
+> r
+
+-scale curvature, and (1 ⊤d)2 ≤ r⋆∥d∥22 converts this surplus into the same scale as the normal block. When bgeo ≤ a, dividing Eq. (31) by ∥E∥2 
+
+> F
+
+and using Eq. (30) gives 
+
+1 ≥ a2 + rr⋆
+
+b2geo .
+
+When bgeo > a , dividing Eq. (32) by ∥E∥2 
+
+> F
+
+gives 
+
+1 ≥ 2ab geo − a2 + r − r⋆
+
+r⋆
+
+b2geo = a2 + rr⋆
+
+b2geo − (bgeo − a)2.
+
+Thus the first regime gives Eq. (29) with (bgeo − a)+ = 0 , and the second gives Eq. (29) with (bgeo − a)+ =
+
+bgeo − a. This proves Eq. (29). 
+
+Lemma B.6 (Positivity of the one-dimensional gain) . If 
+
+η < 11 + pr⋆/r ,
+
+then there exists some τ ∈ [0 , a ] such that 
+
+ϕη(τ ; a, b geo ) > 0.
+
+Proof. Introduce the ratio 
+
+δ(a, b geo ) := sup  
+
+> 0≤τ≤a
+
+√1 − a2√1 − τ 2 + aτ − bgeo τ
+
+1 + bgeo τ
+
+By Eq. (28), finding τ ∈ [0 , a ] with ϕη(τ ; a, b geo ) > 0 is equivalent to showing 
+
+δ(a, b geo ) > η. 
+
+Once Lemma B.5 is in place, the proof becomes a one-dimensional optimization over the admissible 
+
+(a, b geo )-region. The required scalar maximization is the same elementary two-region reduction used in sharp 24 overparameterization analyses (Zhang, 2025a, Lemma 5.4); for completeness we spell out the two cases below. If 
+
+bgeo ≥ a
+
+1 + √1 − a2 ,
+
+then the closed-form optimizer shows that the smallest admissible value of δ(a, b geo ) on this branch is attained on the boundary 
+
+bgeo = a
+
+1 + √1 − a2 .
+
+Thus it remains to analyze the boundary and the complementary low-bgeo branch. If instead 
+
+bgeo ≤ a
+
+1 + √1 − a2 ,
+
+then in particular bgeo ≤ a, so we may write 
+
+a = γb geo , γ ≥ 1.
+
+Set 
+
+ϱ := pr/r ⋆.
+
+In this region the plus-term in Eq. (29) vanishes, and the admissible constraint becomes 
+
+(γ2 + ϱ2)b2geo ≤ 1.
+
+On this branch, the scalar maximization reduces to 
+
+δ(a, b geo ) = 1 − 2ab geo + b2geo 
+
+1 − b2geo 
+
+= 1 − (2 γ − 1) b2geo 
+
+1 − b2geo 
+
+.
+
+For every fixed γ ≥ 1, this quantity is decreasing in b2geo , so its minimum over the admissible region is attained when the constraint is tight: 
+
+b2geo = 1
+
+γ2 + ϱ2 .
+
+Substituting this value gives the one-variable function 
+
+δ(a, b geo ) ≥ γ2 + ϱ2 − 2γ + 1 
+
+γ2 + ϱ2 − 1 .
+
+A direct derivative computation shows that the right-hand side is minimized at 
+
+γ = 1 + ϱ. 
+
+Evaluating there yields 
+
+δ(a, b geo ) ≥ ϱ
+
+1 + ϱ = 11 + pr⋆/r .
+
+Since the high-bgeo branch attains its worst value on the same boundary, this lower bound also controls the first region. Therefore the worst admissible value of δ(a, b geo ) is 
+
+δ(a, b geo ) ≥ 11 + pr⋆/r .
+
+25 Hence, if η < 1/(1 + pr⋆/r ), there exists some bτ ∈ [0 , a ] such that 
+
+√1 − a2√1 − bτ 2 + abτ − bgeo bτ
+
+1 + bgeo bτ > η. 
+
+Multiplying by 1 + bgeo bτ > 0 and using Eq. (28) yields 
+
+ϕη(bτ ; a, b geo ) > 0.
+
+Lemma B.7 (Trivial certificate cases) . Assume E̸ = 0 .1. If X̸ = 0 and Z⊥ = 0 , then 
+
+ψλ(1 , 0) ≤ − mμ∥E∥2 
+
+> F
+
+< 0.
+
+2. If X = 0 , then 
+
+ψλ(0 , 1) ≤ − mμ∥E∥2 
+
+> F
+
+< 0.
+
+Proof. These two cases do not need the full rank-threshold geometry. If the error is entirely tangent to the current factor span, D0 already detects it. If X = 0 , the second-order probes Di detect the whole error. In both cases the PSD slack can be discarded in the favorable direction. If X̸ = 0 and Z⊥ = 0 , then E = ET . Using Eq. (13), Eq. (18), and Eq. (23), 
+
+ψλ(1 , 0) = ∇gμ,λ (X), D 0 = − Havg 
+
+> μ, ∆
+
+[E] + Nμ,λ , E .
+
+Because Nμ,λ ⪰ 0 and Nμ,λ Z = 0 ,
+
+⟨Nμ,λ , E ⟩ = ⟨Nμ,λ , XX ⊤ − ZZ ⊤⟩ = ⟨Nμ,λ , XX ⊤⟩ ≥ 0.
+
+Together with Eq. (16), this gives 
+
+ψλ(1 , 0) ≤ − Havg 
+
+> μ, ∆
+
+[E], E ≤ − mμ∥E∥2 
+
+> F
+
+.
+
+If X = 0 , then E = EN . Using Eq. (14), Eq. (18), and Eq. (24), 
+
+ψλ(0 , 1) = 
+
+*
+
+Havg 
+
+> μ, ∆
+
+[E] + Nμ,λ ,
+
+> r⋆
+
+X
+
+> i=1
+
+DiD⊤
+
+> i
+
++
+
+= − Havg 
+
+> μ, ∆
+
+[E] + Nμ,λ , E ,
+
+because the pointwise Hessian term vanishes when X = 0 . The same argument yields 
+
+ψλ(0 , 1) ≤ − mμ∥E∥2 
+
+> F
+
+.
+
+Lemma B.8 (Nontrivial certificate upper bound) . Assume E̸ = 0 , X̸ = 0 , and Z⊥̸ = 0 . Then for every 
+
+τ ∈ [0 , a ],
+
+ψλ
+
+ t1(τ ), t 2(τ ) ≤ − sμ ϕϑμ (τ ; a, b geo ) ∥E∥2 
+
+> F
+
+, (33) 
+
+where ϑμ = ( κμ − 1) /(κμ + 1) = dμ/s μ.
+
+26 Proof. This is the nontrivial case where neither the first-order nor the second-order probe alone is guaranteed to be enough. We combine them through Fτ . The lower curvature bound controls the averaged term in the direction of Fτ , the upper curvature bound controls the pointwise Hessian terms generated by Di, and the PSD slack again has the right sign. The function ϕϑμ records the net gain after these contributions are combined. Let ˙Ei := DiX⊤ + XD ⊤ 
+
+> i
+
+. Using Eq. (13), Eq. (14), Eq. (23), Eq. (24), and Eq. (18), we obtain 
+
+ψλ
+
+ t1(τ ), t 2(τ ) = −
+
+D
+
+Havg 
+
+> μ, ∆
+
+[E] + Nμ,λ , F τ
+
+E
+
++ t2(τ )2
+
+> r⋆
+
+X
+
+> i=1
+
+Hpt  
+
+> μ,X
+
+[ ˙Ei], ˙Ei .
+
+Because Nμ,λ ⪰ 0 and Nμ,λ Z = 0 , the same PSD-slack argument as above gives 
+
+− Nμ,λ , F τ ≤ 0.
+
+Also, as noted in the certificate construction, each ˙Ei has admissible off-diagonal rank, so Eq. (17) yields 
+
+Hpt  
+
+> μ,X
+
+[ ˙Ei], ˙Ei ≤ Lμ∥ ˙Ei∥2 
+
+> F
+
+.
+
+By polarization and Eq. (16), 
+
+Havg 
+
+> μ, ∆
+
+[E], F τ ≥ sμ⟨E, F τ ⟩ − dμ∥E∥2 
+
+> F
+
+.
+
+Substituting this bound and Eq. (25), and using the geometric identity 
+
+t2(τ )2
+
+> r⋆
+
+X
+
+> i=1
+
+∥ ˙Ei∥2 
+
+> F
+
+= τ b geo ∥E∥2 
+
+> F
+
+,
+
+we get 
+
+ψλ
+
+ t1(τ ), t 2(τ ) ≤ − 
+
+h
+
+sμ
+
+ p 1 − a2p1 − τ 2 + aτ  − dμ
+
+i
+
+∥E∥2 
+
+> F
+
++ Lμτ b geo ∥E∥2
+
+> F
+
+= −sμ ϕϑμ (τ ; a, b geo ) ∥E∥2 
+
+> F
+
+.
+
+Proof of Theorem 4.2. Assume toward contradiction that E = XX ⊤ − ZZ ⊤̸ = 0 .Second-order stationarity implies that every nonnegative combination of the certificates above must be nonnegative. The lemmas show that, under the rank condition, every possible nonzero shape of E admits one certificate that is strictly negative. This contradiction is the recovery argument. If X = 0 , then Lemma B.7(2) gives 
+
+ψλ(0 , 1) < 0,
+
+contradicting Eq. (27). If X̸ = 0 but Z⊥ = 0 , then Lemma B.7(1) gives 
+
+ψλ(1 , 0) < 0,
+
+again contradicting Eq. (27). It remains to consider the nontrivial case X̸ = 0 and Z⊥̸ = 0 . Since the main text fixes μ = αk/2, the lifted curvature ratio satisfies 
+
+ϑμ = κμ − 1
+
+κμ + 1 = βk − αk
+
+βk
+
+.
+
+27 The rank condition in Theorem 4.2 is equivalent to 
+
+ϑμ < 11 + pr⋆/r ,
+
+so Lemma B.6 gives some τ ∈ [0 , a ] such that 
+
+ϕϑμ (τ ; a, b geo ) > 0.
+
+Applying Lemma B.8 at this τ yields 
+
+ψλ
+
+ t1(τ ), t 2(τ ) ≤ − sμ ϕϑμ (τ ; a, b geo ) ∥E∥2 
+
+> F
+
+< 0,
+
+contradicting Eq. (27). Therefore E = 0 .Hence 
+
+XX ⊤ = ZZ ⊤.
+
+Taking the (1 , 2) -block gives 
+
+U V ⊤ = U⋆V ⊤ 
+
+> ⋆
+
+= M λ⋆ .
+
+Moreover, XX ⊤ = ZZ ⊤ implies that X = ZR for some matrix R ∈ Rr⋆×r with RR ⊤ = Ir⋆ . Hence 
+
+U = U⋆R and V = V⋆R, so U ⊤U = V ⊤V and 
+
+12
+
+ ∥U ∥2 
+
+> F
+
++ ∥V ∥2
+
+> F
+
+ = ∥M λ⋆ ∥∗.
+
+Thus the factor pair attains 
+
+hμ,λ (U, V ) = bL(M λ⋆ ) + λ∥M λ⋆ ∥∗ = Fλ(M λ⋆ ),
+
+which is the global infimum for Fλ(M ) in Assumption 3.1. Therefore (U, V ) is globally optimal. 
+
+B.3.2 General balancing weights 
+
+The preceding certificate argument also yields an explicit rank condition for any balancing weight in 
+
+0 < μ < α k. We record this extension using the lifted curvature constants introduced above. 
+
+Corollary B.9 (SOSP recovery for general balancing weights) . Suppose Assumption 3.1 holds with 1 ≤ r⋆ ≤
+
+r and λ > 0. Let 0 < α k < β k < ∞, fix 0 < μ < α k, and set 
+
+mμ := 2 min {μ, α k − μ}, Lμ := 2 max {μ, β k − μ}, κμ := Lμ
+
+mμ
+
+.
+
+Every SOSP (U, V ) of hμ,λ whose product M = U V ⊤ satisfies Assumption 4.1 with these constants and 
+
+k ≥ r + r⋆ is globally optimal and satisfies U V ⊤ = M λ⋆ whenever 
+
+rr⋆
+
+>
+
+ κμ − 12
+
+2
+
+. (34) 
+
+Moreover, the corresponding stacked factors satisfy XX ⊤ = ZZ ⊤.
+
+28 Proof. For 0 < μ < α k, the lifted curvature bounds Eq. (16)–Eq. (17) hold with mμ > 0, and the KKT slack in Lemma B.2 remains positive semidefinite. Put t := pr⋆/r > 0. Since κμ ≥ 1, Eq. (34) is equivalent to 
+
+(κμ − 1) t < 2 ⇐⇒ ϑμ := κμ − 1
+
+κμ + 1 < 11 + t .
+
+If an SOSP had E = XX ⊤ − ZZ ⊤̸ = 0 , Lemma B.7 would give a strictly negative certificate when X = 0 
+
+or Z⊥ = 0 . In the remaining case, Lemma B.6 gives a τ ∈ [0 , a ] with ϕϑμ (τ ; a, b geo ) > 0, and Lemma B.8 yields 
+
+ψλ
+
+ t1(τ ), t 2(τ ) ≤ − sμϕϑμ (τ ; a, b geo )∥E∥2 
+
+> F
+
+< 0, sμ := Lμ + mμ
+
+2 > 0.
+
+Both cases contradict Eq. (27). Hence E = 0 , and balanced recovery and global optimality follow exactly as in the concluding step of the preceding theorem proof. For the main-text choice μ = αk/2, these constants reduce to 
+
+mμ = αk, Lμ = 2 βk − αk, κμ − 12 = βk − αk
+
+αk
+
+= 2δLoRA 
+
+> k
+
+1 − δLoRA 
+
+> k
+
+.
+
+Thus Eq. (34) recovers the main-text rank condition Eq. (6). Proposition 4.3 and the transfer argument below also apply to this general-μ guarantee. 
+
+B.4 Proofs for the Transfer to Standard LoRA 
+
+Proof of Proposition 4.3. Let M := U V ⊤ and G := ∇bL(M ). First-order stationarity of ehλ gives 
+
+GV + λU = 0 , G⊤U + λV = 0 .
+
+Left-multiplying these equations by U ⊤ and V ⊤, respectively, and subtracting yields 
+
+U ⊤GV − V ⊤G⊤U + λ(U ⊤U − V ⊤V ) = 0 .
+
+If A := U ⊤GV , then the first term is A − A⊤, which is skew-symmetric, whereas U ⊤U − V ⊤V is symmetric. Their sum is zero, so both terms must vanish. Hence 
+
+U ⊤U = V ⊤V. 
+
+Now define 
+
+R(U, V ) := 14 ∥U ⊤U − V ⊤V ∥2 
+
+> F
+
+, hμ,λ = ehλ + μR. 
+
+At every balanced point, R(U, V ) = 0 , so (U, V ) is a global minimizer of the nonnegative C2 function R.Therefore 
+
+∇R(U, V ) = 0 , ∇2R(U, V ) ⪰ 0.
+
+If (U, V ) is an SOSP of ehλ, then adding μR preserves both first-order stationarity and second-order nonnega-tivity. Thus (U, V ) is also an SOSP of hμ,λ for every μ ≥ 0.
+
+Proof of Corollary 4.4. Fix the same parameter μ ∈ (0 , α k) as in Theorem 4.2. By Proposition 4.3, every SOSP of the standard LoRA objective Eq. (1) is also an SOSP of the balanced objective Eq. (2). Theorem 4.2 therefore gives 
+
+U V ⊤ = M λ⋆ .
+
+29 At this point, the balancing penalty vanishes, so 
+
+ehλ(U, V ) = bL(M λ⋆ ) + λ
+
+2
+
+ ∥U ∥2 
+
+> F
+
++ ∥V ∥2
+
+> F
+
+ = bL(M λ⋆ ) + λ∥M λ⋆ ∥∗,
+
+where the last equality follows from the balanced square-root characterization of M λ⋆ . Hence the standard LoRA factor pair attains the same value as the optimal rank-constrained matrix-space problem, so it is globally optimal for the standard LoRA objective as well. 
+
+# C Additional Proofs for Section 5 
+
+This appendix section follows the notation of Section 5. The empirical distribution ν over supervised prediction instances defines bLν . We first specify the certificate region and admissible family underlying the data-side bounds, then derive the cross-entropy identities and curvature certificate. Recall that x denotes a supervised prediction instance induced by the original examples, zx(M ) is the model’s pre-softmax logit vector for this instance, px(M ) = softmax( zx(M )) is the predicted probability vector, and qx is the target probability vector. We also write 
+
+Qν (M, H ) := Eν ∥P⊥Ax,M [H]∥22
+
+for the projected, unweighted coverage form. 
+
+C.1 Certificate Region and Admissible Family 
+
+Fix the empirical distribution ν, search rank r, and a regularized target M λν,⋆ from Assumption 3.1, with 
+
+rν,⋆ = rank( M λν,⋆ ) ≤ r. Let 
+
+Mr := {M ∈ Rn1×n2 : rank( M ) ≤ r}.
+
+The certificate region collects the target–candidate segments in Assumption 4.1: 
+
+Mcert (ν, r ) := (1 − t)M λν,⋆ + tM : M ∈ M r, t ∈ [0 , 1] . (35) For k ≥ r + rν,⋆ , define the admissible family 
+
+Tk(ν, r ) := 
+
+(
+
+( fM , H ) : fM ∈ M cert (ν, r ),H ∈ Rn1×n2 , rank( H) ≤ k, ∥H∥F = 1 
+
+)
+
+. (36) Thus the matrix points include both endpoints and the full intervening segments, while H ranges over all unit rank-at-most-k directions. The segment points can have rank up to r + rν,⋆ , even though each candidate update has rank at most r. For a candidate-specific application, the same definitions may be restricted to the single segment joining that candidate to the target; the resulting bounds then apply to that candidate. Unless stated otherwise, the quantities below use the full family Tk(ν, r ) defined above. The coverage bounds and nonlinear residual bound are 
+
+cν,k := inf   
+
+> (M,H )∈T k(ν,r )
+
+Qν (M, H ), Cν,k := sup  
+
+> (M,H )∈T k(ν,r )
+
+Qν (M, H ), (37) 
+
+ρν,k := sup  
+
+> (M,H )∈T k(ν,r )
+
+|Rν (M, H )|. (38) 30 To define the softmax-weighting bounds, set 
+
+T + 
+
+> k
+
+(ν, r ) := {(M, H ) ∈ T k(ν, r ) : Qν (M, H ) > 0}.
+
+Whenever this set is nonempty, let 
+
+ω− 
+
+> ν,k
+
+:= inf   
+
+> (M,H )∈T +
+> k(ν,r )
+
+Gν (M, H )
+
+Qν (M, H ) , ω+ 
+
+> ν,k
+
+:= sup   
+
+> (M,H )∈T +
+> k(ν,r )
+
+Gν (M, H )
+
+Qν (M, H ) . (39) All extrema are understood as infima or suprema; attainment is not required. Their dependence on r through the admissible family is suppressed in the subscripts, as in the main text. The data-side certificate is invoked when 
+
+0 < c ν,k ≤ Cν,k < ∞, 0 < ω − 
+
+> ν,k
+
+≤ ω+ 
+
+> ν,k
+
+< ∞, ρν,k < ω −
+
+> ν,k
+
+cν,k .
+
+In particular, cν,k > 0 implies T + 
+
+> k
+
+(ν, r ) = Tk(ν, r ), so all directional ratios used in the certificate are well-defined. The proof in Appendix C.3 then supplies uniform restricted curvature bounds on these same target–candidate segments. 
+
+C.2 Cross-Entropy Hessian Decomposition 
+
+Proposition C.1 (Cross-entropy Hessian) . Let zx(M ) ∈ RK be the pre-softmax logits for supervised instance x, let px(M ) := softmax( zx(M )) be the predicted probabilities, and let qx ∈ ∆K−1 be the target probabilities. Define 
+
+ℓx(M ) := −⟨ qx, log px(M )⟩.
+
+For any matrix direction H, define the first- and second-order logit responses 
+
+Ax,M [H] := Dz x(M )[ H], Bx,M [H, H ] := D2zx(M )[ H, H ],
+
+and define the softmax covariance matrix Ωx(M ) := Diag( px(M )) − px(M )px(M )⊤. Then 
+
+D2ℓx(M )[ H, H ] = ⟨Ax,M [H], Ωx(M )Ax,M [H]⟩ + ⟨px(M ) − qx, Bx,M [H, H ]⟩.
+
+Consequently, 
+
+⟨∇ 2 bLν (M )[ H], H ⟩ = Gν (M, H ) + Rν (M, H ),
+
+with Gν and Rν as defined in Section 5. Proof. For ϕ(z, q ) := −⟨ q, log softmax( z)⟩, one has 
+
+∇z ϕ(z, q ) = p − q, ∇2 
+
+> z
+
+ϕ(z, q ) = Diag( p) − pp ⊤.
+
+Applying the second-order chain rule to ℓx(M ) = ϕ(zx(M ), q x) gives the displayed identity. Since 
+
+Ωx(M )1 = 0 , common shifts of all logits are ignored by the Gauss–Newton term. Averaging over x ∼ ν
+
+gives the identity for bLν .
+
+C.3 Proof of the Data-Side Curvature Certificate 
+
+We derive the conservative LoRA-RIP certificate used in Eq. (9). Fix an admissible pair (M, H ) ∈ T k(ν, r ).Since ∥H∥F = 1 , the definitions in Appendix C.1 give 
+
+cν,k ≤ Qν (M, H ) ≤ Cν,k .
+
+31 Moreover, the data-side restricted curvature condition in Section 5.1 gives cν,k > 0, so every admissible pair has Qν (M, H ) ≥ cν,k > 0. The ratios defining ω± 
+
+> ν,k
+
+are therefore well-defined on this family, and 
+
+ω−
+
+> ν,k
+
+Qν (M, H ) ≤ Gν (M, H ) ≤ ω+
+
+> ν,k
+
+Qν (M, H ).
+
+Hence 
+
+ω−
+
+> ν,k
+
+cν,k ≤ Gν (M, H ) ≤ ω+
+
+> ν,k
+
+Cν,k .
+
+Together with |Rν (M, H )| ≤ ρν,k , the Hessian decomposition in Proposition C.1 implies 
+
+ω−
+
+> ν,k
+
+cν,k − ρν,k ≤ ⟨∇ 2 bLν (M )[ H], H ⟩ ≤ ω+
+
+> ν,k
+
+Cν,k + ρν,k .
+
+By homogeneity, the same bounds hold for non-unit directions after multiplying by ∥H∥2 
+
+> F
+
+. Therefore the data induce valid restricted curvature constants 
+
+αCE  
+
+> ν,k
+
+= ω−
+
+> ν,k
+
+cν,k − ρν,k , βCE  
+
+> ν,k
+
+= ω+
+
+> ν,k
+
+Cν,k + ρν,k .
+
+Substituting these constants into the symmetric LoRA-RIP normalization (β − α)/(β + α) gives 
+
+δLoRA  
+
+> ν,k
+
+≤ δLoRA  
+
+> ν,k
+
+= ω+
+
+> ν,k
+
+Cν,k − ω−
+
+> ν,k
+
+cν,k + 2 ρν,k 
+
+ω+
+
+> ν,k
+
+Cν,k + ω−
+
+> ν,k
+
+cν,k 
+
+,
+
+which is Eq. (9). Plugging this conservative value into Theorem 4.2 yields the rank budget stated in the main text. 
+
+C.4 Mode Imbalance and Duplicate Sampling 
+
+Proposition C.2 (Group mass controls coverage conditioning) . A group mixture means the following two-stage sampling distribution: first choose a group g ∈ { 1, . . . , G } with probability πg, and then draw x ∼ νg.Equivalently, νπ = PGg=1 πgνg. Let T be the admissible comparison family for the mixture, for example 
+
+Tk(νπ, r ). For every fixed (M, H ) ∈ T ,
+
+Qνπ (M, H ) = 
+
+> G
+
+X
+
+> g=1
+
+πgQνg (M, H ), Gνπ (M, H ) = 
+
+> G
+
+X
+
+> g=1
+
+πgGνg (M, H ).
+
+Let (M+, H +) ∈ T be a direction strongly excited by group g+, and define 
+
+U+ := Qνg+ (M+, H +).
+
+Let (M−, H −) ∈ T be a direction that is weakly covered under the mixture. For a possibly different group 
+
+g−, define its weak-direction contribution and the leakage from the other groups by 
+
+L− := Qνg− (M−, H −), ε−(π) := X 
+
+> j̸=g−
+
+πj Qνj (M−, H −).
+
+The leakage term ε−(π) is small when the groups are well separated in their projected logit-response directions. Then 
+
+sup 
+
+> (M,H )∈T
+
+Qνπ (M, H ) ≥ πg+ U+, inf  
+
+> (M,H )∈T
+
+Qνπ (M, H ) ≤ Qνπ (M−, H −) = πg− L− + ε−(π).
+
+32 Consequently, if the denominator below is positive, 
+
+sup (M,H )∈T Qνπ (M, H )inf (M,H )∈T Qνπ (M, H ) ≥ πg+ U+
+
+πg− L− + ε−(π) .
+
+In words, a dataset can have poor coverage conditioning when too much mass is concentrated on a mode that already gives large coverage response, while another mode receives too little mass and is not covered by the remaining groups. Duplicate samples are the limiting case in which one mode is a single atom: they reinforce the projected logit-response directions excited by that atom rather than increasing coverage uniformly. Proof. Linearity of expectation gives 
+
+Qνπ (M, H ) = 
+
+> G
+
+X
+
+> j=1
+
+πj Qνj (M, H ), Gνπ (M, H ) = 
+
+> G
+
+X
+
+> j=1
+
+πj Gνj (M, H ).
+
+Evaluating the Q-identity at (M+, H +) and using nonnegativity gives the upper-side bound. Evaluating it at 
+
+(M−, H −) gives inf (M,H )∈T Qνπ (M, H ) ≤ Qνπ (M−, H −) = πg− L− + ε−(π). The ratio bound follows by combining the two inequalities. 
+
+C.5 Gradient-Sketch Proxy for Experiments 
+
+At a fixed operating point M0, the Gauss–Newton term can be viewed as a covariance on vectorized LoRA-update directions after they pass through the logit Jacobian. If h = vec( H) and Jx,M 0 is the matrix of the linear map H 7 → Ωx(M0)1/2Ax,M 0 [H], then 
+
+Gν (M0, H ) = h⊤ 
+
+Ex∼ν J⊤ 
+
+> x,M 0
+
+Jx,M 0
+
+
+
+h. 
+
+Thus any low-dimensional sketch that preserves the main modes of the logit Jacobian gives an empirical proxy for the weighted coverage spectrum. The gradient groups used in Section 6 should be read in this sense: they cluster examples by a margin-Jacobian sketch at a shared reference point. These sketches are not estimates of the exact constants cν,k , Cν,k , or ω±
+
+> ν,k
+
+, but they are aligned with the directions that enter the data-side certificate. 
+
+C.6 Directional Softmax Saturation and Curvature Leverage 
+
+Proposition C.3 (Softmax covariance as variance) . For p ∈ ∆K−1, Ω( p) := Diag( p) − pp ⊤, and any 
+
+u ∈ RK ,
+
+u⊤Ω( p)u =
+
+> K
+
+X
+
+> c=1
+
+pcu2 
+
+> c
+
+−
+
+> K
+
+X
+
+> c=1
+
+pcuc
+
+!2
+
+= min 
+
+> a∈R
+> K
+
+X
+
+> c=1
+
+pc(uc − a)2.
+
+In particular, Ω( p)1 = 0 , so only centered logit perturbations contribute to Gauss–Newton curvature. Proof. The first equality is the usual variance identity under a categorical distribution with probabilities p.The minimizing constant is a = P 
+
+> c
+
+pcuc. The identity Ω( p)1 = 0 follows immediately from the definition of Ω( p).
+
+Proposition C.4 (Easy examples have limited Gauss–Newton leverage) . For p ∈ ∆K−1, let pmax = 1 − δ
+
+with δ ∈ [0 , 1] . Then 
+
+λmax (Ω( p)) ≤ tr(Ω( p)) = 1 − ∥ p∥22 ≤ 2δ − δ2.
+
+33 Consequently, for the single-example Gauss–Newton contribution 
+
+Gx(M, H ) := ⟨Ax,M [H], Ωx(M )Ax,M [H]⟩,
+
+we have 
+
+Gx(M, H ) ≤ (2 δx − δ2
+
+> x
+
+)∥Ax,M [H]∥22, δx := 1 − max  
+
+> c
+
+px,c (M ).
+
+Thus a highly confident example cannot contribute much softmax-side Gauss–Newton curvature unless its logit-Jacobian response along the direction is large. Proof. Since Ω( p) is positive semidefinite, λmax (Ω( p)) ≤ tr(Ω( p)) . The trace identity follows from 
+
+tr(Diag( p) − pp ⊤) = P 
+
+> c
+
+pc − P 
+
+> c
+
+p2 
+
+> c
+
+= 1 − ∥ p∥22. If pmax = 1 − δ, then ∥p∥22 ≥ (1 − δ)2, which gives the final inequality. Applying the operator-norm bound to u = Ax,M [H] proves the single-example claim. 
+
+Proposition C.5 (Directional saturation decomposition) . For any admissible (M, H ) with Qν (M, H ) > 0,define 
+
+σν (M, H ) := Gν (M, H )/Q ν (M, H ).
+
+Then Gν (M, H ) = σν (M, H )Qν (M, H ), and hence 
+
+inf   
+
+> Tk(ν,r )
+
+Gν (M, H ) = inf   
+
+> Tk(ν,r )
+
+σν (M, H )Qν (M, H ),
+
+sup  
+
+> Tk(ν,r )
+
+Gν (M, H ) = sup  
+
+> Tk(ν,r )
+
+σν (M, H )Qν (M, H ).
+
+In a binary-margin parameterization, let mx(M ) := zx, 1(M ) − zx, 2(M ), let ϕx,M be the Frobenius-Riesz representative of the linear map H 7 → Dm x(M )[ H], and set sx(M ) := px, 1(M )px, 2(M ). Then this becomes the scalar-weighted covariance form 
+
+Gν (M, H ) = Eν
+
+sx(M )⟨ϕx,M , H ⟩2, Qν (M, H ) = 12 Eν ⟨ϕx,M , H ⟩2,
+
+for a softmax saturation weight sx(M ) ≥ 0. If σν (M, H ) is approximately constant over theorem-relevant directions, it mostly rescales both Gauss–Newton curvature extremes and does not improve the pure Gauss– Newton ratio. Directional saturation improves this curvature ratio only when the weighted mass increases the weak-direction floor more than it increases the ceiling. Proof. The first two identities are definitions. The binary-margin identities follow from Proposition C.3. For 
+
+K = 2 ,
+
+P⊥Ax,M [H] = 12 Dm x(M )[ H]
+
+ 1
+
+−1
+
+
+
+, ∥P⊥Ax,M [H]∥22 = 12
+
+ Dm x(M )[ H]2,
+
+which explains the factor 1/2 in Qν under the centered-logit normalization used throughout the paper. The Gauss–Newton form retains the weight sx = px, 1px, 2. The final statement follows by comparing the pure Gauss–Newton ratio: a nearly constant σν cancels in this ratio, whereas direction-dependent σν changes the ratio according to where it places weighted curvature mass. 
+
+# D Additional Experimental Details 
+
+This appendix records the protocols and full result tables for the rank sweeps and MNLI data interventions in Section 6. These tables report controlled single-seed runs. Appendix E presents multi-seed evaluations, landscape diagnostics, and robustness checks, with the settings specified for each study. 34 D.1 Shared Protocol 
+
+The MNLI/MPNet and CIFAR-100/ViT rank sweeps and MNLI data interventions use a controlled probe-then-LoRA protocol. We first train a linear classification head on the frozen backbone, and then keep this head fixed while fine-tuning only the pre-specified LoRA module. This is related to linear-probing-then-fine-tuning protocols, but differs from variants that continue updating the classification head during the fine-tuning stage (Tomihari and Sato, 2024). We keep the head fixed to isolate the effect of the LoRA update itself and keep the experiment close to the single-trainable-block setting analyzed in the main text. For the experiments in this appendix, unless stated otherwise, we use weight decay λA = λB = 10 −4, balancing coefficient 
+
+μ = 10 −4, learning rate 10 −4, and the initialization scheme in which the A-factor is Kaiming initialized with scale 0.01 and the B-factor is initialized to zero. The train/validation split uses seed 17 , and the tables in this appendix use optimization seed 0. We use Adam with explicit weight decay for these runs. The diagnostic and robustness studies specify their seeds and protocol differences in Appendix E. Table D.1: Protocols for the rank sweeps and MNLI data interventions. Diagnostic and robustness studies are reported in Appendix E.                                  
+
+> Experiment Dataset / model LoRA target Main variable NLP rank sweep MNLI / MPNet-base layer 10 attention query rank r∈ { 1,4,16 ,32 ,64 ,128 ,256 ,512 }
+> CV rank sweep CIFAR-100 / ViT-B/16 query projection in block 10 attention rank r∈ { 1,4,16 ,32 ,64 ,128 ,256 ,512 }
+> NLP coverage MNLI / MPNet-base layer 10 attention query gradient-group sampling mass and rank NLP saturation MNLI / MPNet-base layer 10 attention query saturation band under fixed gradient-group quotas and rank
+
+For the MNLI/MPNet experiments in this appendix, the train/validation/test sizes are 353 ,432 /39 ,270 /9,815 ,the batch size is 32 , and the maximum sequence length is 128 . For CIFAR-100, the train/validation/test sizes are 45 ,000 /5,000 /10 ,000 , and the batch size is 64 . The MNLI rank sweep trains LoRA for 10 epochs; the CIFAR-100 rank sweep trains LoRA for 30 epochs; and the MNLI data-intervention runs train LoRA for 50 epochs on no-replacement subsets of 17 ,526 examples. 
+
+D.2 Compute Resources 
+
+The experiment groups in Table D.2 were run with single-GPU training workers on NVIDIA RTX 5880 Ada Generation GPUs with 48 GB memory. Each rank or data condition was launched as an independent Python process on one GPU, without multi-node or distributed training. Up to four GPUs were used in parallel. For these runs, the observed GPU memory usage per LoRA or linear-probe worker was below 4 GB in nvidia-smi , and data loading used up to four CPU workers per process. Table D.2: Hardware and training configurations for the rank sweeps and MNLI data interventions. 
+
+Experiment group Runs Batch size / epochs NLP rank sweep 1 linear probe + 8 LoRA ranks LP: 32 / 10; LoRA: 32 / 10 CV rank sweep 1 linear probe + 8 LoRA ranks LP: 64 / 20; LoRA: 64 / 30 NLP gradient coverage 4 data conditions × 4 ranks LoRA: 32 / 50; subset size 17 ,526 
+
+NLP saturation bands 3 bands × 4 ranks LoRA: 32 / 50; subset size 17 ,526 
+
+The hardware and memory measurements above apply to the experiment groups in Table D.2. Diagnostic and robustness protocols are described in Appendix E. 35 D.3 Rank Sweep Results 
+
+Table D.3: MNLI rank sweep. The test accuracy is reported at the best validation checkpoint. 
+
+Rank Best val acc Test acc Best val CE Best train CE Final train CE Best epoch 1 0.6047 0.6036 0.8737 0.9506 0.9506 94 0.6199 0.6167 0.8501 0.9325 0.9325 10 16 0.6360 0.6324 0.8318 0.9184 0.9184 10 32 0.6476 0.6456 0.8130 0.9032 0.9032 964 0.6547 0.6506 0.8018 0.8939 0.8939 9128 0.6630 0.6570 0.7883 0.8829 0.8829 7256 0.6696 0.6634 0.7752 0.8719 0.8719 10 512 0.6728 0.6686 0.7677 0.8650 0.8650 9
+
+Table D.4: CIFAR-100 rank sweep. The train loss improves with rank, while held-out accuracy is much flatter than in MNLI. 
+
+Rank Best val acc Test acc Best val CE Best train CE Final train CE Best epoch 1 0.7384 0.7243 1.2393 0.1137 0.1137 24 0.7392 0.7267 1.2299 0.1101 0.1101 28 16 0.7400 0.7251 1.2291 0.1057 0.1057 832 0.7398 0.7265 1.2323 0.1013 0.1013 464 0.7414 0.7279 1.2254 0.0940 0.0940 16 128 0.7414 0.7296 1.2236 0.0840 0.0840 12 256 0.7422 0.7318 1.2244 0.0714 0.0714 14 512 0.7464 0.7307 1.2217 0.0584 0.0584 15 
+
+D.4 Gradient-Coverage Construction 
+
+The MNLI coverage experiment changes the data distribution without changing the subset size or label budget. The candidate pool is sampled once from MNLI train, and the final coverage proxy is defined by a gradient sketch with respect to the adapted matrix: 1. Use the frozen MPNet backbone and the trained linear-probe head as a shared reference point. 2. For each candidate example, choose the gold label and the strongest alternative label, and backpropagate the corresponding margin logit to the target query matrix. 3. Randomly project the activation and gradient-output factors to 16 × 16 , producing a 256 -dimensional bilinear sketch of the margin-Jacobian feature. 4. Normalize the sketches and cluster them within each label into eight groups, giving 24 label-conditioned gradient groups. 5. Draw no-replacement subsets of 17 ,526 examples with the same label budget (5847 , 5788 , 5891) but different mass over these gradient groups. 36 The conditions are a balanced distribution with uniform mass over the eight groups within each label, and two geometric long-tail conditions with decay factors 0.75 and 0.45 . Figure D.1 shows the resulting group masses. 
+
+Figure D.1: Sampling mass over label-conditioned gradient groups. The heavy long-tail intervention collapses most mass onto the first few groups in every label, while the balanced condition spreads mass uniformly across the gradient groups. Table D.5: Group-mass checks for the MNLI gradient-coverage construction. Mass statistics are computed within label-conditioned gradient groups.                             
+
+> Condition Subset size Unique ratio Mass min Mass median Mass max Max/min Label counts Balanced 17,526 1.0 0.1249 0.1250 0.1251 1.0 5847 /5788 /5891
+> Long-tail Light 17,526 1.0 0.0371 0.1025 0.2779 7.5 5847 /5788 /5891
+> Long-tail Heavy 17,526 1.0 0.0020 0.0364 0.5510 270.5 5847 /5788 /5891
+
+Table D.6: MNLI gradient-coverage results. Deltas are relative to the balanced condition at the same rank. 
+
+Rank Condition Best val acc Test acc Final train CE Best epoch ∆ val / test 4 Balanced 0.5939 0.5954 0.9547 37 0.0000 / 0.0000 4 Long-tail Light 0.5868 0.5875 0.9601 48 -0.0071 / -0.0079 4 Long-tail Heavy 0.5853 0.5838 0.9350 48 -0.0086 / -0.0116 16 Balanced 0.6046 0.6033 0.9353 43 0.0000 / 0.0000 16 Long-tail Light 0.5955 0.5940 0.9436 42 -0.0091 / -0.0093 16 Long-tail Heavy 0.5961 0.5922 0.9127 44 -0.0085 / -0.0111 32 Balanced 0.6110 0.6084 0.9237 40 0.0000 / 0.0000 32 Long-tail Light 0.6076 0.6016 0.9323 47 -0.0034 / -0.0068 32 Long-tail Heavy 0.6026 0.5946 0.9001 46 -0.0084 / -0.0138 64 Balanced 0.6134 0.6133 0.9176 38 0.0000 / 0.0000 64 Long-tail Light 0.6145 0.6067 0.9213 47 0.0011 / -0.0066 64 Long-tail Heavy 0.6103 0.6023 0.8883 45 -0.0031 / -0.0110 
+
+37 Figure D.2: Validation cross-entropy trajectories for the MNLI gradient-coverage intervention. Each subplot fixes the LoRA rank and compares balanced group coverage with light and heavy long-tail group-mass distributions. 
+
+D.5 Saturation-Band Construction and Results 
+
+The saturation-band experiment uses the same MNLI candidate pool and the same 24 label-conditioned gradient groups as the coverage experiment, but keeps the quota for every label–gradient group fixed. It therefore changes which examples are selected inside each group, rather than changing the mass assigned to the groups themselves. For each example, let pgold be the model probability of the gold label and let palt be the largest non-gold class probability. We compute the pairwise softmax-curvature score 
+
+ppair = pgold 
+
+pgold + palt 
+
+, s = ppair (1 − ppair ).
+
+This reduces the multiclass prediction to the gold label versus its strongest competitor. In this pairwise view, if mx(M ) is the corresponding logit margin, the Gauss–Newton contribution has the form 
+
+Gν (M, H ) ≈ Eν
+
+h
+
+s  Dm x(M )[ H]2i
+
+.
+
+Thus s is the softmax-side curvature weight, while Dm x(M )[ H] determines the LoRA direction receiving that curvature. Within each fixed label–gradient group, we draw no-replacement examples from one of three quantile bands: easy, middle, and boundary. Table D.7 records the resulting score statistics, and Figure D.3 visualizes the separation between the three selected bands. Table D.7: Saturation-band checks for the MNLI experiment. The selected subsets all have size 17 ,526 ,unique ratio 1.0, no fallback groups, and fixed label-conditioned gradient-group quotas. 
+
+Condition Quantile band Score mean Score p10 Score p50 Score p90 Subset size Easy-band [0 .10 , 0.45] 0.2210 0.2044 0.2234 0.2344 17,526 Middle-band [0 .33 , 0.67] 0.2389 0.2320 0.2401 0.2445 17,526 Boundary-band [0 .62 , 0.95] 0.2477 0.2457 0.2481 0.2494 17,526 
+
+38 Figure D.3: Selected pairwise softmax-curvature scores for the three MNLI saturation bands. The boundary band has the highest average score, while the middle band avoids both very easy examples and the most boundary-concentrated tail. Table D.8: MNLI saturation-band results. All conditions use the same subset size, label budget, and label-conditioned gradient-group quotas. 
+
+Rank Condition Best val acc Test acc Best val CE Best train CE Best epoch 4 Easy-band 0.5853 0.5868 0.9010 0.9509 47 4 Middle-band 0.5962 0.5984 0.8843 0.9481 42 4 Boundary-band 0.5945 0.5947 0.8860 0.9545 42 16 Easy-band 0.5967 0.5959 0.8837 0.9326 46 16 Middle-band 0.6091 0.6074 0.8668 0.9290 39 16 Boundary-band 0.6056 0.6058 0.8676 0.9335 44 32 Easy-band 0.6032 0.6029 0.8763 0.9251 46 32 Middle-band 0.6149 0.6168 0.8555 0.9181 49 32 Boundary-band 0.6130 0.6117 0.8590 0.9249 43 64 Easy-band 0.6183 0.6144 0.8559 0.9094 41 64 Middle-band 0.6226 0.6186 0.8466 0.9080 49 64 Boundary-band 0.6218 0.6151 0.8478 0.9141 44 
+
+> 39
+
+Figure D.4: Validation cross-entropy trajectories for the MNLI saturation-band intervention. The middle band is consistently strongest, while easy-band examples have lower softmax-side curvature leverage under matched gradient-group coverage. 
+
+# E Landscape Diagnostics and Robustness Evaluations 
+
+This section examines the optimization geometry and stability of LoRA fine-tuning through rank/checkpoint curvature, ambient matrix-space references, and multi-seed training. We also study the effects of data composition at a common reference point and along training trajectories, evaluate coverage across datasets, backbones, and adapter locations, and examine confidence-band selection on MNLI. The rank-sweep and MNLI data-intervention protocols are described in Appendix D. Together, these evaluations connect rank-dependent optimization gains to data-induced geometry and the practical effectiveness of landscape-guided selection. 
+
+E.1 Shared diagnostic protocol 
+
+Unless stated otherwise, the diagnostics use MPNet-base on MNLI, a frozen linear-probe head, a frozen backbone, and a LoRA update on the layer-10 query projection. Every coverage condition contains 17 ,526 
+
+unique training examples with label counts 5,847 /5,788 /5,891 . The shared data-aligned diagnostic basis has dimension 24 and is obtained from the eight gradient-sketch groups within each of the three labels. Each ambient direction represented by this basis has rank at most 16 . The data-condition diagnostics use 512 
+
+examples per label and three diagnostic-sample seeds. The rank/checkpoint diagnostic uses ranks 4, 64 , 128 , 256 , optimization seeds 0, 1, 2, and start, middle, and final checkpoints (epochs 0, 5, 10 ). It evaluates projected logit-Jacobian and CE-Hessian actions in the same 24 -dimensional basis. These actions are estimated by symmetric finite differences; a step-size check 40 changes the projected matrices by at most 1.9% and does not change the reported full-Hessian sign counts. Factor regularization and balancing Hessians are excluded when the ambient update M is studied. The data-condition diagnostic instead computes exact logit-JVP Gauss–Newton matrices and exact directional CE-HVPs in the common basis. The zero-update table uses the shared frozen probe point; the trajectory analysis evaluates matched rank-16 checkpoints from the three training seeds. The reported means and standard deviations are over the three independent diagnostic or training seeds, as appropriate. Table E.1: Landscape diagnostic protocols.                              
+
+> Diagnostic Dataset/model Adapted matrix Seeds/checkpoints Main quantities Rank/checkpoint MNLI/MPNet-base layer-10 query r= 4 ,64 ,128 ,256 ; 3 seeds; 0/5/10 projected CE curvature Data condition MNLI/MPNet-base layer-10 query 3 diagnostic seeds GN condition, stable rank, residual Saturation condition MNLI/MPNet-base layer-10 query 3 diagnostic seeds softmax weight and GN spectrum Ambient reference MNLI, CIFAR-100 layer-10 query two LoRA warm starts/task Fλand spectral ranks Multi-initialization MNLI, CIFAR-100 layer-10 query 3 runs/rank objective and held-out stability
+
+Theoretical constants and empirical diagnostics. We do not directly compute exact values of δLoRA  
+
+> k
+
+, r⋆,
+
+cν,k , Cν,k , ω±
+
+> ν,k
+
+, or ρν,k . These quantities parameterize structural guarantees, rather than serving as per-run statistics. In classical matrix sensing and low-rank optimization, RIP relates measurement geometry to recovery and landscape guarantees (Recht et al., 2010; Ge et al., 2017; Zhang et al., 2021; Zhang, 2025b). Its primary value in our framework is likewise the relationship it establishes between data geometry and rank requirements, not an isolated numerical constant for a particular run. Exact certification is already computationally difficult for a fixed linear compressed-sensing matrix: the condition controls singular values across all supports of a prescribed size, and computing optimal RIP constants is NP-hard in general (Tillmann and Pfetsch, 2014). Hardness also extends to approximate RIP certification (Weed, 2018). For LoRA, the defining curvature bounds require uniform control over the continuous family of target-to-update segments and all admissible low-rank directions. Evaluating selected checkpoints in a diagnostic subspace does not compute these extrema. Likewise, determining r⋆ requires identifying a global minimizer of the nonlinear regularized matrix-space objective Fλ and certifying its rank. Local optimization does not establish global optimality or uniqueness; r⋆ refers to the low-rank target specified in our assumption. The matrix-space references and threshold or energy ranks reported below describe numerical solutions, not certified global targets. The informative consequence of the analysis is how these quantities interact: The sufficient condition permits larger LoRA-RIP values at larger ranks, while coverage, softmax weighting, and nonlinear residual curvature enter the data-side certificate in explicit ways. Our experiments examine these mechanisms through controlled rank and data interventions, attained objectives, projected GN and CE-Hessian spectra, and multi-seed performance comparisons. The projected spectra characterize local geometry, rather than the theorem’s uniform LoRA-RIP constant. Lower attained objectives at larger ranks and the changes in geometry and performance under coverage and confidence-band selection provide complementary, qualitative evidence for the rank–data relationship developed by the theory. 
+
+E.2 Rank and checkpoint curvature 
+
+Table E.2 reports the full checkpoint measurements. The initial state is shared across ranks because the LoRA initialization has B = 0 and therefore M = BA = 0 .41 Table E.2: MNLI projected curvature over training checkpoints. Values are mean ± standard deviation over three training seeds. GN floor and ceiling are shown in absolute units. 
+
+Rank Checkpoint CE 99% energy rank GN floor GN ceiling GN condition Full-H min eig. Neg. eigs. 4 Start 0.959 ±0.000 0.0 ±0.0 4.911 × 10 −7 1.606 × 10 −5 32.70 ±0.00 −9.012 × 10 −6 8.00 ±0.00 4 Middle 0.843 ±0.001 2.0 ±0.0 4.136 × 10 −7 1.764 × 10 −5 42.62 ±2.07 −1.914 × 10 −7 1.33 ±0.58 4 Final 0.839 ±0.001 2.0 ±0.0 3.967 × 10 −7 1.754 × 10 −5 44.22 ±2.30 −4.915 × 10 −7 1.67 ±0.58 64 Start 0.959 ±0.000 0.0 ±0.0 4.911 × 10 −7 1.606 × 10 −5 32.70 ±0.00 −9.012 × 10 −6 8.00 ±0.00 64 Middle 0.800 ±0.002 4.33 ±0.58 3.445 × 10 −7 1.966 × 10 −5 56.83 ±9.85 3.596 × 10 −7 0.00 ±0.00 64 Final 0.793 ±0.002 5.0 ±0.0 3.448 × 10 −7 1.874 × 10 −5 54.35 ±10.00 4.796 × 10 −7 0.00 ±0.00 128 Start 0.959 ±0.000 0.0 ±0.0 4.911 × 10 −7 1.606 × 10 −5 32.70 ±0.00 −9.012 × 10 −6 8.00 ±0.00 128 Middle 0.789 ±0.002 6.0 ±0.0 3.344 × 10 −7 1.749 × 10 −5 52.33 ±5.05 3.085 × 10 −7 0.00 ±0.00 128 Final 0.783 ±0.002 6.67 ±0.58 3.358 × 10 −7 1.808 × 10 −5 53.80 ±3.08 2.929 × 10 −7 0.00 ±0.00 256 Start 0.959 ±0.000 0.0 ±0.0 4.911 × 10 −7 1.606 × 10 −5 32.70 ±0.00 −9.012 × 10 −6 8.00 ±0.00 256 Middle 0.779 ±0.001 7.0 ±0.0 3.432 × 10 −7 1.775 × 10 −5 51.89 ±6.16 2.884 × 10 −7 0.00 ±0.00 256 Final 0.771 ±0.001 7.67 ±0.58 3.586 × 10 −7 1.952 × 10 −5 54.52 ±6.76 2.360 × 10 −7 0.00 ±0.00 
+
+Ranks 64 –256 reach positive CE-Hessian curvature throughout the shared projected subspace by the middle checkpoint and retain it at the final checkpoint, while rank 4 retains weak negative curvature. Final CE also decreases from 0.839 at rank 4 to 0.771 at rank 256 . Together, these trends link the gains from larger search ranks to lower-loss solutions with more favorable second-order geometry, consistent with the role of over-parameterization in our landscape analysis. Figure E.1 visualizes these trends. 
+
+Figure E.1: Projected GN and CE-Hessian diagnostics over rank and checkpoint. 42 E.3 Ambient matrix-space reference and effective rank 
+
+We obtain numerical matrix-space references by directly optimizing Fλ(M ) = Ltrain (M ) + λ∥M ∥∗ with 
+
+λ = 10 −4. We use full-batch gradients, FP64 singular-value thresholding, monotone backtracking, and two existing LoRA solutions as warm starts for each task. The threshold rank counts singular values above 
+
+10 −4σ1; energy ranks count the number of directions needed to capture the indicated fraction of squared singular-value energy. Table E.3: Ambient matrix-space proximal diagnostics from two LoRA warm starts. Energy ranks summarize spectral concentration, and the relative mapping is the normalized proximal-gradient mapping used to monitor the optimization residual. 
+
+Task Warm start Final Fλ Threshold rank r90 r95 r99 Rel. prox. map. MNLI LoRA rank 256 0.790509 44 4 6 8 5.00 × 10 −5
+
+MNLI LoRA rank 64 0.809354 35 3 4 5 7.26 × 10 −5
+
+CIFAR-100 LoRA rank 256 0.061640 406 24 33 62 4.30 × 10 −4
+
+CIFAR-100 LoRA rank 64 0.085553 457 9 13 25 2.95 × 10 −3
+
+Table E.4: Best observed LoRA objective gaps to the corresponding ambient reference.          
+
+> Task Rank 4 Rank 64 Rank 256 MNLI 0.06450 0.02130 0.00261 CIFAR-100 0.04666 0.02545 0.00038
+
+Table E.3 shows concentrated update energy: 99% lies in 5–8 directions on MNLI and 25 –62 on CIFAR-100. Table E.4 shows that increasing the search rank from 4 to 256 reduces the best observed objective gap to the matrix-space reference from 0.06450 to 0.00261 on MNLI and from 0.04666 to 0.00038 on CIFAR-100. Together, the spectral summaries and shrinking objective gaps connect compact update structure with the optimization benefits of a larger search rank. 
+
+E.4 Multi-seed and subset-construction robustness 
+
+We repeat representative MNLI and CIFAR-100 rank experiments with three independent runs per rank. The runs jointly vary initialization, minibatch order, and stochastic training operations to measure the stability of the rank-dependent optimization and performance trends. Table E.5: Three-run multi-initialization diagnostic. Accuracy is reported as a fraction; values are mean ±
+
+standard deviation.                                                     
+
+> Task Rank Best validation accuracy Final factor objective MNLI 40.6199 ±0.0009 0.855593 ±0.000605
+> MNLI 64 0.6556 ±0.0007 0.812421 ±0.000531
+> MNLI 128 0.6626 ±0.0014 0.803074 ±0.001195
+> MNLI 256 0.6695 ±0.0009 0.793288 ±0.000174
+> CIFAR-100 40.7389 ±0.0009 0.108684 ±0.000127
+> CIFAR-100 64 0.7407 ±0.0005 0.087717 ±0.000223
+> CIFAR-100 256 0.7429 ±0.0010 0.062622 ±0.000067
+
+43 Across both tasks, larger ranks consistently achieve lower final factor objectives and higher mean validation accuracy. Within each rank, validation-accuracy standard deviations remain between 0.05 and 0.14 
+
+percentage points. The rank trends are therefore reproducible across training randomness, reinforcing the empirical connection between search rank and attainable objective quality. Figure E.2 shows the corresponding multi-run diagnostics. 
+
+Coverage stability across training and subset-construction seeds. The Balanced-versus-Heavy compari-son on MNLI also evaluates sensitivity to training randomness and subset construction. Across six ranks from 
+
+4 to 256 with three training seeds, Balanced has higher validation accuracy at all six ranks. With independently reconstructed subsets, Heavy falls below Balanced in all 12 paired runs. This consistency across both sources of randomness shows that preserving gradient-group coverage yields reliable improvements under a fixed data budget. 44 Figure E.2: Multi-initialization performance and objective diagnostics. 45 E.5 Projected data-condition diagnostics 
+
+The coverage diagnostic compares the balanced, light long-tail, and heavy long-tail subsets under the same label budget and subset size. The projected GN condition number is the ratio of the largest to smallest eigenvalue in the shared span. Stable rank is computed from the projected GN spectrum, and the residual norm is the operator norm of the nonlinear CE-Hessian residual in that span. Table E.6: Exact projected data-condition diagnostics at the shared zero-update model. Means and standard deviations are over three diagnostic seeds; training-trajectory results are reported separately in Table E.7.                                                   
+
+> Condition GN floor ( ×10 −7)GN ceiling ( ×10 −5)GN condition Stable rank Residual ( ×10 −5)Balanced 4.66 ±0.14 1.59 ±0.01 34 .19 ±1.17 4.81 ±0.02 2.11 ±0.16
+> Light long-tail 4.88 ±0.14 1.73 ±0.02 35 .37 ±0.97 4.47 ±0.04 3.27 ±0.17
+> Heavy long-tail 4.93 ±0.10 1.90 ±0.04 38 .60 ±1.32 4.04 ±0.05 4.19 ±0.43
+
+Balanced yields the lowest projected GN condition number and the highest stable rank. With GN floors on comparable scales, the lower ceiling identifies reduced concentration in dominant directions as the main source of better conditioning. Balanced also has a smaller nonlinear residual. These results support the coverage mechanism: spreading the data budget across response modes produces more even directional support and a more favorable curvature profile. Figure E.3 displays the corresponding GN condition numbers and curvature spectra. 
+
+Figure E.3: Projected Gauss–Newton condition numbers and restricted curvature spectra for the gradient-coverage subsets. 46 E.6 CE-Hessian geometry along training 
+
+We compare the projected CE-Hessian geometry reached by Balanced, Light, and Heavy training at start, middle, and final checkpoints, using the same 1,536 -example diagnostic set and 24 -dimensional basis. Figure E.4 focuses on the minimum CE-Hessian eigenvalue and the number of negative eigenvalues in this shared subspace. Table E.7 records the complete checkpoint measurements. Table E.7: Complete training-trajectory measurements. Reported uncertainties are standard deviations over three training seeds; start is one shared state. The accompanying figure displays the two projected CE-Hessian sign diagnostics. 
+
+Condition Checkpoint GN condition Full-H min eig. Negative eigs. Residual/GN ceiling Balanced Start 32 .70 ± 0.00 −9.012e −6 8.00 ± 0.00 1.194 ± 0.000 
+
+Balanced Middle 57 .54 ± 1.88 1.816e −7 0.00 ± 0.00 0.755 ± 0.059 
+
+Balanced Final 59 .60 ± 1.52 2.096e −7 0.00 ± 0.00 0.756 ± 0.020 
+
+Light Middle 41 .92 ± 3.85 −1.437e −6 3.67 ± 0.58 0.721 ± 0.217 
+
+Light Final 40 .16 ± 2.69 −1.440e −6 3.00 ± 1.00 0.799 ± 0.178 
+
+Heavy Middle 44 .44 ± 0.58 −2.543e −6 5.00 ± 0.00 0.594 ± 0.033 
+
+Heavy Final 47 .01 ± 1.56 −2.375e −6 4.33 ± 0.58 0.556 ± 0.024 
+
+Balanced reaches a positive mean minimum CE-Hessian eigenvalue by the middle checkpoint, and all three training runs have zero detected negative eigenvalues at both the middle and final checkpoints. At the final checkpoint, Light and Heavy retain an average of 3.00 and 4.33 negative eigenvalues, respectively. This consistent separation links balanced gradient-group coverage to training states with more favorable local second-order geometry, complementing the common-reference coverage analysis. 
+
+Figure E.4: Projected CE-Hessian geometry along MNLI training trajectories. Left: minimum eigenvalue. Right: number of negative eigenvalues. All conditions use the same diagnostic set and projection basis; curves and shaded bands summarize three training seeds. 
+
+E.7 Confidence-band diagnostics and multi-seed evaluation 
+
+The MNLI confidence-band comparison fixes subset size, label counts, and gradient-group quotas. The score is s = ppair (1 − ppair ), where ppair = pgold /(pgold + palt ). All bands are evaluated at the same zero-update 47 model in the common 24-dimensional span. This tests whether changing average pairwise confidence mainly changes curvature scale or also changes projected conditioning. Table E.8: Confidence-band curvature summaries at the shared reference model. GN statistics are means ±
+
+standard deviations over three diagnostic seeds.                          
+
+> Band Pairwise score sGN trace ( ×10 −5)GN condition Easy 0.2210 7.43 ±0.03 32 .40 ±0.55
+> Middle 0.2389 7.71 ±0.10 33 .16 ±1.59
+> Boundary 0.2477 7.73 ±0.07 32 .59 ±1.21
+
+With gradient-group quotas fixed, Middle and Boundary provide higher GN trace than Easy in all three diagnostic samples, while mean projected condition numbers remain close ( 32 .40 –33 .16 ). This highlights the role of softmax weighting in the amount of curvature supplied to covered directions, rather than a clear conditioning advantage for a particular band. The training comparisons below separately evaluate how these confidence-band choices affect fine-tuning performance. Table E.9: Three-seed MNLI saturation-band training results. Entries are validation accuracy in percent, reported as mean ± standard deviation.                                        
+
+> Rank Easy Middle Boundary 458 .83 ±0.47 59 .58 ±0.04 59 .43 ±0.04
+> 16 60 .10 ±0.60 60 .89 ±0.07 60 .59 ±0.02
+> 32 60 .95 ±0.55 61 .36 ±0.12 61 .36 ±0.06
+> 64 61 .65 ±0.33 62 .04 ±0.19 62 .13 ±0.05
+
+Table E.9 shows that both Middle and Boundary improve mean validation accuracy over Easy at all four ranks, with smaller run-to-run variability. Their relative ordering varies: Middle leads at ranks 4 and 16 , the reported means tie at rank 32 , and Boundary has the highest mean at rank 64 . Together with the reference-point diagnostics, these results support confidence-aware selection that avoids concentrating the budget on highly saturated examples while maintaining directional coverage, rather than a universal preference for the middle band. 
+
+E.8 Cross-Backbone and Cross-Dataset Gradient Coverage 
+
+We extend the gradient-coverage intervention to a second backbone on MNLI and to QNLI with MPNet-base. Both experiments compare Balanced, Light long-tail, and Heavy long-tail sampling. Balanced assigns approximately equal example counts to the eight gradient groups within each label. At each rank, the three conditions share the same subset size, label budget, target module, and training settings; the intervention changes how the data budget is allocated across gradient groups. Both experiments use ranks r ∈ { 16 , 64 },seeds 0, 1, 2, 50 training epochs, and batch size 32. Validation and test accuracies are evaluated at the checkpoint with the lowest validation cross-entropy in each run. The tables report three-seed summaries in percentage units. 
+
+DeBERTa-v3-base on MNLI. We use microsoft/deberta-v3-base , with LoRA applied only to the layer-10 query projection and the existing linear-probe head kept fixed. Each selected subset contains 
+
+17 ,526 examples, with label counts (5 ,847 , 5,788 , 5,891) . Normalized gradient sketches are clustered into 48 eight groups per label, giving 24 label-conditioned groups. The Light and Heavy long-tail conditions use group-mass decay factors 0.60 and 0.45 , respectively. The maximum sequence length is 128. Table E.10 shows that Balanced achieves the highest validation and test accuracy at both ranks, followed by Light and then Heavy long-tail. Relative to Heavy long-tail, Balanced improves test accuracy by 2.18 
+
+percentage points at r = 16 and 1.62 points at r = 64 . The Balanced-versus-Heavy advantage across MPNet and DeBERTa supports gradient-response coverage as a model-aware criterion for selecting fine-tuning data. Table E.10: DeBERTa-v3-base on MNLI: gradient-coverage results over seeds 0, 1, 2 at the best validation-CE checkpoint of each run. Accuracy is in percent; bold marks the best condition at each rank.                                              
+
+> Rank Condition Validation accuracy (%) Test accuracy (%) 16 Balanced 44 .54 ±0.06 45 .04 ±0.06
+> 16 Light long-tail 43 .42 ±0.07 43 .76 ±0.11
+> 16 Heavy long-tail 42 .25 ±0.03 42 .86 ±0.03
+> 64 Balanced 45 .12 ±0.09 45 .16 ±0.18
+> 64 Light long-tail 44 .10 ±0.16 44 .38 ±0.03
+> 64 Heavy long-tail 42 .92 ±0.11 43 .54 ±0.16
+
+MPNet-base on QNLI. We use microsoft/mpnet-base on QNLI, targeting the layer-10 attention query projection. Each condition contains 5,125 examples with label counts (2 ,534 , 2,591) . Normalized gradient/margin-Jacobian sketches form eight groups per label, giving 16 label-conditioned groups. The model, adapted layer, total subset size, label budget, and training settings are held fixed across the three sampling conditions at each rank. As shown in Table E.11, Balanced again outperforms Light long-tail, which outperforms Heavy long-tail, on both validation and test accuracy. Balanced improves test accuracy over Heavy long-tail by 5.50 percentage points at r = 16 and 6.79 points at r = 64 . The sustained gains at both ranks show that allocating a fixed sample budget across complementary response groups remains valuable as the adapter capacity increases. Table E.11: MPNet-base on QNLI: three-condition gradient-coverage experiment with 5,125 examples. Results summarize seeds 0, 1, 2 at each run’s best validation-CE checkpoint. Accuracy is in percent; bold marks the best condition at each rank.                                              
+
+> Rank Condition Validation accuracy (%) Test accuracy (%) 16 Balanced 71 .73 ±0.27 72 .16 ±0.33
+> 16 Light long-tail 70 .63 ±0.32 70 .38 ±0.26
+> 16 Heavy long-tail 68 .15 ±0.33 66 .66 ±0.19
+> 64 Balanced 75 .01 ±0.29 76 .06 ±0.33
+> 64 Light long-tail 73 .83 ±0.27 73 .71 ±0.32
+> 64 Heavy long-tail 71 .02 ±0.21 69 .27 ±0.20
+
+Across both evaluations, Balanced at rank 16 outperforms Heavy at rank 64 , using only one quarter of the adapter rank. These comparisons show how better coverage can improve the effectiveness of a smaller adapter, directly supporting the joint consideration of data composition and rank in resource-efficient LoRA fine-tuning. 49 E.9 Adapter-location robustness 
+
+We evaluate the Balanced-versus-Heavy coverage comparison at several adapter locations on MNLI. For layers 5, 7, and 8, gradient sketches are recomputed at the corresponding query projection. The all-layer query/value run evaluates placement transfer using the fixed layer-10-selected subsets. Table E.12: Adapter-location robustness on MNLI. Gains are Balanced minus Heavy test accuracy in percentage points.      
+
+> Adapter location Balanced gain Layer-5 query +0 .890
+> Layer-7 query +1 .063
+> Layer-8 query +1 .939
+> All-layer query/value +1 .124
+
+Balanced improves test accuracy at every tested location, by 0.890 –1.939 percentage points for single-layer query adapters and 1.124 points for all-layer query/value adaptation. The all-layer gain uses the fixed layer-10-selected subsets, showing that the coverage benefit transfers across adaptation configurations. 
+
+# F Limitations 
+
+Our theoretical analysis focuses on single-matrix LoRA fine-tuning with cross-entropy loss under low-rank target and LoRA-RIP assumptions. The resulting rank bounds are sufficient rather than necessary, leaving room for tighter characterizations of the relationship between adapter rank and data-induced geometry. Our empirical evaluation examines this relationship through controlled classification experiments across datasets and backbones. Extending the theory to joint multi-layer adaptation and evaluating the data-selection principles in larger-scale generative fine-tuning are natural directions for future work. 50

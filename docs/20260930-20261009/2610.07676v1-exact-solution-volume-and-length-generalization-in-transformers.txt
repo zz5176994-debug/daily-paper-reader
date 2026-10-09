@@ -1,0 +1,1534 @@
+Title: Exact-Solution Volume and Length Generalization in Transformers
+
+URL Source: https://arxiv.org/pdf/2610.07676v1
+
+Published Time: Wed, 07 Oct 2026 00:45:00 GMT
+
+Number of Pages: 26
+
+Markdown Content:
+# EXACT -S OLUTION VOLUME AND 
+
+# LENGTH GENERALIZATION IN TRANSFORMERS 
+
+Yijia Jessica Zhu and David Chiang 
+
+University of Notre Dame 
+
+{yzhu26,dchiang}@nd.edu 
+
+## ABSTRACT 
+
+Research on transformer expressivity shows whether a transformer is capable of solving a given task, but gives little indication of whether the solution, if learned, is generalizable to longer input lengths. We study this question through normalized exact-solution volume (NESV) : the fraction of a bounded parameter region that achieves an exact solution on every input of length n. For fixed-width, single-layer transformers with log n-scaled attention, we establish asymptotic bounds on NESV for four tasks: F IRST (Θ(1) ), M AJORITY (Θ(1 /(n log n)) ), I NDEX (Θ(1 /n 3)), and P ARITY (0). These results are consistent with previous empirical results: the faster the exact-solution volume decays with input length, the harder it is to length-generalize on that task. Looking deeper into I NDEX , our volume analysis reveals two error sources that grow with n. Consequently, we study a transformer model that would structurally eliminate one of the terms, theoretically improving the NESV bound to Θ( n−1), and empirically achieving 85% accuracy when tested at 
+
+10 × the training length, compared with the 60% accuracy of the original model. We conclude that volume analysis may be a useful approach to identify concrete sources of length sensitivity and thus provide insights into task-specific model refinements. 
+
+## 1 INTRODUCTION 
+
+Theoretical work on the expressivity of transformers (cf. the survey by Strobl et al., 2024) can be seen as a prelude to the study of learnability by transformers, since the existence of a transformer and parameters that solve a given problem is a prerequisite for a transformer to learn to solve the problem. But the existence of a single point in parameter space does not tell us much about whether that point is actually learnable. In this paper, following Kover et al. (2026), we ask a more difficult question: given that a problem is solvable by a transformer with some parameters, how large is the set of successful parameters? While Kover et al. (2026) arrived at somewhat pessimistic conclusions, we look at single-layer transformers with log n-scaling and find that, the volume of the set of successful parameters, as a function of the sequence length n, provides a way to quantify the difficulty of length-generalization in various problems. The drive for looking beyond expressivity is also visible in experiments on simple sequence tasks. Chiang & Cholak (2022) construct exact transformers for F IRST (whether the first symbol is a 1)and P ARITY (whether the number of 1’s is odd), but report that standard training fails on P ARITY ,and that F IRST does not necessarily extrapolate to longer inputs without log n-scaling. Hahn & Rofin (2024) report that fitted P ARITY solutions become much sharper as input length grows than fitted solutions for F IRST and M AJORITY (whether there are more 1’s than 0’s). Thus, tasks that are all expressible can behave differently under training and length extrapolation. Such findings motivate examining the geometry of the parameter sets that implement a task. In related work on loss landscapes, Chiang et al. (2023) argue that the geometry and volume of low-loss regions can explain part of neural-network generalization without relying entirely on the implicit bias of gradient descent. We study a related exact-solution quantity at each finite input length. For a fixed task and architecture, we restrict the trainable parameters to a bounded region and measure the fraction that correctly solves the task on every input of length n. We call this quantity the normalized exact-solution volume (NESV) . Its dependence on n describes how the full set of exact solutions changes as the 1arXiv:2610.07676v1 [cs.LG] 6 Oct 2026 Table 1: NESV bounds and mean accuracy at 10 × the maximum training length for the four tasks. The models Agen , Asin , and Apos are described in Section 2.2, while Anorm is described in Section 4.2.                                                
+
+> Task Model Positional ( Apos )General ( Agen )Sinusoidal ( Asin )Normalized ( Anorm )NESV Acc. (%) NESV Acc. (%) NESV Acc. (%) NESV Acc. (%) FIRST Θ(1) 100.0 051.12 055.06 Θ(1) 100.0 MAJORITY —92.7 Θ(( nlog n)−1)82.6 Θ(( n3log n)−1)87.5 —92.7 INDEX Θ( n−3)59.6 051.9 050.2 Θ( n−1)85.1 PARITY 0—0—0—0—
+
+computation is required to handle longer inputs. With uniform sampling over the bounded parameter region, this is the probability of sampling an exact solution. Comparing this baseline with empirical training results can help distinguish the effects of initialization and optimization from the nature of the task and the selected transformer model in terms of learnability. We consider four binary classification tasks on binary strings. F IRST returns the first input symbol, whereas I NDEX returns the symbol at a position specified by one of the input tokens. M AJORITY 
+
+returns whether more than half of input symbols are 1’s, whereas P ARITY returns whether the number of 1’s is odd. We refer to the first pair as positional tasks, and the second pair as counting tasks. We conduct our analyses on the simplest models suited to solve the corresponding problems. In all cases, we only consider single-layer transformers. For the positional tasks, we use a model with positional encoding ( j, j2) where the Query and Key maps only depend on token positions and the Value map only depends on the tokens themselves (following the form of the construction of Bhattamishra et al. (2024)). For the counting tasks, the positions of the tokens are irrelevant, so we primarily use a model without positional encoding. We also examined a model with sinusoidal positional encoding ( sin( j), cos( j)). See Table 1 for a summary of the asymptotic bounds obtained with respect to input length n. Under the positional model Apos , the NESV for I NDEX is Θ( n−3), while F IRST has constant NESV. The sinusoidal model Asin has volume 0 for both. Under the position-free model Agen , the NESV for MAJORITY is Θ(1 /(n log n)) . Under the sinusoidal model Asin , the NESV for M AJORITY is instead 
+
+Θ(1 /(n3 log n)) . P ARITY has a zero NESV whenever n > h + 1 for both models, h being the width of the transformer. This is a direct consequence of the standard one-dimensional capacity of shallow ReLU networks (Arora et al., 2018) in the finite-length setting, and is consistent with the broader result that no one-layer, one-head transformer computes P ARITY across all lengths (Kozachinskiy et al., 2026b). We train those tasks under the same protocol. The empirical results are in line with our NESV analysis: the task-model pair whose NESV shrinks faster as n grows shows worse length generalization. The only counterexample was that, under the general sinusoidal model, MAJORITY trains as well as under the position-free model Agen , although the former’s volume shrinks faster with n.Among the tasks we examine, I NDEX demonstrates particularly bad length generalization (60% average accuracy at ten times training length) despite being expressible (Kozachinskiy et al., 2026a). Our NESV analysis reveals the underlying mechanisms. Exact retrieval of a designated position k
+
+requires that position to receive enough attention, so its attention score must remain within a constant of the maximum attention score. Expressing the difference in attention scores between neighboring positions as a function of k reveals two key error components, one proportional to k2 and another proportional to k, which are the sources of failing length generalization. Guided by this analysis, we modify the model so that the error term proportional to k2 no longer grows with input length. This is called the normalized positional model. The NESV improves from 
+
+Θ( n−3) to Θ( n−1). In our experiments, the modified model also generalizes substantially better on INDEX , achieving an average accuracy of 85% percent at ten times the training length. Taken together, the results show that expressivity alone can conceal qualitatively different parameter-space behavior. Volume analysis, on the other hand, may offer another useful tool to further identify 2the computational constraints responsible for learning behaviors and offer insight for task-specific model refinements. 
+
+## 2 SETUP 
+
+In this section, we describe the tasks to be analyzed and the transformers to be used in the analysis. 2.1 TASKS AND EXACT -SOLUTION VOLUME 
+
+For n ≥ 1, write [n] = {1, . . . , n } and let w = ( w1, . . . , w n) ∈ { 0, 1}n. We study FIRST n(w) = w1
+
+INDEX n(w, k ) = wk, k ∈ [n],
+
+MAJORITY n(w) = 1
+
+
+
+> n
+
+X
+
+> j=1
+
+wj ≥ n + 1 2
+
+ for odd n, 
+
+PARITY n(w) = 
+
+
+
+> n
+
+X
+
+> j=1
+
+wj
+
+ mod 2 .
+
+For I NDEX , the n tokens w1, . . . , w n, which we call data tokens, are followed by a single token, which we call the index token, encoding k. We refer to this as right-hand sequence INDEX ing . For the other tasks, there is an index token for consistency’s sake, but it is fixed. 
+
+Definition 1 (Normalized exact-solution volume, NESV) . For a task T and transformer model A, let 
+
+ST, A 
+
+> n
+
+be the parameters for which the output is strictly correct on every length-n input, and on every index k. For a fixed parameter bound B > 0, define 
+
+V T, A 
+
+> B
+
+(n) = λDA
+
+ ST, A 
+
+> n
+
+∩ [−B, B ]DA
+
+
+
+(2 B)DA . (1) Equivalently, (1) is the probability of obtaining a correct solution when each scalar parameter is sampled independently and uniformly from [−B, B ]. Unless stated otherwise, B and the hidden width of the FFNN, h, are fixed as n grows. Throughout, log denotes the natural logarithm; ∥·∥ 2 and 
+
+∥·∥ ∞ denote the Euclidean and maximum-coordinate norms. Throughout, c, C > 0 and the constants implicit in the subscripted asymptotic notation such as ΘB,h may depend on B and h, but never on 
+
+n; c, C may change from line to line. 2.2 TRANSFORMER MODELS 
+
+We consider only single-layer transformers. Let xj denote the j-th data token and let z denote the index token. The query, key, and value maps have the form Q(x) = WQx + bQ, K (x) = 
+
+WK x + bK , V (x) = WV x + bV . Writing q = Q(z), k j = K(xj ), v j = V (xj ), the attention output is 
+
+αj = exp  (log n)q⊤kj
+
+Pni=1 exp((log n)q⊤ki) , A =
+
+> n
+
+X
+
+> j=1
+
+αj uj . (2) The log n factor was proposed by Chiang & Cholak (2022) and Nakanishi (2025) and has been used in practice in Qwen (Bai et al., 2023). Chen et al. (2026) provide additional theoretical justification for this choice. In this paper, this choice is natural since we study positional tasks such as I NDEX ,where attention must continue to select a particular position as the number of competing positions grows with the input length. We omit the 1/√d factor in conventional log n scaling because d is constant in n and does not affect the asymptotic bounds in n.The self-attention is followed by a feed-forward network (FFNN) classifier with hidden width h:
+
+y = W2 ReLU( W1A + b1) + b2 ∈ R2, (3) where W1 ∈ Rh×2, b 1 ∈ Rh, W 2 ∈ R2×h, b 2 ∈ R2.3The two coordinates of y are indexed by the labels {0, 1}, and the predicted label is by =argmax c∈{ 0,1}(y)c. When the input needs to be explicit, we write A(w, k ) and y(w, k ).We do not use residual connections or layer normalization. Adding them could alter the size and geometry of the exact-solution set; we leave this extension for future work. In this paper, we consider four models. We describe three of them here; the fourth, Anorm , we leave for Section 4.2. In the general model Agen (h), the data tokens are xj = ewj ∈ R2, and the index token is z = 0 2.The maps Q, K, V : R2 → R2 are unrestricted affine maps, so q = Q(0 2), kj = K(ewj ), and 
+
+vj = V (ewj ). So Agen (h) has Dcount = 5 h + 20 trainable scalar parameters. We also examined a model, Asin (h), with a sinusoidal positional encoding ( sin( j), cos( j)). For the positional tasks, we use the positional model Apos (h). The data token at position j and the index token encoding k are 
+
+xpos  
+
+> j
+
+=
+
+ewj
+
+jj2
+
+ ∈ R4, zpos  
+
+> k
+
+=
+
+"02
+
+k
+
+0
+
+#
+
+∈ R4
+
+(where 02 is the two-dimensional zero vector). For F IRST , the index is fixed at k = 1 . For I NDEX , the index k ∈ [n] is supplied as part of the input. Because j and j2 grow without bound in the input length, allowing them to propagate through the network would like lead to instability; positional-encoding choices are known to strongly affect length extrapolation (Kazemnejad et al., 2023). Accordingly, we constrain the model to have the form of the index-lookup construction of Bhattamishra et al. (2024): 
+
+W pos  
+
+> Q
+
+= [0 2×2 a 02] , bpos  
+
+> Q
+
+= b, W pos  
+
+> K
+
+= [0 2×2 r s] , bpos  
+
+> K
+
+= cK ,W pos  
+
+> V
+
+= [ CV 02×2] , bpos  
+
+> V
+
+= bV ,
+
+where a, b, r, s, c K , b V ∈ R2, C V ∈ R2×2 (and 02×2 is the 2 × 2 zero matrix). This model has 
+
+Dpos = 5 h + 18 trainable scalar parameters. 
+
+## 3 NESV BOUNDS AND LENGTH GENERALIZATION 
+
+We first establish the volume bounds for the four tasks and then compare such results with those of length-generalization experiments. 3.1 MAIN RESULT 
+
+Theorem 1 (NESV bounds) . Fix B > 0 and h ≥ 2. As n → ∞ ,
+
+V FIRST ,Apos (h) 
+
+> B
+
+(n) = Θ B,h (1) (4) 
+
+V INDEX ,Apos (h) 
+
+> B
+
+(n) = Θ B,h (n−3) (5) 
+
+V MAJORITY ,Agen (h) 
+
+> B
+
+(n) = Θ B,h 
+
+ (n log n)−1 n odd (6) 
+
+V PARITY ,Agen (h) 
+
+> B
+
+(n) = 0 n > h + 1 . (7) 
+
+Proof sketch. For F IRST , one can choose parameters such that the attention score decreases quadrati-cally away from position one. A fixed neighborhood of these parameters preserves that decrease, and the resulting concentration of attention lets the classifier return the first symbol for all sufficiently large lengths. The neighborhood does not shrink with n, thus ensuring a constant NESV bound. However, the same argument cannot be used for I NDEX , because the attention score must peak at 
+
+j = k for every possible k, and small errors that are harmless at one position can be amplified at another. We examine the two relevant error sources in Section 4. In the position-free model Agen , a word is represented only by its number of 1’s. For M AJORITY ,the output changes only once, between counts (n − 1) /2 and (n + 1) /2. These counts differ by just 4one, so the interval that separates them narrows as n increases. Consequently, placing the decision boundary between them requires increasingly precise parameter choice. For P ARITY , by contrast, every increment in the count must flip the output. A fixed number of hidden ReLU units cannot provide arbitrarily many flips in output. The upper bound of zero, meaning that PARITY is not solvable by the class of transformers considered here, is consistent with previous theoretical results (Kozachinskiy et al., 2026b) and experiments (Chiang & Cholak, 2022; Hahn & Rofin, 2024). The complete proofs of the four bounds, including the technical details omitted from the I NDEX proof sketch in Section 4.1, are given in Appendix A. For detailed results related to the sinusoidal model Asin , see Appendix C. 3.2 EXPERIMENT 
+
+To compare these bounds with empirical results, we train the F IRST , I NDEX , and M AJORITY models with hidden width h = 8 . We use 20 random seeds per task and draw a fresh batch at each update, sampling its length uniformly from 1, . . . , N ; for M AJORITY , we use only odd lengths. The main results use N = 51 . Checkpoints are selected using validation data at length N , without inspecting longer inputs, and tested on random examples at lengths up to 511. Additional experiments on 
+
+N = 11 , 21 , 31 , 41 , which give similar results, are in Appendix D. Table 1 shows that F IRST remains accurate at the longest test length (under Apos ), M AJORITY retains substantial accuracy (under Agen ), and I NDEX falls much closer to chance (under Apos ). These observations agree with the ranking of the three volume bounds. We found the results of I NDEX particularly interesting. Despite the task being expressible and learn-able on lengths up to 51, it showed poor length generalization, much worse than that of M AJORITY .We take a closer look at this task in the next section. 
+
+## 4 THE INDEX TASK 
+
+We first revisit the volume argument from the previous section, to identify the parameter combinations responsible for the n-dependent decay. We then modify the model to control one of these combinations structurally and compare the resulting theoretical and empirical behavior. 4.1 LENGTH -SENSITIVE COMPONENTS OF THE ATTENTION SCORE 
+
+Recall that, in the positional model Apos (h), q = ak + b, k j = rj + sj 2 + cK , u j = CV ewj + bV .
+
+The attention score is 
+
+gj = q⊤kj = ( ak + b)⊤(rj + sj 2 + cK ). (8) We compare the scores at position k and position k + ∆ . The expansion will produce the following quantities used repeatedly in later proofs, so we introduce some notations for future convenience. 
+
+χ = a⊤s ℓ = 2 b⊤s + a⊤r δ = b⊤s ϕ = b⊤r. (9) Now consider position k + ∆ ∈ [n]. The score gap of this position is 
+
+gk+∆ − gk = ∆  2χk 2 + ℓk + ϕ| {z }
+
+> Clin (k)
+
++∆ 2 (χk + δ)
+
+| {z }
+
+> Cquad (k)
+
+. (10) We want this gap to be negative. The coefficient Cquad (k) controls the curvature of the score around the indexed position, while Clin (k) measures its first-order drift and therefore whether the score remains centered at j = k; we want it to be zero. Because χ and ℓ are multiplied by k and k2, small errors in these parameter combinations can be amplified at large k (i.e., at large n). 4.1.1 SKETCH OF LOWER BOUND 
+
+See Section A.2.1 for the full proof of the lower bound. 5Let η = min {B/ 16 , 1/16 } and consider the solution (which we call the center ): 
+
+a0 = (2 η, 0) , b0 = (0 , −η), r0 = ( η, 0) , s0 = (0 , η ). (11) We want to find a region around the center that still solves the problem. The volume of this region will serve as our lower bound. At this center, χ = ℓ = ϕ = 0 , δ = −η2, and the score gap is 
+
+gk+∆ − gk = −η2∆2. (12) In a sufficiently small neighborhood of the center, we may restrict 
+
+|χ| ≤ cn −2, |ℓ| ≤ cn −1, (13) while allowing a, b, r2, and s2 (the second coordinates of r and s, resp.) to vary over fixed-width intervals independent of n. Every parameter choice in this region then satisfies gk+∆ − gk ≤ − η2 
+
+> 4
+
+∆2
+
+for every k ∈ [n] and every nonzero ∆ such that k + ∆ ∈ [n]. Under the log n attention scale, the total attention outside the indexed position then tends to zero as n → ∞ uniformly in k. Hence, for all sufficiently large n, the indexed position receives at least a fixed fraction of the total attention, uniformly over all inputs and indexes. We may then restrict (CV , b V ) and (W1, b 1, W 2, b 2) to fixed-size neighborhoods, independent of n, such that, for some constant c0 > 0 independent of n,
+
+ywk (w, k ) − y1−wk (w, k ) ≥ c0 for every input (w, k ). To produce a exact solution, only the width of the interval χ and ℓ need to depend on n. Therefore the constructed set of exact solutions has normalized volume 
+
+Ω( n−2) · Ω( n−1) = Ω( n−3). (14) 4.1.2 SKETCH OF UPPER BOUND 
+
+See Section A.2.2 for the full proof of the upper bound. For each indexed position k, compare a constant word with a word that differs from it only at position k. These two inputs must be assigned different labels. We consider two cases. Let m =
+
+ywk (w, k ) − y1−wk (w, k ). In any correct solution, we will have m > 0, but if m ≤ n−5, we call the solution small-margin ; otherwise, we call it large-margin .Take any one of the inequalities ywk (w, k ) > y 1−wk (w, k ); there are 4n such inequalities in total. Fix arbitrary values of a, b, r, s, c K , C V , b V , W 1, b 1, W 2, and b2,1−wk . As b2,w k varies, the margin of the inequality varies with slope one. To satisfy 0 < y wk (w, k ) − y1−wk (w, k ) ≤ n−5, b2,w k needs to lie in an interval of length n−5. Thus the set of small-margin solutions has normalized volume at most 4n · n−5/(2 B) = O(n−4).For every large-margin solution, changing only the symbol at position k from τ to σ̸ = τ must change the predicted label from τ to σ. By the definition of a large-margin solution, for each of the two words 
+
+w in this comparison, ywk (w, k ) − y1−wk (w, k ) > n −5. Since the yσ (w, k ) − yτ (w, k ), viewed as a function of the attention output A(w, k ) is Lipschitz, this is impossible if the attention assigned to position k is too small. Hence the indexed position receives at least an inverse polynomial amount of attention. The softmax formula in (2) then implies that gk lies within a constant of the maximum score. Comparing it with the two neighboring scores in (10) gives Cquad (k) + |Clin (k)| ≤ M0,
+
+where M0 is independent of n. Since every coordinate of a, b, s lies in [−B, B ], both χ = a⊤s and 
+
+δ = b⊤s are bounded independently of n. Hence, for k ≤ n, |Cquad (k)| = |χk + δ| = O(n), and thus |Clin (k)| ≤ M0 + |Cquad (k)| = O(n). Let M = ⌊n/ 4⌋. Since Clin (k) = 2 χk 2 + ℓk + ϕ,we have Clin (3 M ) − 2Clin (2 M ) + Clin (M ) = 4 χM 2. Because each term on the left is O(n) and 
+
+M = Θ( n), this gives |χ| = O(n−1). Moreover, Clin (2 M ) − Clin (M ) = 6 χM 2 + ℓM . Using 
+
+|χ| = O(n−1) in this identity gives |ℓ| = O(1) . Repeating the same argument gives 
+
+|χ| = O(n−2), |ℓ| = O(n−1). (15) We used the fact 
+
+Pr  |a⊤s| ≤ ε1, |2b⊤s + a⊤r| ≤ ε2
+
+ = OB (ε1ε2) (16) whenever 0 < ε 1 ≤ ε2 are sufficiently small (for detailed proof see Section A.2.2, Lemma 3). Apply this fact to (15) and adding the O(n−4) small-margin volume would gives the upper bound O(n−3).60.0 0.3 0.6 0.9 1.2 1.5 
+
+N 2|χ|     
+
+> 60 65 70 75 80
+> Mean OOD accuracy (%)
+> 0.0 0.5 1.0 1.5 2.0 2.5
+
+N|ℓ|
+
+> 60 65 70 75 80
+> Mean OOD accuracy (%)  Maximum training length
+> 11 21 31 41 51
+
+Figure 1: Scale-normalized drift coefficients and mean OOD accuracy for trained positional I NDEX 
+
+models. Markers indicate the maximum training length N .4.1.3 EXPERIMENTAL ANALYSIS 
+
+We next check whether χ = a⊤s and ℓ = 2 b⊤s + a⊤r identified by the volume proof track the behavior of trained models. In (10), χ controls the error term whose effect grows quadratically with 
+
+k, while ℓ controls the error term whose effect grows linearly with k. For a model trained up to maximum length N , we therefore consider the quantities N 2|χ| and N |ℓ|, allowing models trained at different maximum lengths to be comparable. Across the 100 positional models trained at five maximum lengths, smaller values of both quantities are associated with higher mean accuracy on unseen lengths; see Fig. 1. Ranking the models separately within each maximum training length gives correlations of −0.655 for N 2|χ| and −0.516 for N |ℓ|. Both have p < 10 −3 under permutation tests that preserve the five training-length groups. The training and evaluation protocol is given in Sections D.2 and D.3, and the coefficient analysis is detailed in Section D.4. The above analysis suggests a direct architectural change: instead of relying on training to place two free coefficients inside shrinking intervals, control one of the length-growing error terms through the model itself. 4.2 THE NORMALIZED MODEL 
+
+We introduce a modified positional model, denoted Anorm (h). It uses the same input vectors, value map, ReLU classifier, and trainable positional parameters a, b, r, s, c K as Apos (h). We split the computation of the attention score into two channels : a linear channel that does not depend on the 
+
+j2 coordinate of the keys’ positional encoding, and a quadratic channel that depends only on the j2
+
+coordinate. In the quadratic channel, we modify the queries as follows. Define the fixed smooth map 
+
+F (v) = v
+
+p1 + ∥v∥22
+
+(v ∈ R2). (17) The linear and quadratic positional channels are 
+
+qlin = ak + b, qquad = b + F (ak ), klin  
+
+> j
+
+= rj + cK , kquad  
+
+> j
+
+= sj 2. (18) Thus the linear channel uses the full query ak + b, whereas the quadratic channel applies F to the index-dependent contribution ak . The attention score is 
+
+gnorm  
+
+> j
+
+=  qlin ⊤klin  
+
+> j
+
++  qquad ⊤kquad  
+
+> j
+
+= ( ak + b)⊤(rj + cK ) +  b + F (ak )⊤sj 2. (19) The attention weights are obtained by applying the same log n-scaled softmax to (19); the values and the one-hidden-layer ReLU classifier are unchanged. The normalization introduces no new trainable parameters, so Anorm (h) has the same parameter dimension and uses the same B as Apos (h).This modification could be applied to a general transformer by excluding j2 from the position encoding at position j but adding an additional term f (qi, k j )j2 directly into the attention score, with 7f being a scalar-valued function whose output remains bounded. We leave exploration of this more general setting for future work. The map F is approximately the identity near the origin, but its output has norm strictly smaller than one. Consequently, the component of the query that depends on k and is multiplied with j2 no longer grows linearly with k. To make this precise, suppose first that a̸ = 0 and write ba = a/ ∥a∥2.Retaining δ and ϕ from (9), define 
+
+bχ := ba⊤s, bℓ := ℓ + 2 bχ, εχ(k) :=  F (ak ) − ba⊤s. (20) Then the modified quadratic and linear coefficients are 
+
+Cnorm quad (k) = bχ + δ + εχ(k),Cnorm lin (k) = bℓk + ϕ + 2 kε χ(k). (21) Thus, 
+
+gnorm  
+
+> k+∆
+
+− gnorm  
+
+> k
+
+= ∆ Cnorm lin (k) + ∆ 2Cnorm quad (k). (22) Moreover, 
+
+|εχ(k)| ≤ ∥s∥2
+
+2k2∥a∥22
+
+, |2kε χ(k)| ≤ ∥s∥2
+
+k∥a∥22
+
+. (23) Thus the k2 drift in (10) is replaced by a linear term and a bounded error 2kε χ(k) = O(k−1). Only the coefficient bℓ remains to be confined to an interval of width O(n−1).
+
+Theorem 2 (NESV of I NDEX under Anorm (h)). For B > 0 and h ≥ 2.
+
+V INDEX ,Anorm (h) 
+
+> B
+
+(n) = Θ B,h (n−1). (24) 
+
+Proof. The proof follows the same strategy as that of the I NDEX bounds for the positional model in Section 4.1. The full proof is given in Appendix B. Compared with the original positional model, selective normalization removes one shrinking direction from the volume calculation. In Apos (h), the two effective constraints have widths n−2 and n−1;in Anorm (h), the saturation of the quadratic query channel leaves only the n−1 constraint. The improvement from Θ( n−3) to Θ( n−1) therefore follows from the same score-level mechanism identified by the original proof. 4.3 LENGTH -GENERALIZATION EXPERIMENTS 
+
+We train Apos (h) and Anorm (h) under the same protocol, using paired seeds, the same training batches, and identical initial values for all parameters shared by the two models. The main comparison uses classifier width h = 8 , maximum training length N = 51 , and 20 seeds. As shown in Fig. 2, the original model degrades rapidly beyond the training range, whereas the selectively normalized model retains substantially higher accuracy. At length 511, approximately ten times the maximum training length, mean accuracy increases from 60% for Apos (h) to approximately 
+
+85% for Anorm (h). Experiments with maximum training lengths N ∈ { 11 , 21 , 31 , 41 } show similar results and are reported in Section D.5. Taken together, the coefficient analysis and the architectural intervention give two complementary forms of evidence. The original volume proof identifies the parameter combinations whose effects grow with the index k, and those combinations are associated with the behavior of trained models. Selectively normalizing the quadratic query channel removes the faster-growing contribution, enlarges the exact-solution volume from Θ( n−3) to Θ( n−1), and improves extrapolation in the model for which the volume calculation is carried out. 
+
+## 5 RELATED WORK 
+
+The I NDEX task has been studied many times before. Bhattamishra et al. (2024) give an efficient one-layer construction in which the data appear before the indexed I NDEX , as in our right-hand 81 × 2 × 3 × 5 × 8 × 10 × 
+
+> Test length / training length 50 60 70 80 90 100 Mean accuracy (%)
+> Positional NORM Positional
+
+Figure 2: Length generalization on I NDEX for the positional and Anorm (h) models trained up to 
+
+N = 51 . Shading shows 95% bootstrap confidence intervals. INDEX task. This differs from left-hand I NDEX ing, where the I NDEX appears before the data and the answer is produced later (Kozachinskiy et al., 2025; 2026a). One-layer constructions for related right-hand function-evaluation problems are also studied by Strobl et al. (2025). A line of work related to our normalized model Anorm controls attention by normalizing query– key interactions. QKNorm ℓ2-normalizes complete query and key vectors and learns the attention scale (Henry et al., 2020), while scaled cosine attention likewise removes dependence on their magnitudes (Liu et al., 2022). Separately, approaches to length extrapolation often modify the positional contribution to attention, for example by adding distance-dependent score biases (Press et al., 2022) or by designing relative position encoding to improve attention resolution beyond the training lengths (Sun et al., 2023). Our Anorm (h), on the other hand, does not normalize the full query or key vectors, nor the quadratic positional coordinate j2. Instead, it applies a fixed smooth bounded map to the index-dependent query component in the quadratic positional channel. Another related line of work studies which functions occupy large or stable regions of transformer parameter space. Hahn & Rofin (2024) connect Boolean sensitivity to transformer norms and per-turbation behavior, while Kover et al. (2026) study the parameter-space geometry of transformers computing Boolean functions. Empirical work on simplicity bias likewise suggests that the parameter-to-function map favors some Boolean functions over others (Bhattamishra et al., 2023). Our volume measure tracks how volume changes with sequence length, rather than assigning a single complexity or sensitivity measure to the target task. For I NDEX , such analysis not only shows that the volume decreases with longer input lengths, but also isolates the sources of such shrinkage. 
+
+## 6 DISCUSSION AND LIMITATIONS 
+
+Initialization and optimization Parameter-space volume depends on the distribution placed on the parameters. Equation (1) assumes a uniform distribution over a box of size 2B in the raw coordinates. But initialization and optimization can concentrate strongly on particular parts of parameter space, so differences in exact-solution volume might not translate exactly into differences in accuracy. Tightening the correspondence would therefore require combining the present analysis with the distributions over parameters induced by initialization and optimization. 
+
+Depth Our theoretical results concern fixed-width, one-layer, one-head transformers. This restric-tion can matter qualitatively. Bhattamishra et al. (2024) show examples where two-layer transformers of logarithmic size solve problems for which one-layer transformers require linear size. The parame-ter constraints governing length generalization may therefore change substantially with depth, and extending the volume analysis to deeper transformers is an important next step. 97 CONCLUSION 
+
+Parameter-space volume is useful not only for measuring how exact solutions change with input length, but also for revealing why they change. On the I NDEX task, our volume analysis isolates the length-sensitive components, suggesting a modification to the model itself that improves length extrapolation. This suggests a broader use of volume analysis as a diagnostic for transformer model refinement, especially task-specific ones. 
+
+## REPRODUCIBILITY STATEMENT 
+
+The baseline architectures, parameter prior, and strict-correctness criterion are defined in Section 2. The Anorm (h) architecture is defined in Section 4.2, and the fixed-sinusoidal M AJORITY model is defined in Section C.1. The complete volume arguments, experimental protocol, checkpoint-selection rule, evaluation-bank construction, and supplementary results are presented in the appendix. 
+
+## AI U SE STATEMENT 
+
+In this work, we used generative AI tools to aid literature exploration, assist in the writing of proofs (prose editing, LaTeX preparation, proofreading), create or modify scientific figures, and edit code (for experiments). We have not used generative AI tools to develop theoretical models or conceptual frameworks, formulate mathematical claims, provide critical ingredients for proving mathematical claims, propose or refine hypotheses, design or provide feedback on research methodology or experi-ments, or assist with translation. We have reviewed all AI-assisted work and take responsibility for the final content of this work, including text, claims or artifacts produced with the aid of generative AI. 
+
+## REFERENCES 
+
+Raman Arora, Amitabh Basu, Poorya Mianjy, and Anirbit Mukherjee. Understanding deep neural networks with rectified linear units. In Proceedings of the International Conference on Learning Representations (ICLR) , 2018. URL https://openreview.net/pdf?id=B1J_rgWRW .Jinze Bai, Shuai Bai, Yunfei Chu, Zeyu Cui, Kai Dang, Xiaodong Deng, Yang Fan, Wenbin Ge, Yu Han, Fei Huang, Binyuan Hui, Luo Ji, Mei Li, Junyang Lin, Runji Lin, Dayiheng Liu, Gao Liu, Chengqiang Lu, Keming Lu, Jianxin Ma, Rui Men, Xingzhang Ren, Xuancheng Ren, Chuanqi Tan, Sinan Tan, Jianhong Tu, Peng Wang, Shijie Wang, Wei Wang, Shengguang Wu, Benfeng Xu, Jin Xu, An Yang, Hao Yang, Jian Yang, Shusheng Yang, Yang Yao, Bowen Yu, Hongyi Yuan, Zheng Yuan, Jianwei Zhang, Xingxuan Zhang, Yichang Zhang, Zhenru Zhang, Chang Zhou, Jingren Zhou, Xiaohuan Zhou, and Tianhang Zhu. Qwen technical report, 2023. URL 
+
+https://arxiv.org/abs/2309.16609 .Satwik Bhattamishra, Arkil Patel, Varun Kanade, and Phil Blunsom. Simplicity bias in transformers and their ability to learn sparse Boolean functions. In Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics , pp. 5767–5791, 2023. doi:10.18653/v1/2023.acl-long.317. Satwik Bhattamishra, Michael Hahn, Phil Blunsom, and Varun Kanade. Separations in the representa-tional capabilities of transformers and recurrent architectures. In Advances in Neural Information Processing Systems , volume 37, 2024. doi:10.52202/079017-1135. Shi Chen, Zhengjiang Lin, Yury Polyanskiy, and Philippe Rigollet. Critical attention scaling in long-context transformers. In Proceedings of the International Conference on Learning Representations (ICLR) , 2026. URL https://openreview.net/forum?id=7SLtElfqCW .David Chiang and Peter Cholak. Overcoming a theoretical limitation of self-attention. In Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics , pp. 7654–7664, 2022. doi:10.18653/v1/2022.acl-long.527. Ping-yeh Chiang, Renkun Ni, David Yu Miller, Arpit Bansal, Jonas Geiping, Micah Goldblum, and Tom Goldstein. Loss landscapes are all you need: Neural network generalization can be explained 10 without the implicit bias of gradient descent. In Proceedings of the International Conference on Learning Representations (ICLR) , 2023. URL https://openreview.net/forum?id= QC10RmRbZy9 .Michael Hahn and Mark Rofin. Why are sensitive functions hard for transformers? In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics , pp. 14973–15008, 2024. doi:10.18653/v1/2024.acl-long.800. Alex Henry, Prudhvi Raj Dachapally, Shubham Shantaram Pawar, and Yuxuan Chen. Query-key normalization for transformers. In Findings of the Association for Computational Linguistics: EMNLP 2020 , pp. 4246–4253, 2020. doi:10.18653/v1/2020.findings-emnlp.379. Amirhossein Kazemnejad, Inkit Padhi, Karthikeyan Natesan Ramamurthy, Payel Das, and Siva Reddy. The impact of positional encoding on length generalization in transform-ers. In Advances in Neural Information Processing Systems , volume 36, pp. 24892–24928, 2023. URL https://proceedings.neurips.cc/paper_files/paper/2023/ hash/4e85362c02172c0c6567ce593122d31c-Abstract-Conference.html .Blanka Kover, Alexandra Butoi, Anej Svete, Michael Hahn, and Ryan Cotterell. Understanding the parameter space geometry of transformers encoding boolean functions. In Proceedings of the International Conference on Machine Learning (ICML) , 2026. URL https://arxiv.org/ pdf/2606.08768 .Alexander Kozachinskiy, Felipe Urrutia, Hector Orellana, Tomasz Steifer, German Pizarro, Matias Fuentes, Francisco Meza Vasquez, Cristian Buc Calderon, and Cristobal Rojas. Strassen attention, split VC dimension and compositionality in transformers. In Advances in Neural Information Processing Systems , volume 38, pp. 10718–10749, 2025. doi:10.52202/085713-0327. Alexander Kozachinskiy, Vicente Opazo, and Felipe Urrutia. Indexing: The beginning and the end, 2026a. URL https://arxiv.org/abs/2607.22361 .Alexander Kozachinskiy, Tomasz Steifer, and Przemyslaw Walega. Parity, sensitivity, and transform-ers, 2026b. URL https://arxiv.org/abs/2602.05896 .Ze Liu, Han Hu, Yutong Lin, Zhuliang Yao, Zhenda Xie, Yixuan Wei, Jia Ning, Yue Cao, Zheng Zhang, Li Dong, Furu Wei, and Baining Guo. Swin Transformer V2: Scaling up capacity and resolution. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) ,pp. 12009–12019, 2022. doi:10.1109/CVPR52688.2022.01170. Ken M. Nakanishi. Scalable-softmax is superior for attention, 2025. URL https://arxiv.org/ abs/2501.19399 .Ofir Press, Noah A. Smith, and Mike Lewis. Train short, test long: Attention with linear biases enables input length extrapolation. In Proceedings of the International Conference on Learning Represen-tations (ICLR) , 2022. URL https://openreview.net/forum?id=R8sQPpGCv0 .Lena Strobl, William Merrill, Gail Weiss, David Chiang, and Dana Angluin. What formal languages can transformers express? A survey. Transactions of the Association for Computational Linguistics ,12:543–561, 2024. doi:10.1162/tacl_a_00663. Lena Strobl, Dana Angluin, and Robert Frank. Concise one-layer transformers can do function evaluation (sometimes), 2025. URL https://arxiv.org/abs/2503.22076 .Yutao Sun, Li Dong, Barun Patra, Shuming Ma, Shaohan Huang, Alon Benhaim, Vishrav Chaudhary, Xia Song, and Furu Wei. A length-extrapolatable transformer. In Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pp. 14590– 14604, 2023. doi:10.18653/v1/2023.acl-long.816. 
+
+## A PROOFS OF THE BASELINE NESV B OUNDS 
+
+This appendix proves the four baseline bounds in Theorem 1. 11 A.1 FIRST 
+
+The lower bound constructs fixed neighborhoods of parameters independent of input length that gives exact solutions to the task. The upper bound follows from symmetry between the two labels. 
+
+Proof of the FIRST bound in Theorem 1. Choose η = min {B/ 16 , 1/16 } and set 
+
+a0 = (2 η, 0) , b0 = (0 , −η), r0 = ( η, 0) , s0 = (0 , η ), (25) with c0 
+
+> K
+
+= b0 
+
+> V
+
+= 0 and C0 
+
+> V
+
+= ηI 2. We call this set of (a0, b 0, r 0, s 0) the center. Put qF := a + b,
+
+bℓ1 := q⊤ 
+
+> F
+
+r, bℓ2 := q⊤ 
+
+> F
+
+s. At the center, bℓ01 = 2 η2 and bℓ02 = −η2. By continuity, there is a fixed positive-volume neighborhood of (a, b, r, s ) on which 
+
+|bℓ1 − 2η2| ≤ η2
+
+8 , |bℓ2 + η2| ≤ η2
+
+8 . (26) For j = 1 + ∆ with ∆ ≥ 1, the key bias cancels and 
+
+g(1) − g(1 + ∆) = ∆ (−bℓ1 − 2bℓ2) + ( −bℓ2)∆ 
+
+≥ η2
+
+2 ∆2. (27) Consequently, throughout this fixed positional-parameter neighborhood, 
+
+1 − α1 ≤
+
+> ∞
+
+X
+
+> ∆=1
+
+n−(η2/2)∆ 2
+
+−→ 0. (28) Restrict (CV , b V ) to a fixed neighborhood on which 
+
+∥CV eσ + bV − ηe σ ∥∞ ≤ η
+
+16 (σ ∈ { 0, 1}). (29) For all sufficiently large n, (28) gives α1 ≥ 7/8. If y⋆ = w1 and ¯y⋆ = 1 − y⋆, the total attention masses on the two symbols satisfy 
+
+py⋆ − p¯y⋆ ≥ 34 . (30) Convexity of the value perturbation in (29) therefore gives 
+
+Ay⋆ − A¯y⋆ ≥ η py⋆ − p¯y⋆
+
+ − η
+
+8 ≥ 5η
+
+8 . (31) Choose W 01 , b 01, W 02 , b 02 as follows. Take the first two rows of W 01 to be ηe ⊤ 
+
+> 0
+
+and ηe ⊤ 
+
+> 1
+
+, with both corresponding biases equal to η2. Set every remaining row of W 01 to zero and its bias to −η. In W 02 ,give output row zero coefficient η on hidden unit zero and output row one coefficient η on hidden unit one, with all other entries zero; set b02 = 0 . The first two hidden units are active throughout a sufficiently small neighborhood of (29), whereas the remaining units are inactive, and 
+
+y0 − y1 = η2(A0 − A1). (32) Thus (31) gives a correct-logit margin of at least that y0 − y1 ≥ 5η3/8 at the center. Allow cK to vary over a sufficiently small fixed neighborhood of 0. This does not affect the attention weights, since q⊤ 
+
+> F
+
+cK is added to every attention score. Together with the fixed neighborhoods chosen above for (a, b, r, s ), (CV , b V ), and (W1, b 1, W 2, b 2), this gives a set of normalized volume cF > 0,independent of n.For the upper bound, swap the two rows of W2 and the two entries of b2, leaving every other coordinate unchanged. This is a measure-preserving involution of the raw parameter cube. It maps the exact solutions of F IRST to the exact solutions of the complementary task w 7 → 1 − w1. The two exact-solution sets are disjoint, so each occupies at most one half of the cube. In particular, the NESV is O(1) .12 A.2 INDEX 
+
+We use the notation from Section 4.1. Thus the attention score at position j is 
+
+gj = ( ak + b)⊤(rj + sj 2 + cK ), (33) and 
+
+χ = a⊤s, ℓ = 2 b⊤s + a⊤r, δ = b⊤s, ϕ = b⊤r. (34) For k + ∆ ∈ [n], the score gap at position k + ∆ is 
+
+gk+∆ − gk = ∆ Clin (k) + ∆ 2Cquad (k), (35) where 
+
+Clin (k) = 2 χk 2 + ℓk + ϕ, Cquad (k) = χk + δ. (36) A.2.1 LOWER BOUND 
+
+Choose η = min {B/ 16 , 1/16 } and consider the solution (which we call the center ): 
+
+a0 = (2 η, 0) , b0 = (0 , −η), r0 = ( η, 0) , s0 = (0 , η ). (37) At this point, 
+
+χ = ℓ = ϕ = 0 , δ = −η2, (38) and hence 
+
+gk − gj = η2(j − k)2. (39) To obtain a positive-volume family around this point, consider the local coordinate map 
+
+Ψ( a, b, r, s ) = ( χ, ℓ, a 1, a 2, b 1, b 2, r 2, s 2). (40) We call (a, b, r, s ) the untransformed coordinates and (χ, ℓ, a 1, a 2, b 1, b 2, r 2, s 2) the transformed coordinates. For fixed (a, b, r 2, s 2), the Jacobian of (s1, r 1) 7 → (χ, ℓ ) is 
+
+ a1 02b1 a1
+
+
+
+, det = a21. (41) The determinant is nonzero at (37). The inverse function theorem therefore gives a fixed neigh-borhood on which Ψ is one-to-one and the Jacobians of Ψ and Ψ−1 are bounded. Hence there are constants c, C > 0, independent of n, such that every measurable set E in the transformed-coordinate neighborhood satisfies c vol( E) ≤ vol  Ψ−1(E) ≤ C vol( E).
+
+Restrict 
+
+|χ| ≤ η2
+
+64 n2 , |ℓ| ≤ η2
+
+64 n , (42) while restricting the remaining transformed coordinates to fixed-width intervals independent of n
+
+sufficiently close to the center that 
+
+δ ≤ − 3η2
+
+4 , |ϕ| ≤ η2
+
+16 . (43) For every k ≤ n, these conditions imply 
+
+Cquad (k) ≤ − η2
+
+2 , |Clin (k)| ≤ η2
+
+4 . (44) Indeed, the contribution of χk to Cquad (k) is at most η2/64 , and the three contributions to Clin (k)
+
+are bounded by 2η2/64 , η2/64 , and η2/16 , respectively. Therefore, for every nonzero integer ∆ with 
+
+k + ∆ ∈ [n],
+
+gk − gk+∆ = −∆Clin (k) − ∆2Cquad (k) ≥ η2
+
+4 ∆2. (45) Under the log n attention scale, the total attention outside the indexed position is consequently at most 
+
+2
+
+> ∞
+
+X
+
+> d=1
+
+n−(η2/4) d2
+
+, (46) 13 which tends to zero as n → ∞ uniformly in the index k and over all positional parameters (a, b, r, s )
+
+in the local neighborhood above satisfying (42) and (43). Set C0 
+
+> V
+
+= ηI 2, b0 
+
+> V
+
+= 0 , and take the parameter values 
+
+W 01 =
+
+ ηI 2
+
+0(h−2) ×2
+
+
+
+, b01 = ( η2, η 2, −η, . . . , −η)⊤,W 02 = ηI 2 02×(h−2) 
+
+ , b02 = 0 .
+
+For all sufficiently large n, (46) makes the indexed position receive at least 3/4 of the total attention. If wk = σ, the σ coordinate of the attention output exceeds the other coordinate by at least η/ 2, even if every other token has symbol 1 − σ. With the chosen parameters, the first two hidden units are active and, for c ∈ { 0, 1}, the c-th unit outputs ηA c + η2. The corresponding row of W2 multiplies this quantity by η, so yc = η2Ac + η3. The common term η3 cancels between the two logits, and therefore yσ − y1−σ = η2 Aσ − A1−σ
+
+ ≥ η3 
+
+> 2
+
+. This margin is uniform over all inputs and indexes, so there exists fixed neighborhoods independent of n of CV , b V , W 1, b 1, W 2, b 2 that produce exact solutions. The key bias cK may also vary over a fixed neighborhood because it cancels from the attention weights. The two intervals in (42) contribute normalized widths of orders n−2 and n−1, whereas all other coordinates vary over intervals of width independent of n. Therefore 
+
+V INDEX ,Apos (h) 
+
+> B
+
+(n) = Ω B,h (n−3). (47) A.2.2 UPPER BOUND 
+
+For each indexed position k, compare a constant word with a word that differs from it only at position k. These two inputs must be assigned different labels. We consider two cases. Let m =
+
+ywk (w, k ) − y1−wk (w, k ). In any correct solution, we will have m > 0, but if m ≤ n−5, we call the solution small-margin ; otherwise, we call it large-margin .Take any one of the inequalities ywk (w, k ) > y 1−wk (w, k ); there are 4n such inequalities in total. Fix arbitrary values of a, b, r, s, c K , C V , b V , W 1, b 1, W 2, and b2,1−wk . As b2,w k varies, the margin of the inequality varies with slope one. To satisfy 0 < y wk (w, k ) − y1−wk (w, k ) ≤ n−5, b2,w k needs to lie in an interval of length n−5. Thus the set of small-margin solutions has normalized volume at most 4n · n−5/(2 B) = O(n−4).For every large-margin solution, changing only the symbol at position k from τ to σ̸ = τ must change the predicted label from τ to σ. By the definition of a large-margin solution, for each of the two words 
+
+w in this comparison, ywk (w, k ) − y1−wk (w, k ) > n −5. Since the yσ (w, k ) − yτ (w, k ), viewed as a function of the attention output A(w, k ) is Lipschitz, this is impossible if the attention assigned to position k is too small. To see this, let w be the constant-τ word and let w′ be the word obtained by changing only position k to σ. Because the query and key maps read only positional coordinates, the two words have the same attention weights. Their attention outputs therefore satisfy 
+
+A(w′, k ) − A(w, k ) = αkCV (eσ − eτ ), (48) so 
+
+∥A(w′, k ) − A(w, k )∥∞ ≤ 2Bα k. (49) Moreover, ReLU is 1-Lipschitz, each row of W1 has ℓ1-norm at most 2B, and the difference between rows σ and τ of W2 has ℓ1-norm at most 2hB . Hence 
+
+ yσ (w′, k ) − yτ (w′, k ) −  yσ (w, k ) − yτ (w, k )
+
+≤ 4hB 2∥A(w′, k ) − A(w, k )∥∞ ≤ 8hB 3αk. (50) The first difference is greater than n−5 and the second is less than −n−5, so 
+
+αk ≥ n−5
+
+4hB 3 . (51) Hence the indexed position receives at least an inverse polynomial amount of attention. The softmax formula in (2) then implies that gk lies within a constant of the maximum score. Indeed, 
+
+n−5
+
+4hB 3 ≤ αk = ngk
+
+Pnj=1 ngj ≤ ngk −max j gj , (52) 14 and therefore 
+
+max  
+
+> j
+
+gj − gk ≤ 5 + log(4 hB 3)log n ≤ M0 (53) for all sufficiently large n, where M0 is independent of n. For every interior index 2 ≤ k ≤ n − 1,comparing gk with the two neighboring scores in (10) gives 
+
+gk+1 − gk = Clin (k) + Cquad (k) ≤ M0 (54) and 
+
+gk−1 − gk = −Clin (k) + Cquad (k) ≤ M0. (55) Thus 
+
+Cquad (k) + |Clin (k)| ≤ M0, (56) where M0 is independent of n. Since every coordinate of a, b, s lies in [−B, B ], both χ = a⊤s and 
+
+δ = b⊤s are bounded independently of n. Hence, for k ≤ n, |Cquad (k)| = |χk + δ| = O(n), and thus |Clin (k)| ≤ M0 + |Cquad (k)| = O(n). Let M = ⌊n/ 4⌋. Since Clin (k) = 2 χk 2 + ℓk + ϕ,we have Clin (3 M ) − 2Clin (2 M ) + Clin (M ) = 4 χM 2. Because each term on the left is O(n) and 
+
+M = Θ( n), this gives |χ| = O(n−1). Moreover, Clin (2 M ) − Clin (M ) = 6 χM 2 + ℓM . Using 
+
+|χ| = O(n−1) in this identity gives |ℓ| = O(1) . These preliminary bounds make 
+
+|Cquad (k)| = |χk + δ| = O(1) (57) uniformly for k ≤ n. Equation (56) then gives |Clin (k)| = O(1) . Repeating the same argument, now using these improved bounds, gives 
+
+|χ| = O(n−2), |ℓ| = O(n−1). (58) We used the fact Pr  |a⊤s| ≤ ε1, |2b⊤s + a⊤r| ≤ ε2
+
+ = OB (ε1ε2) whenever 0 < ε 1 ≤ ε2 are sufficiently small. 
+
+Lemma 3 (Joint two-slab estimate) . Let a, b, r, s be independent and uniform on [−B, B ]2. There are constants Cslab , ε B > 0, depending only on B, such that, whenever 0 < ε 1 ≤ ε2 ≤ εB ,
+
+Pr  |a⊤s| ≤ ε1, |2b⊤s + a⊤r| ≤ ε2
+
+ ≤ Cslab ε1ε2. (59) 
+
+Proof. Scaling changes only the constant, so take B = 1 . Fix (a, s ), and set 
+
+ϱ = ( ∥a∥22 + ∥s∥22)1/2. (60) The second constraint defines a slab in (b, r ) with normal vector (2 s, a ). One coordinate of this vector has magnitude at least a constant multiple of ϱ, so, after fixing the other three coordinates, the allowed fraction of the remaining coordinate is at most 
+
+C min 
+
+
+
+1, ε2
+
+ϱ
+
+
+
+. (61) To estimate the first constraint at fixed radius ϱ. Write 
+
+a = ϱ cos ϑ ba, s = ϱ sin ϑ bs, 0 ≤ ϑ ≤ π
+
+2 , (62) where ba, bs ∈ S1. If φ is the angle between ba and bs, then 
+
+|a⊤s| = ϱ2 sin ϑ cos ϑ | cos φ|. (63) For fixed ϑ, the fraction of angle φ satisfying the first constraint is at most 
+
+C min 
+
+
+
+1, ε1
+
+ϱ2 sin ϑ cos ϑ
+
+
+
+. (64) The angular density contains the factor sin ϑ cos ϑ, therefore integrating over ϑ bounds the angular fraction by 
+
+C min 
+
+
+
+1, ε1
+
+ϱ2
+
+
+
+. (65) 15 because when t ≤ 1, R π/ 20 min {sin ϑ cos ϑ, t } dϑ = O(t). The radial volume element for (a, s ) ∈
+
+R4is proportional to ϱ3dϱ . Enlarging the cube to a fixed ball and combining (61) and (65), the required probability is at most a constant times 
+
+Z R0
+
+> 0
+
+ϱ3 min 
+
+
+
+1, ε1
+
+ϱ2
+
+
+
+min 
+
+
+
+1, ε2
+
+ϱ
+
+
+
+dϱ. (66) Assume 0 < ε 1 ≤ ε2 ≤ 1. If ε2 ≤ √ε1, split the integral at ε2 and √ε1 to obtain 
+
+I ≤
+
+Z ε2
+
+> 0
+
+ϱ3 dϱ + ε2
+
+Z √ε1
+
+> ε2
+
+ϱ2 dϱ + ε1ε2
+
+Z R0
+
+> √ε1
+
+dϱ 
+
+≤ Cε 1ε2. (67) If √ε1 ≤ ε2, split instead at √ε1 and ε2. Rescaling restores B and proves the lemma. Applying the above lemma to (58), the large-margin solutions have normalized volume O(n−3): the entries of a, b, r, s are independent parameter coordinates, and all remaining coordinates integrate out. Adding the O(n−4) small-margin volume gives 
+
+V INDEX ,Apos (h) 
+
+> B
+
+(n) = OB,h (n−3). (68) Together with (47), this proves the I NDEX claim in Theorem 1. A.3 MAJORITY 
+
+In the position-free model Agen , every input with the same number of ones produces the same attention output. The proof therefore reduces M AJORITY to a one-dimensional sequence indexed by the count and measures how much of the parameter space places the decision boundary between the two central counts. Let 
+
+t =
+
+> n
+
+X
+
+> j=1
+
+wj , vb = V (eb), q = Q(0 2), (69) and define the query–key score contrast 
+
+X = q⊤WK (e1 − e0), Γ = exp((log n)X). (70) All zero tokens share one score and all one tokens share another, so the total attention mass on the one tokens and the attention output are exactly 
+
+ρt = tΓ
+
+n − t + tΓ , At = v0 + ρt(v1 − v0). (71) Thus the 2n inputs reduce to n+1 possible count levels. Throughout this subsection, write n = 2 m+1 .For an attention scale β > 0 and a score contrast x, let 
+
+∆ρn,β (x) = ρm+1 − ρm, (72) where Γ = eβx . The counts m and m + 1 are the two adjacent levels at which the majority label changes. 
+
+Lemma 4 (Central attention gap) . For Γ = eβx ,
+
+∆ρn,β (x) = ne βx 
+
+(m + 1 + me βx )( m + ( m + 1) eβx ) (73) 
+
+= nn2 + ( n2 − 1) sinh 2(βx/ 2) . (74) 
+
+Moreover, 
+
+0 < ∆ρn,β (x) ≤ 1
+
+n ,
+
+Z
+
+> R
+
+∆ρn,β (x) dx = 4 artanh(1 /n )
+
+β . (75) 16 Proof. Substitute t = m, m + 1 into (71) and subtract to obtain (73). Dividing its denominator by 
+
+eβx and using n = 2 m + 1 gives (74). The maximum is attained at x = 0 . For the integral, set 
+
+z = tanh( βx/ 2) . Then 
+
+dx = 2 dz β(1 − z2) , ∆ρn,β (x) = n(1 − z2)
+
+n2 − z2 . (76) Therefore Z
+
+> R
+
+∆ρn,β (x) dx = 2nβ
+
+Z 1
+
+> −1
+
+dz n2 − z2 = 4 artanh(1 /n )
+
+β . (77) For fixed values of all parameters except b2,1, exact correctness requires b2,1 to place the decision threshold between the two central count levels. Define the bias-free logit difference 
+
+H(z) = ( e1 − e0)⊤W2 ReLU( W1z + b1). (78) 
+
+Lemma 5 (Output-bias fiber) . Condition on every raw parameter except b2,1. The set of values of 
+
+b2,1 that can extend the conditioned coordinates to an exact MAJORITY solution has length at most 
+
+8hB 3∆ρn,β (X). (79) 
+
+Proof. Correctness on the count-m and count-(m + 1) levels requires 
+
+H(Am) + b2,1 − b2,0 < 0, (80) 
+
+H(Am+1 ) + b2,1 − b2,0 > 0. (81) Thus b2,1 must lie in  b2,0 − H(Am+1 ), b 2,0 − H(Am), (82) whose length is H(Am+1 ) − H(Am) when this difference is positive. ReLU is 1-Lipschitz, each row of W1 has ℓ1-norm at most 2B, and the difference between the two rows of W2 has ℓ1-norm at most 
+
+2hB . Hence H is 4hB 2-Lipschitz in ℓ∞. Moreover, Am+1 − Am = ∆ ρn, log n(X)( v1 − v0), so 
+
+∥Am+1 − Am∥∞ ≤ 2B∆ρn,β (X). (83) Multiplying the two bounds proves the claim. To average the fiber length over the query and key parameters, we use a uniform density bound for X.
+
+Lemma 6 (Density of the score contrast) . Under the uniform raw-cube measure, the random variable 
+
+X = q⊤WK (e1 − e0) has a density fX satisfying 
+
+∥fX ∥∞ ≤ B−2. (84) 
+
+Proof. Write ∆K = WK (e1 − e0). Each coordinate of ∆K is the difference of two independent uniform variables and has triangular density bounded by (2 B)−1. Conditional on qagg ̸ = 0 , choose a coordinate with magnitude ∥qagg ∥∞ and condition on the other coordinate of ∆K . Scaling gives 
+
+∥fX|qagg ∥∞ ≤ 12B∥qagg ∥∞
+
+. (85) Since qagg = Q(0) = bQ is uniform on [−B, B ]2,
+
+E∥qagg ∥−1
+
+> ∞
+
+ = 2
+
+B . (86) Averaging proves the result. 17 By Fubini’s theorem and Lemmas 4 to 6, 
+
+V MAJORITY ,Agen (h) 
+
+> B
+
+(n) ≤ 4hB 2 E∆ρn, log n(X)
+
+≤ 4hB 2∥fX ∥∞
+
+Z
+
+> R
+
+∆ρn, log n(x) dx 
+
+≤ 16 h artanh(1 /n )log n . (87) Since artanh(1 /n ) ≤ n/ (n2 − 1) , this is Oh(( n log n)−1).For the matching lower bound, we need a positive mass of score contrasts on which the central gap is of order 1/n and a fixed-volume set of the remaining parameters that turns this gap into a correct bias interval. 
+
+Lemma 7 (Lower contrast mass) . There is a constant cX = cX (B) > 0 such that, for all sufficiently large n,
+
+Pr 
+
+
+
+|X| ≤ 1log n
+
+
+
+≥ cX
+
+log n . (88) 
+
+Proof. Write ∆K = WK (e1 − e0) and qagg = ( q1, q 2). Restrict to 
+
+q1 ∈ [B/ 2, B ], |q2| ≤ B/ 4, |∆K, 2| ≤ B/ 2. (89) These independent events have probabilities at least 1/4, 1/4, and 3/8. Conditional on them, the inequality 
+
+|q1∆K, 1 + q2∆K, 2| ≤ ε (90) asks that ∆K, 1 lie in an interval of length at least 2ε/B , centered in [−B/ 4, B/ 4] . If ε ≤ B2/8, the interval lies in [−B/ 2, B/ 2] , where the triangular density of ∆K, 1 is at least 3/(8 B). Hence 
+
+Pr( |X| ≤ ε) ≥ 9ε
+
+512 B2 . (91) Taking ε = 1 / log n proves the lemma. 
+
+Lemma 8 (Positive-volume monotone decoder family) . There are constants cΩ, κ > 0 and a set of values of (WV , b V , W 1, b 1, W 2, b 2,0) of normalized volume at least cΩ such that the bias-free logit difference along v0 + p(v1 − v0) is affine with derivative at least κ for all p ∈ [0 , 1] . For every parameter choice in this set, b2,1 may vary over an interval of length at least 
+
+κ(ρm+1 − ρm) (92) 
+
+while preserving exact MAJORITY correctness. Proof. Let eV = (1 , 0) ⊤ and choose WV , b V so that 
+
+v0 = 0 , v1 = ηe V . (93) Give one hidden unit first-layer row ηe ⊤ 
+
+> V
+
+and bias η, make every other hidden unit strictly inactive, and set the difference between output rows on the active hidden unit to η. Set the other output-row differences and b2,0 to zero. Along the value segment, define 
+
+ψ(p) = H(v0 + p(v1 − v0)) . (94) For these parameter values, 
+
+ψ(p) = η2 + η3p. (95) The active pre-activation lies in [η, η + η2], while every other pre-activation equals −η. A fixed open raw-coordinate box around these parameter values therefore preserves the activation pattern, keeps ψ
+
+affine with derivative at least η3/2, and keeps b2,0 − ψ inside (−B, B ). Take κ = η3/2 and let cΩ be the normalized volume of this box. For parameters in the box, the interval 
+
+ b2,0 − ψ(ρm+1 ), b 2,0 − ψ(ρm) (96) has length at least κ(ρm+1 − ρm) and lies in the raw bias range. Since both ρt and ψ are increasing, every t ≤ m gives a negative logit difference and every t ≥ m + 1 gives a positive one. Thus all count levels are classified correctly. 18 On the event in (88), | log n X | ≤ 1, so (74) gives ρm+1 − ρm ≥ 1
+
+> n
+
+ 1+sinh 2(1 /2) 
+
+ = Ω( n−1).Restrict the (WV , b V , W 1, b 1, W 2, b 2,0) to the set in Lemma 8. The remaining bias interval then has normalized length Ω(1 /n ). Multiplying this length by the Ω(1 / log n) contrast event and the fixed parameter box volume gives 
+
+V MAJORITY ,Agen (h) 
+
+> B
+
+(n) ≥ c−
+
+n log n . (97) Together with (87), this proves the M AJORITY claim in Theorem 1. A.4 PARITY 
+
+For P ARITY , the count reduction in (71) gives a sequence of points along the value segment on which the required label flips. The proof compares the resulting number of sign changes with the number of activation changes available to a one-hidden-layer ReLU classifier. If v0̸ = v1, then 
+
+0 = ρ0 < ρ 1 < · · · < ρ n = 1 . (98) Since every count-t attention output has the form At = v0 + ρt(v1 − v0), all such outputs lie on the line segment joining v0 and v1. Parameterize this segment by A(p) = v0 + p(v1 − v0), p ∈ [0 , 1] 
+
+and define the difference between the two output logits along it by 
+
+f (p) = ( e1 − e0)⊤W2 ReLU( W1A(p) + b1) + b2
+
+. (99) This is a continuous piecewise-affine function of p, and each hidden preactivation can change sign at most once. 
+
+Proof of the PARITY bound in Theorem 1. If v0 = v1, every count level has the same attention output, so exact parity is impossible. Otherwise, exact parity makes f (ρt) alternate in sign. By continuity, for each t = 0 , . . . , n − 1, choose a zero zt ∈ (ρt, ρ t+1 ). For each t = 1 , . . . , n − 1, the interval (zt−1, z t) contains ρt, where f is nonzero. If no hidden pre-activation changed sign in this interval, the activation pattern would be fixed and f would be affine there. An affine function that vanishes at both endpoints is identically zero, contradicting f (ρt)̸ = 0 . Hence each of the n − 1
+
+disjoint intervals (zt−1, z t) contains a point at which a hidden ReLU pre-activation changes sign. Since each hidden pre-activation changes sign at most once, this requires h ≥ n − 1. Therefore the exact-solution set is empty whenever n > h + 1 .
+
+## B PROOF OF THE Anorm (h) INDEX BOUND 
+
+This appendix proves Theorem 2. Recall the fixed map 
+
+F (v) = v
+
+p1 + ∥v∥22
+
+(100) and the Anorm (h) positional score 
+
+gnorm  
+
+> j
+
+= ( ak + b)⊤(rj + cK ) +  b + F (ak )⊤sj 2. (101) 
+
+bχ = ba⊤s, bℓ = ℓ + 2 bχ, εχ(k) =  F (ak ) − ba⊤s, (102) with δ = b⊤s and ϕ = b⊤r as in (9). Then, 
+
+Cnorm quad (k) = bχ + δ + εχ(k), Cnorm lin (k) = bℓk + ϕ + 2 kε χ(k), (103) Whenever k + ∆ ∈ [n],
+
+gnorm  
+
+> k+∆
+
+− gnorm  
+
+> k
+
+= ∆ Cnorm lin (k) + ∆ 2Cnorm quad (k). (104) Since F (ak ) is collinear with a,
+
+F (ak ) = λa(k)ba, λa(k) = k∥a∥2
+
+p1 + k2∥a∥22
+
+. (105) Moreover, 
+
+0 ≤ 1 − λa(k) ≤ 12k2∥a∥22
+
+, |2kε χ(k)| ≤ ∥s∥2
+
+k∥a∥22
+
+. (106) 19 B.1 LOWER BOUND 
+
+Use the same positional center as in (37). At this point, ba0 = (1 , 0) is orthogonal to s0 = (0 , η ), and hence bℓ = ϕ = 0 , Qa0 (k) = −η2 (k ≥ 1) . (107) Thus 
+
+Cnorm quad (k) = −η2, Cnorm lin (k) = 0 , (108) and therefore, 
+
+gnorm  
+
+> k
+
+− gnorm  
+
+> j
+
+= η2(j − k)2. (109) Work in a fixed neighborhood of this center on which a1 > η . The map a 7 → ba is smooth there. Replace the raw coordinate r1 by bℓ, keeping (a, b, r 2, s ) as the other coordinates. Since 
+
+∂bℓ∂r 1
+
+= a1, (110) the corresponding coordinate change is locally invertible, with Jacobian and inverse Jacobian bounded on a sufficiently small fixed neighborhood. Thus boxes in these transformed coordinates and their preimages in the original coordinates have volumes within fixed multiplicative constants, indepen-dent of n. Shrink the fixed intervals for the other transformed coordinates so that throughout the neighborhood 
+
+∥a∥2 ≥ η, b⊤s ≤ − 7η2
+
+8 , |ba⊤s| ≤ min 
+
+ η2
+
+8 , η4
+
+16 
+
+
+
+, |ϕ| ≤ η2
+
+16 . (111) By (105), for every k ≥ 1,
+
+Cnorm quad (k) = δ + λa(k)bχ ≤ − 3η2
+
+4 . (112) Furthermore, (106) and (111) give 
+
+|2kε χ(k)| ≤ |ba⊤s|∥a∥22
+
+≤ η2
+
+16 (k ≥ 1) . (113) Here we used that 2kε χ(k) = 2 k(λa(k) − 1) ba⊤s.Now restrict the only shrinking transformed coordinate by 
+
+|bℓ| ≤ η2
+
+16 n . (114) For every k ≤ n, equations (111), (113), and (114) imply 
+
+|bℓk + ϕ + 2 kε χ(k)| ≤ 3η2
+
+16 . (115) Therefore, for every nonzero integer ∆ with k + ∆ ∈ [n],
+
+gnorm  
+
+> k
+
+− gnorm  
+
+> k+∆
+
+≥ 3η2
+
+4 ∆2 − 3η2
+
+16 |∆|≥ η2
+
+2 ∆2. (116) Under the log n attention scale, the total attention outside position k is at most 
+
+2
+
+> ∞
+
+X
+
+> d=1
+
+n−(η2/2) d2
+
+, (117) which tends to zero uniformly in k and in the parameters in the neighborhood above. Thus the same fixed neighborhoods of CV , b V , W 1, b 1, W 2, b 2 used in the baseline I NDEX lower bound preserve a positive logit difference for the correct label, and cK may vary over a fixed neighborhood be-cause it cancels from the attention weights. The transformed coordinate bℓ varies over an interval of width Θ( n−1), whereas a, b, r 2, s, c K , C V , b V , W 1, b 1, W 2, b 2 vary over fixed-width intervals. Boundedness of the local Jacobian then gives 
+
+V INDEX ,Anorm (h) 
+
+> B
+
+(n) = Ω B,h (n−1). (118) 20 B.2 UPPER BOUND 
+
+Use the same 4n inequalities ywk (w, k ) > y 1−wk (w, k ) as in the original I NDEX upper bound. The same output-bias argument shows that exact solutions for which one of these margins lies in (0 , n −5]
+
+have normalized volume OB (n−4). For every remaining exact solution, the indexed position receives at least c0n−5 attention in each constant-word/single-change comparison. Hence its score lies within a constant M0 of the maximum score, uniformly in n. Comparing the indexed position with its two neighbors in (104) gives 
+
+Cnorm quad (k) + |Cnorm lin (k)| ≤ M0 (2 ≤ k ≤ n − 1) . (119) Since ∥F (ak )∥2 < 1 and the parameters are bounded, there exists a constant C0 = C0(B) such that 
+
+|Cnorm quad (k)| = | b + F (ak )⊤s| ≤ C0 (a, b, s ∈ [−B, B ]2, k ≥ 1) . (120) It follows from (119) that 
+
+|bℓk + ϕ + 2 kε χ(k)| ≤ M1 (2 ≤ k ≤ n − 1) (121) for another constant M1 = M1(B, h ).Split the raw parameter cube according to whether 
+
+∥a∥2 ≤ n−1/2. (122) Because a consists of two independent raw coordinates, the normalized volume of this part is at most the area of a radius-n−1/2 disk divided by (2 B)2, and hence is OB (n−1). On its complement, take 
+
+k0 = ⌊n/ 2⌋. For all sufficiently large n, k0 is interior and k0 ≥ n/ 3. By (106), 
+
+|2kε χ(k0)| ≤ ∥s∥2
+
+k0∥a∥22
+
+= OB (1) (123) because ∥a∥2 > n −1/2. Boundedness also gives |ϕ| = OB (1) . Equation (121) at k0 therefore forces 
+
+|bℓ| ≤ Cn (124) for C = C(B, h ).Conditional on (a, b, s ),
+
+bℓ = a⊤r +  2b⊤s + 2 ba⊤s, (125) so (124) defines a slab in the independent variable r with normal a. Choose a coordinate i with 
+
+|ai| ≥ ∥ a∥2/√2 and fix the other coordinate of r. The allowed values of ri lie in an interval of length at most C/ (n∥a∥2), up to a constant depending only on B and h. Thus the normalized volume is at most 
+
+CB min 
+
+
+
+1, 1
+
+n∥a∥2
+
+
+
+. (126) Enlarging the square for a to a fixed-radius disk and integrating in polar coordinates on the comple-ment of (122) gives 
+
+Z
+
+> a∈[−B,B ]2
+> ∥a∥2>n −1/2
+
+CB
+
+n∥a∥2
+
+da ≤ C′
+
+> B
+
+n
+
+Z √2Bn−1/2
+
+dϱ 
+
+= OB (n−1). (127) All remaining raw coordinates integrate out. Adding the O(n−1) small-a region and the O(n−4)
+
+small-margin region gives 
+
+V INDEX ,Anorm (h) 
+
+> B
+
+(n) = OB,h (n−1). (128) Together with (118), this proves Theorem 2. 
+
+## C FIXED SINUSOIDAL ENCODING ON MAJORITY 
+
+This appendix analyzes the fixed-frequency sinusoidal M AJORITY model used in the discussion. 21 C.1 MODEL AND MATCHED BOUND 
+
+Let n = 2 m + 1 be odd, let pj = (sin j, cos j)⊤, and define 
+
+xsin  
+
+> j
+
+=
+
+ewj
+
+pj
+
+
+
+∈ R4, zsin = 0 4. (129) The frequency is fixed at one and is not a trainable coordinate. The query, key, and value maps are unrestricted affine maps from R4 to R2, the attention multiplier is βn = log n, and the output is the same width-h one-hidden-layer ReLU classifier as in Section 2. We denote this architecture by 
+
+Asin (h). All scalar parameters are bounded in [−B, B ].
+
+Theorem 9 (Fixed-sinusoidal M AJORITY volume) . For every fixed B > 0 and h ≥ 2,
+
+V MAJORITY ,Asin ,gen (h) 
+
+> B
+
+(n) = Θ( 1
+
+n3 log n ). (130) Write the columns of WK and WV as 
+
+WK = [ k0 k1 ksin kcos ], WV = [ v0 v1 vsin vcos ], (131) and define 
+
+q = bQ, λ = βnq⊤(k1 − k0), Γ = eλ,a = βn
+
+q⊤ksin 
+
+q⊤kcos 
+
+
+
+, Pj = ea⊤pj , T =
+
+> n
+
+X
+
+> j=1
+
+Pj ,vb = vb + bV (b ∈ { 0, 1}), CV = [ vsin vcos ], μ = 1
+
+T
+
+> n
+
+X
+
+> j=1
+
+Pj pj . (132) The common key-bias and symbol-zero score contributions cancel, so the attention weights are 
+
+αj (w) = Pj Γwj
+
+Pni=1 PiΓwi
+
+. (133) For t ∈ [0 , 1] n, introduce the algebraic extensions 
+
+D(t) = T + (Γ − 1) X
+
+> j
+
+Pj tj , (134) 
+
+N(t) = X
+
+> j
+
+Pj (v0 + CV pj ) + X
+
+> j
+
+tj Pj
+
+Γv1 − v0 + (Γ − 1) CV pj
+
+. (135) Then D(t) > 0 on the cube and A(w) = N(w)/D(w) on binary inputs. C.2 THE NECESSARY POSITIONAL COMPENSATION 
+
+Let di = ( W2)1i − (W2)0i and b = b2,1 − b2,0. After multiplying the logit difference by the positive denominator D(t), the resulting function is continuous and piecewise affine in t. For an activation pattern σ ⊆ [h], define 
+
+ℓσ = X
+
+> i∈σ
+
+di(W1)⊤
+
+> i, :
+
+, cσ = b + X
+
+> i∈σ
+
+dib1,i ,δσ = ℓ⊤ 
+
+> σ
+
+(v1 − v0), ξσ = C⊤ 
+
+> V
+
+ℓσ , (136) and 
+
+c∗ 
+
+> σ
+
+= −ℓ⊤
+
+> σ
+
+v0 + Γ v1
+
+1 + Γ − ξ⊤ 
+
+> σ
+
+μ. (137) 
+
+Lemma 10 (Positional compensation) . Outside a set of raw-cube measure zero, every exact solution at a sufficiently large odd length has an activation pattern σ ⊆ [h] such that δσ̸ = 0 and 
+
+a + sinh λδσ
+
+ξσ
+
+> 2
+
+≤ Cn , (138) 22 while 
+
+|cσ − c∗ 
+
+> σ
+
+| ≤ C|δσ |
+
+n
+
+Γ(1 + Γ) 2 . (139) 
+
+The constants are uniform over the bounded raw parameter cube, including when q and δσ are arbitrarily small but nonzero. Proof. Exclude first the finite union of sets on which one of the affine pieces defined below vanishes at t = 0 ; each is null by slicing along b2,1. On activation pattern σ, the denominator-scaled logit difference is an affine function Lσ (t) = Lσ (0) + P 
+
+> j
+
+bℓσ,j tj , where 
+
+bℓσ,j = Pj (κσ + ν⊤ 
+
+> σ
+
+pj ), κσ = ℓ⊤ 
+
+> σ
+
+(Γ v1 − v0) + (Γ − 1) cσ , νσ = (Γ − 1) ξσ . (140) Fix t ∈ [0 , 1] n with P 
+
+> j
+
+tj = n/ 2. Preserving P 
+
+> j
+
+tj , P 
+
+> j
+
+Pj tj , P 
+
+> j
+
+Pj sin j t j , and P 
+
+> j
+
+Pj cos j t j ,one can move to a point with at most four fractional coordinates. Rounding those coordinates to words with respectively m and m + 1 ones and using exact correctness forces a zero of one affine piece within four coordinate changes. Applying this to the centrally symmetric convex body generated by 
+
+Pj (1 , p j ) ∈ R3 and using the elementary convex-body slab bound yields, for some σ,
+
+> n
+
+X
+
+> j=1
+
+bℓσ,j − med( bℓσ, 1, . . . , bℓσ,n ) ≤ ChMσ , Lσ
+
+  12 1 ≤ ChMσ , (141) where Mσ = max j |bℓσ,j |. The fixed phases j mod 2 π are equidistributed because | Pnj=1 eikj | =
+
+Ok(1) for each fixed nonzero integer k. Applied to the sequence ea⊤pj (κσ +ν⊤ 
+
+> σ
+
+pj ), the first inequality in (141) first bounds ∥a∥2, then a compactness argument forces a and νσ /κ σ to approach zero, and finally the first two discrete Fourier modes of the second-order Taylor expansion give 
+
+κσ̸ = 0 , Mσ ≍ | κσ |, ∥a∥22 ≤ Cn , a + νσ
+
+κσ 2
+
+≤ Cn . (142) To return to the raw parameters, put ec = cσ − c∗ 
+
+> σ
+
+and τ = 2Γ δσ /(1 + Γ) . Direct substitution gives 
+
+Lσ
+
+  12 1 = (1 + Γ) T
+
+2 ec, κσ = τ − ν⊤ 
+
+> σ
+
+μ + (Γ − 1) ec. (143) Since T ≍ n, (141) and (142) imply |ec| ≤ C|κσ |/((1 + Γ) n) and |κσ − τ | ≤ Cn −1/2|κσ |. Hence 
+
+δσ̸ = 0 , |τ | ≍ | κσ |, and ∥νσ /τ − νσ /κ σ ∥2 ≤ C/n . Using νσ /τ = (sinh λ/δ σ )ξσ proves (138), and the bound on ec proves (139). C.3 VOLUME INTEGRATION 
+
+Proof of Theorem 9. For the upper bound, fix one of the finitely many activation patterns σ and con-dition on q, the two symbol key columns, and all value and classifier coordinates except b2,1, leaving the two positional key columns unconditioned. Each coordinate of (138) restricts one independent positional key column to a slab whose conditional normalized width is at most 
+
+CB min 
+
+
+
+1, 1
+
+nβ n∥q∥∞
+
+
+
+. (144) The two columns use disjoint raw coordinates. After they are fixed, (139) restricts b2,1 to an interval of normalized length OB,h (1 /n ). Summing over σ and integrating t = ∥q∥∞, whose density under the uniform square measure is proportional to t, gives 
+
+V MAJORITY ,Asin ,gen (h) 
+
+> B
+
+(n) ≤ CB,h 
+
+n
+
+Z B
+
+> 0
+
+t min 
+
+
+
+1, 1
+
+nβ nt
+
+2
+
+dt 
+
+≤ CB,h (1 + log( nβ n)) 
+
+n3β2
+
+> n
+
+= OB,h 
+
+ 1
+
+n3 log n
+
+
+
+. (145) For the lower bound, restrict the value and classifier coordinates to a fixed positive-volume open box on which the bias-free logit difference has the form ℓ⊤A + cH for every attainable attention output, 23 with constants 0 < δ − ≤ δ := ℓ⊤(v1 − v0) ≤ δ+ and ξ = C⊤ 
+
+> V
+
+ℓ satisfying ∥ξ∥2/δ ≤ 1/100 . Such a box is obtained from an interior center with v0 = 0 , v1 = η(1 , 0) ⊤, CV = 0 , and one uniformly active hidden unit. Set 
+
+A∗ = v0 + Γ v1
+
+1 + Γ + CV μ, b∗ 
+
+> 2,1
+
+= b2,0 − cH − ℓ⊤A∗. (146) At this centered bias, the exact logit difference is 
+
+(y(w)) 1 − (y(w)) 0 =
+
+P 
+
+> j
+
+(wj − 1/2) bℓj
+
+D(w) , bℓj = Pj
+
+ 2Γ δ
+
+1 + Γ + (Γ − 1) ξ⊤(pj − μ)
+
+
+
+. (147) If |λ| ≤ c1n−1/2 and ∥a + (sinh λ/δ )ξ∥2 ≤ c2/n , a uniform first-order expansion of (147) gives 
+
+bℓj /τ = F0 + O(1 /n ) with τ = 2Γ δ/ (1 + Γ) and F0 ≥ 3/4. Therefore the numerator has the MAJORITY sign and magnitude bounded below by a positive constant, while D(w) = O(n); an interval |b2,1 − b∗
+
+> 2,1
+
+| < c 3/n preserves strict correctness on every input. It remains to measure a full-dimensional set satisfying these conditions. Restrict the query bias to 
+
+q1 > 0, |q2| ≤ q1/4, r := βnq1 ∈
+
+ Ln , c
+
+√n
+
+
+
+. (148) For sufficiently small c, the symbol key columns may vary over their full raw squares while 
+
+|λ| ≤ c1n−1/2. Conditional on these choices and on the decoder box, the two coordinates of the compensation condition restrict one entry of each positional key column to an interval of length 
+
+Θ(1 /(nr )) ; fixed-width restrictions on the other entries keep these intervals inside the raw cube. Their joint normalized mass is therefore ΩB,h (1 /(n2r2)) , and the admissible output-bias interval contributes ΩB,h (1 /n ). Since the query-cone measure after integrating q2 is a constant multiple of 
+
+r dr/β 2
+
+> n
+
+,
+
+V MAJORITY ,Asin ,gen (h) 
+
+> B
+
+(n) ≥ cB,h 
+
+n3β2
+
+> n
+
+Z c/ √nL/n 
+
+dr r
+
+≥ c′
+
+> B,h
+
+n3 log n . (149) Every restricted raw coordinate varies over an interval of positive width and every unrestricted coordinate integrates out, so this is a full-dimensional lower bound. Together with (145), it proves the theorem. 
+
+## D EXPERIMENTAL DETAILS AND SELECTED ADDITIONAL RESULTS 
+
+This appendix specifies the experimental protocol used for the main-text comparisons and reports the additional results referenced in the discussion of sinusoidal positional encoding. D.1 REPORTED MODELS AND BENCHMARK PROVENANCE 
+
+The baseline positional implementation is the model Apos (h) from Section 2, with quadratic positional coordinates (j, j 2), and the selectively normalized implementation is Anorm (h) from Section 4.2. For the baseline M AJORITY experiment, we use the unrestricted affine NoPE implementation of Agen (h).The additional sinusoidal M AJORITY control is the fixed-frequency general model Asin (h) defined in Section C.1. We use the same 20 seeds, 2000 –2019 , at each maximum training length 
+
+N ∈ { 11 , 21 , 31 , 41 , 51 }. (150) Training and qualification did not have access to the test banks, and every newly trained checkpoint was selected and frozen before its test evaluation. 24 D.2 TRAINING , SELECTION , AND INITIALIZATION 
+
+Training uses Adam with learning rate 3 × 10 −4, β1 = 0 .9, β2 = 0 .999 , numerical stabilizer 10 −8,no weight decay, batch size 256 , and gradient-norm clipping at one. Each update uses a fresh batch of independent uniformly random bits. For I NDEX , the index k is sampled uniformly from the positions in the sampled sequence. For F IRST and I NDEX , one data length is sampled uniformly from {1, . . . , N } per batch. For M AJORITY , the sampled length is uniform over the odd integers in that range. Computation uses float64 . At data length L, attention scores are multiplied by log L,without an additional 1/√d factor. Every run is trained for at most 30 ,000 updates and is validated every 500 updates on a fixed bank of 
+
+1,000 examples at length N . Training stops after three consecutive perfect validations. The selected checkpoint maximizes validation accuracy; ties are resolved first by lower cross-entropy and then by the earlier update. No input longer than N is used in checkpoint selection. For the Apos (h) and Anorm (h) models, the vectors a, r, s, b, c K are initialized from centered normal distributions with standard deviations 0.1/N , 0.1/N , 0.1/N 2, 0.1, 0.1, respectively. Other parame-ters use Xavier-uniform initialization and their biases are zero. Apos (h)/Anorm (h) pairs use identical initial tensors and the same training streams. For Agen and Asin , content query/key blocks and the bounded sinusoidal positional blocks use Xavier-uniform initialization, while shared value, bias, and classifier blocks are copied from the paired Apos seed. D.3 EVALUATION BANKS , METRICS , AND UNCERTAINTY 
+
+For a maximum training length N , the common test grid is 
+
+N, 2N + 1 , 3N, 5N, 8N + 1 , 10 N + 1 . (151) At each test length, all seeds and model variants for the same task use the same saved bank of 
+
+1,000 examples. For F IRST , the first bit is exactly balanced and the remaining bits are random. For MAJORITY , 500 random strings are paired with their complements. For I NDEX , each of 500 random string–query pairs is paired with the complemented string and the same query. Test accuracy is the fraction correct on one saved bank. The longest-test statistic is the mean across the 20 seeds at L = 10 N + 1 . For coefficient analyses and other OOD summaries, the seed-level mean OOD accuracy is the equal-weight mean across the five test lengths strictly greater than N .Confidence intervals are pointwise percentile 95% intervals. D.4 COEFFICIENT ANALYSIS 
+
+The coefficient analysis uses the 100 selected I NDEX checkpoints on Apos : 20 seeds at each of the five values of N in (150). For each checkpoint, we compute 
+
+χ = a⊤s, ℓ = 2 b⊤s + a⊤r (152) directly from the learned parameters. To avoid treating differences among the five training maxima as evidence for a coefficient association, we rank each coefficient magnitude and the seed-level mean OOD accuracy separately within each value of N , and then pool the within-N ranks. The resulting correlations are −0.655 for N 2|χ| and 
+
+−0.516 for N |ℓ|. The two-sided permutation test uses 10 ,000 permutations and shuffles ranks only within the same value of N ; both tests give p < 10 −3.D.5 SELECTED RESULTS ACROSS MAXIMUM TRAINING LENGTHS 
+
+Table 2 reports the longest-test results. Each entry is the mean percentage accuracy across 20 seeds, followed by its pointwise 95% seed-bootstrap interval. D.6 SINUSOIDAL POSITIONAL ENCODING ON MAJORITY 
+
+Relevant results on the performance of Asin compared to Agen on M AJORITY is displayed in Table 3. 25 Table 2: Accuracy at the longest tested length L = 10 N + 1 . Entries are percentages, with pointwise 
+
+95% seed-bootstrap intervals in parentheses. 
+
+N L FIRST (Apos ) MAJORITY (Agen ) INDEX (Apos ) INDEX (Anorm )11 111 100.0 (100.0–100.0) 83.8 (78.0–89.4) 57.2 (55.9–58.6) 63.4 (62.7–64.1) 21 211 100.0 (100.0–100.0) 91.3 (86.2–95.3) 55.2 (54.1–56.5) 74.1 (68.8–79.9) 31 311 100.0 (100.0–100.0) 87.1 (82.6–91.5) 59.2 (58.3–60.0) 90.6 (85.6–95.4) 41 411 100.0 (100.0–100.0) 88.5 (84.2–92.2) 55.1 (54.5–55.8) 84.4 (78.1–90.6) 51 511 100.0 (100.0–100.0) 82.6 (77.6–87.5) 59.6 (58.6–60.6) 85.1 (80.2–90.1) 
+
+Table 3: Mean OOD accuracy on M AJORITY for Agen and Asin general models. Entries are per-centages, averaged equally over the five test lengths above N , with 95% confidence intervals in parentheses. 
+
+N NoPE General Sinusoidal General 11 91.6 (88.1–95.0) 95.3 (93.6–96.8) 21 95.1 (91.8–97.6) 93.8 (91.5–95.9) 31 92.9 (90.0–95.6) 91.2 (88.2–94.0) 41 93.4 (90.6–95.8) 91.5 (88.7–94.1) 51 89.8 (86.2–92.9) 92.9 (90.0–95.6) D.7 SANITY CHECKS FOR Anorm (h) ON OTHER TASKS 
+
+We also compared Apos (h) to Anorm (h) on F IRST and M AJORITY . For F IRST , both positional models achieve 100% mean accuracy at L = 10 N + 1 for every N in (150). For our setup of M AJORITY , Apos and Anorm are equivalent, hence producing same results for every seed. 26

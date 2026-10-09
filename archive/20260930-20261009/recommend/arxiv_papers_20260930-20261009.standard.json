@@ -1,0 +1,1798 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-09T10:21:15.013450+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 71,
+    "deep_cap": 6,
+    "deep_selected": 34,
+    "quick_candidates": 54,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2609.38817v1",
+      "source": "arxiv",
+      "title": "When Reasoning Goes Astray: Attention Dynamics of Uncontrolled Reasoning",
+      "abstract": "Large reasoning models (LRMs) improve performance on complex tasks through extended reasoning, yet the same process can degenerate into redundant verification and persistent generation loops. Such uncontrolled reasoning increases inference cost and creates risks of resource exhaustion and service degradation. However, existing mitigations largely truncate long outputs or react to surface repetition, and thus fail to distinguish normal thinking from uncontrolled reasoning or explain how benign reasoning degenerates into harmful behavior. In this paper, we operationalize LRM generation as four states and further introduce Reasoning-state Analysis via Dynamic Attention Responses (RADAR), which identifies the current reasoning state in real time and characterizes how effective reflection can develop into uncontrolled generation. Guided by RADAR's analysis, we further realign abnormal attention distributions toward patterns observed in normal requests and examine how this correction affects excessive reflection and persistent looping. Temporal analyses show that uncontrolled reasoning is characterized by attention distributions that deviate from normal generation, with abnormal trends becoming detectable before repetition begins. Correcting these deviations through Attention Realignment consistently reduces looping while largely preserving benign performance. Together, RADAR provide a mechanistic account of how reasoning becomes uncontrolled, offering actionable guidance for identifying critical failure stages and designing targeted runtime interventions.",
+      "authors": [
+        "Yuanhe Zhang",
+        "Ziwei Wang",
+        "Jie Ren",
+        "Haoran Gao",
+        "Zhenhong Zhou",
+        "Fanyu Meng",
+        "Cong Wu",
+        "Li Sun",
+        "Sen Su"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-09-30T02:44:45+00:00",
+      "link": "https://arxiv.org/pdf/2609.38817v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Analyzes attention dynamics to distinguish normal thinking from uncontrolled reasoning in large reasoning models",
+      "llm_evidence_cn": "分析注意力动态以区分大型推理模型中的正常思考与失控推理",
+      "llm_evidence": "分析注意力动态以区分大型推理模型中的正常思考与失控推理",
+      "canonical_evidence": "分析注意力动态以区分大型推理模型中的正常思考与失控推理",
+      "llm_tldr_en": "The paper operationalizes LRM generation into four states and proposes RADAR, a real-time reasoning-state identification method based on dynamic attention responses, to detect uncontrolled reasoning and prevent resource waste.",
+      "llm_tldr_cn": "大型推理模型在复杂任务上表现提升，但扩展推理可能退化为冗余验证和生成循环，增加成本并带来风险。现有缓解方法粗放截断或反应式检测。本文将LRM生成划分为四种状态，提出RADAR框架，基于动态注意力响应实时识别推理状态。RADAR可区分正常思考与失控推理，帮助避免服务退化。该工作为推理过程的监控与干预提供了新视角。",
+      "llm_tldr": "大型推理模型在复杂任务上表现提升，但扩展推理可能退化为冗余验证和生成循环，增加成本并带来风险。现有缓解方法粗放截断或反应式检测。本文将LRM生成划分为四种状态，提出RADAR框架，基于动态注意力响应实时识别推理状态。RADAR可区分正常思考与失控推理，帮助避免服务退化。该工作为推理过程的监控与干预提供了新视角。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Chain-of-Thought Reasoning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.38938v1",
+      "source": "arxiv",
+      "title": "Robust Risk-Sensitive Reinforcement Learning from Corrupted Human Feedback",
+      "abstract": "Reinforcement learning with human feedback (RLHF) learns from human comparisons, which can be corrupted or deliberately manipulated. This paper studies online risk-sensitive RLHF with static conditional value-at-risk (CVaR) under adversarial preference-label flips. We consider additive linear rewards and a fixed-reference protocol with one comparison per episode and at most $C$ flipped labels over $K$ episodes. We propose weighted streamed-preference CVaR RLHF (WSP-CVaR-RLHF), which combines uncertainty-weighted reward estimation with optimistic augmented-state CVaR planning. For known transitions and normalized rewards, we establish the regret bound $\\widetilde{O}\\left(\\frac{d}κ\\sqrt{\\frac{K}α}+\\frac{dC}{κα}\\right)$ up to lower-order terms, where $d$ is the reward-feature dimension, $α$ is the CVaR level, and $κ$ characterizes the preference link. The bound separates the clean statistical cost from the penalty caused by corrupted feedback. We further extend the analysis to unknown tabular transitions, where the trajectory distribution entering the CVaR objective must be learned together with the reward. We address the resulting coupled uncertainty using rectangular transition confidence sets, joint optimistic planning, and a history-level CVaR simulation argument. Experiments under four adversarial attacks demonstrate that WSP-CVaR-RLHF consistently reduces cumulative regret relative to its unweighted robust counterpart while preserving confidence-set coverage.",
+      "authors": [
+        "Xinyi Ni",
+        "Lifeng Lai"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-30T04:13:18+00:00",
+      "link": "https://arxiv.org/pdf/2609.38938v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "robust RLHF under adversarial preference label flips",
+      "llm_evidence_cn": "对抗偏好标签翻转下的稳健RLHF",
+      "llm_evidence": "对抗偏好标签翻转下的稳健RLHF",
+      "canonical_evidence": "对抗偏好标签翻转下的稳健RLHF",
+      "llm_tldr_en": "Proposes WSP-CVaR-RLHF, combining uncertainty-weighted reward estimation with CVaR planning for robust risk-sensitive RLHF with corrupted preferences.",
+      "llm_tldr_cn": "该论文研究在人类反馈可能被恶意篡改的情况下，提出风险敏感的在线RLHF方法WSP-CVaR-RLHF，结合不确定性加权的奖励估计与乐观增强状态CVaR规划。在已知转移和归一化奖励下给出遗憾界，证明对对抗标签翻转具有稳健性，为不可靠人类反馈下的强化学习提供了理论保证。",
+      "llm_tldr": "该论文研究在人类反馈可能被恶意篡改的情况下，提出风险敏感的在线RLHF方法WSP-CVaR-RLHF，结合不确定性加权的奖励估计与乐观增强状态CVaR规划。在已知转移和归一化奖励下给出遗憾界，证明对对抗标签翻转具有稳健性，为不可靠人类反馈下的强化学习提供了理论保证。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Reinforcement Learning from Human Feedback",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.38972v1",
+      "source": "arxiv",
+      "title": "Making LLMs Say What They Think: Measuring and Improving CoT-Interpretability Alignment",
+      "abstract": "Chain-of-thought (CoT) traces often serve as a proxy for how Large Language Models (LLMs) arrive at their answers. However, growing evidence shows that models' CoT often fails to reflect their internal computations and can be changed without affecting their final answers. In this work, we measure and improve the alignment between the reasoning described in an LLM's CoT and what it computes internally. We propose CoT-Interpretability Alignment (CIA), a metric that measures the agreement between a model's CoT traces and its internal reasoning strategies as detected by interpretability tools. We evaluate CIA on three tasks (two-hop question answering, hint intervention, and integer multiplication) across three LLMs, finding that LLMs exhibit limited alignment across all tasks (44.8-75.9%). We then experiment with improving CIA via post-training, setting both the task accuracy and parametric faithfulness signals as a reward. Experiments show that we can substantially improve CoT parametric faithfulness while maintaining or improving the task accuracy. We provide rich analysis, such as their generalization patterns. Our work provides both a framework for auditing CoT parametric faithfulness and a pathway toward making models' explicit reasoning more trustworthy. Code and data are available at https://github.com/yihuaihong/CIA-minimal-repro.",
+      "authors": [
+        "Yihuai Hong",
+        "Shauli Ravfogel",
+        "Chen Zhao",
+        "Eunsol Choi"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-09-30T04:44:26+00:00",
+      "link": "https://arxiv.org/pdf/2609.38972v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "CoT-interpretability alignment metric",
+      "llm_evidence_cn": "思维链可解释性对齐度量",
+      "llm_evidence": "思维链可解释性对齐度量",
+      "canonical_evidence": "思维链可解释性对齐度量",
+      "llm_tldr_en": "Proposes CIA metric to measure agreement between CoT traces and internal reasoning, finding misalignment in LLMs and aiming to improve faithfulness.",
+      "llm_tldr_cn": "该论文指出大型语言模型的思维链（CoT）往往不能真实反映其内部计算过程，导致可解释性问题。作者提出CoT-可解释性对齐（CIA）度量，用于评估CoT描述与模型内部推理策略的一致性。在三个任务上的实验表明LLM普遍存在对齐不足，并探讨了改进方向。该工作为评估和提升CoT忠实度提供了量化工具。",
+      "llm_tldr": "该论文指出大型语言模型的思维链（CoT）往往不能真实反映其内部计算过程，导致可解释性问题。作者提出CoT-可解释性对齐（CIA）度量，用于评估CoT描述与模型内部推理策略的一致性。在三个任务上的实验表明LLM普遍存在对齐不足，并探讨了改进方向。该工作为评估和提升CoT忠实度提供了量化工具。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Chain-of-Thought Reasoning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.39034v1",
+      "source": "arxiv",
+      "title": "Switching Linear Attention",
+      "abstract": "Designing expressive sequence layers with efficient inference remains a central challenge in modern machine learning. Standard softmax attention achieves excellent sequence modeling performance through rich nonlinear token interactions, but it requires a key-value cache that grows linearly with sequence length, limiting its scalability. Linear attention enables efficient recurrent computation with a constant memory footprint, yet its reduced expressivity often yields inferior modeling performance. We introduce Switching Linear Attention (SwiLA), a novel sequence layer that bridges this gap by enhancing representational capacity while retaining the fixed-size recurrent state of linear attention. We derive the SwiLA recurrence from the test-time regression framework, casting the state update rule as online expectation-maximization in a mixture of linear regressions model. At test time, each output dimension dynamically selects among multiple linear attention components based on the input. Across associative recall, in-context language learning, and language modeling benchmarks, SwiLA shows strong performance and narrows the gap to softmax attention, even surpassing it in several settings.",
+      "authors": [
+        "Hyun Dong Lee",
+        "Xavier Gonzalez",
+        "Nicolas Zucchet",
+        "E. Kelly Buchanan",
+        "Emily B. Fox",
+        "Scott W. Linderman"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-09-30T05:37:13+00:00",
+      "link": "https://arxiv.org/pdf/2609.39034v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "novel sequence layer bridging softmax and linear attention for efficient inference",
+      "llm_evidence_cn": "桥接softmax与线性注意力的新型序列层，用于高效推理",
+      "llm_evidence": "桥接softmax与线性注意力的新型序列层，用于高效推理",
+      "canonical_evidence": "桥接softmax与线性注意力的新型序列层，用于高效推理",
+      "llm_tldr_en": "SwiLA enhances linear attention's expressivity while retaining constant-size recurrent state, derived from test-time regression, enabling efficient sequence modeling without linear cache growth.",
+      "llm_tldr_cn": "设计高效且表达能力强的序列层是核心挑战。标准softmax注意力性能好但KV缓存随序列长度线性增长；线性注意力内存恒定但表达能力不足。SwiLA从测试时回归框架导出状态更新规则，在保持固定大小循环状态的同时增强表示容量。该序列层桥接了两者差距，为高效序列建模提供了新选择。",
+      "llm_tldr": "设计高效且表达能力强的序列层是核心挑战。标准softmax注意力性能好但KV缓存随序列长度线性增长；线性注意力内存恒定但表达能力不足。SwiLA从测试时回归框架导出状态更新规则，在保持固定大小循环状态的同时增强表示容量。该序列层桥接了两者差距，为高效序列建模提供了新选择。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.39183v1",
+      "source": "arxiv",
+      "title": "Aligning Thoughts with Answers: Probability Rewards to Tame Thinking Drift",
+      "abstract": "This paper studies \\textbf{thinking--answer consistency} in vision-language models. We focus on Visual Intention Grounding, where a model infers a target object based on a human intention query and predicts a bounding box. We reveal that previous IoU-based reinforcement learning (RL) frameworks suffer from ``thinking drift'', where the model produces a correct bounding box, despite having an incorrect reasoning process pointing to a different target object. Thus, we propose \\textbf{Rita} (\\textit{ReInforcing Thinking--Answer consistency}) as a novel RL paradigm to tame the drift. Specifically, Rita introduces two reasoning-label-free RL rewards, constructed from the conditional probability of reference answers: a \\textbf{thinking reward} and a \\textbf{consistency reward}. It also adopts a difficulty-aware \\textbf{data filtering} strategy that selects informative easy-to-medium samples for RL using rollout error rate and reward variance. Extensive experiments on EgoIntention and the new RefEgo-Int benchmarks show that Rita performs consistently superior to the supervised finetuning approaches and vanilla RL-finetuned frameworks.",
+      "authors": [
+        "Pengzhan Sun",
+        "Shiu-hong Kao",
+        "Shijie Li",
+        "Yongyi Su",
+        "Junbin Xiao",
+        "Arjun Reddy Akula",
+        "Angela Yao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-30T07:39:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.39183v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "RL rewards for thought-answer consistency in CoT-style reasoning",
+      "llm_evidence_cn": "针对思维-答案一致性的强化学习奖励，属于链式思考推理改进",
+      "llm_evidence": "针对思维-答案一致性的强化学习奖励，属于链式思考推理改进",
+      "canonical_evidence": "针对思维-答案一致性的强化学习奖励，属于链式思考推理改进",
+      "llm_tldr_en": "Proposes Rita, an RL paradigm with probability rewards to align reasoning thoughts with answers, reducing thinking drift in vision-language grounding tasks.",
+      "llm_tldr_cn": "该研究聚焦于视觉意图定位任务，指出以往基于IoU的强化学习框架存在思维漂移问题，即模型可能给出正确边界框但推理过程指向错误目标。为此提出Rita强化学习范式，引入两个无需推理标签的奖励，分别从参考答案的条件概率中构建思维奖励和答案奖励，以对齐推理与输出。实验表明该方法能有效抑制思维漂移，提高思维与答案的一致性，增强了视觉语言模型在链式思考推理中的可信度。",
+      "llm_tldr": "该研究聚焦于视觉意图定位任务，指出以往基于IoU的强化学习框架存在思维漂移问题，即模型可能给出正确边界框但推理过程指向错误目标。为此提出Rita强化学习范式，引入两个无需推理标签的奖励，分别从参考答案的条件概率中构建思维奖励和答案奖励，以对齐推理与输出。实验表明该方法能有效抑制思维漂移，提高思维与答案的一致性，增强了视觉语言模型在链式思考推理中的可信度。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on chain of thought prompting, multi step reasoning, self consistency, mathematical reasoning, and reinforcement learning for improving LLM reasoning.",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.39382v1",
+      "source": "arxiv",
+      "title": "SkillFM: Generating Skills for LLM Agents via Latent Flow Matching",
+      "abstract": "Textual skills provide reusable guidance for large language model agents, but existing approaches often rely on manually curated skill banks or reinforcement learning with indirect and delayed feedback. We introduce SkillFM (Skill Flow Matching), a generative framework that synthesizes task-conditioned textual skills directly without test-time skill retrieval. Our framework combines a codec for encoding and reconstructing textual skills in a continuous latent space with a conditional flow model trained using improved MeanFlow. At inference time, the learned velocity field enables single-step latent sampling, and an LLM-based decoder converts the sampled representation into textual guidance for a frozen downstream agent. We evaluate the framework on embodied tasks, question answering, and web shopping. On ALFWorld and Search-QA, our method achieves the best overall performance among the compared vector-based skill approaches. Our analyses further demonstrate that latent skill generation is an effective alternative to retrieval-based skill augmentation. Our code and training skill libraries are available at https://github.com/lulushang999/SkillFM.",
+      "authors": [
+        "Zuming Zhang",
+        "Jie He",
+        "Yizhe Zhang",
+        "Jeff Z. Pan"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-30T09:32:54+00:00",
+      "link": "https://arxiv.org/pdf/2609.39382v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Generates task-conditioned textual skills for LLM agents without test-time retrieval",
+      "llm_evidence_cn": "为LLM智能体生成任务条件的文本技能，无需测试时检索",
+      "llm_evidence": "为LLM智能体生成任务条件的文本技能，无需测试时检索",
+      "canonical_evidence": "为LLM智能体生成任务条件的文本技能，无需测试时检索",
+      "llm_tldr_en": "SkillFM introduces a generative framework that synthesizes reusable textual skills for LLM agents via latent flow matching, eliminating manual skill banks and enabling single-step sampling at inference.",
+      "llm_tldr_cn": "现有LLM智能体的文本技能多依赖手工构建或强化学习，反馈间接延迟。SkillFM提出基于潜在流匹配的生成框架，通过连续潜空间编码技能并利用改进MeanFlow训练条件流模型。推理时单步潜变量采样并由LLM解码器生成文本指导，冻结下游智能体直接使用。该方法在具身任务上验证了有效性，为智能体技能自动获取提供了新途径。",
+      "llm_tldr": "现有LLM智能体的文本技能多依赖手工构建或强化学习，反馈间接延迟。SkillFM提出基于潜在流匹配的生成框架，通过连续潜空间编码技能并利用改进MeanFlow训练条件流模型。推理时单步潜变量采样并由LLM解码器生成文本指导，冻结下游智能体直接使用。该方法在具身任务上验证了有效性，为智能体技能自动获取提供了新途径。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.39661v1",
+      "source": "arxiv",
+      "title": "The Evolution of Attention in Large Language Models: Mechanisms, Trade-offs, and Emerging Trends",
+      "abstract": "Self-attention gives LLMs fine-grained, query-dependent access to context, but dense token interactions incur quadratic prefill cost and a key--value cache growing with context length. Research thus spans explicit-memory compression, sparse access, recurrent state construction, structured state dynamics, and heterogeneous mechanism composition. This survey analyzes these developments as model-internal contextual memory. We introduce a five-dimensional lens---Memory Representation, Memory Update, Access, Readout, and Integration---describing what is represented, how it changes, what is query-eligible, how it is read, and how readouts form outputs. This lens compares overlapping research lines without imposing one computational model.   We reconstruct mechanism-level developments and architectural adoption using 59 release-level records from 14 major model lineages and 11 high-performing open-weight endpoints. First, explicit-memory and recurrent-state methods retain distinct interfaces but increasingly control overlapping memory functions. Second, heterogeneous architectures increasingly coordinate across network depth: layer-wise composition distributes complementary memory processing across representational stages, while cross-layer reuse carries selected memory and routing artifacts forward. Depth thus becomes a dimension along which contextual memory is constructed and managed. Third, these developments motivate a stateful multidimensional memory-routing hypothesis: persistent memory is organized across temporal scope, network depth, substrate type, and representation granularity, while coordinated Sparse Write and Sparse Read determine what is maintained and what contributes to each query. Overall, efficient sequence architecture design increasingly concerns the organization, lifecycle, and selective use of contextual memory rather than an isolated Attention operator.",
+      "authors": [
+        "Zhentao Tan",
+        "Jingyi Shen",
+        "Yanbo Li",
+        "Yao Liu",
+        "Yue Wu",
+        "Jieping Ye"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-30T13:03:01+00:00",
+      "link": "https://arxiv.org/pdf/2609.39661v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "survey of attention mechanisms and efficiency trade-offs in LLMs",
+      "llm_evidence_cn": "综述LLM中的注意力机制与效率权衡",
+      "llm_evidence": "综述LLM中的注意力机制与效率权衡",
+      "canonical_evidence": "综述LLM中的注意力机制与效率权衡",
+      "llm_tldr_en": "Surveys the evolution of attention in LLMs, analyzing memory compression, sparse access, recurrent states, and structured dynamics via a five-dimensional lens.",
+      "llm_tldr_cn": "该综述分析大型语言模型中自注意力机制的演化历程，针对稠密token交互带来的二次预填充成本和随上下文增长的KV缓存问题，梳理了显式记忆压缩、稀疏访问、循环状态构建、结构化状态动态等研究方向。论文提出五维分析视角，从记忆表示、更新、访问、读出与集成角度比较不同方法，系统揭示了注意力机制在效率与能力之间的权衡，为Transformer架构改进提供全面参考。",
+      "llm_tldr": "该综述分析大型语言模型中自注意力机制的演化历程，针对稠密token交互带来的二次预填充成本和随上下文增长的KV缓存问题，梳理了显式记忆压缩、稀疏访问、循环状态构建、结构化状态动态等研究方向。论文提出五维分析视角，从记忆表示、更新、访问、读出与集成角度比较不同方法，系统揭示了注意力机制在效率与能力之间的权衡，为Transformer架构改进提供全面参考。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.00571v1",
+      "source": "arxiv",
+      "title": "Interpreting Reasoning of Large Language Models via Partial Information Decomposition",
+      "abstract": "Large reasoning models (LRMs) have achieved substantial improvements in solving complex mathematical problems, but often produce lengthy, repetitive, or erroneous reasoning trajectories. In this work, we introduce a new interpretability framework, SLIDER, to evaluate the quality of the reasoning process. SLIDER leverages an emerging body of work from information theory called Partial Information Decomposition to disentangle the information about the final answer between two consecutive reasoning steps into non-negative components: unique information (in preceding steps or current step), redundant information, and synergistic information. Building on this decomposition, we propose the *Step-wise Repetitive Reasoning Index (Step-RRI)*, a theoretically grounded measure that assesses whether the answer-relevant information in the current step $S_i$ is predominantly redundant with the past steps $S_{<i}$, relative to its unique and synergistic contributions. To evaluate the effectiveness of Step-RRI in detecting repetitiveness, we apply SLIDER to the redundancy class of the PRMBench dataset where Step-RRI improves step-level redundancy identification accuracy by over $10$ points compared to embedding-similarity and information-gain baselines. Next, we define *Trajectory-RRI*, an aggregate measure of repetitiveness for an individual reasoning trajectory. To demonstrate its practical relevance, we show that average Trajectory-RRI strongly correlates with actual reasoning length across QwQ-32B, DeepSeek-R1-Distill-Qwen-32B, and GPT-4.1, motivating its use as a signal for improving reasoning efficiency. Finally, we introduce *Trajectory-RRI-guided data selection for fine-tuning*, demonstrating that selecting training data based on Trajectory-RRI can improve a fine-tuned model's reasoning efficiency while largely preserving its task performance.",
+      "authors": [
+        "Barproda Halder",
+        "Qiuyi Zhang",
+        "Sanghamitra Dutta"
+      ],
+      "primary_category": "cs.IT",
+      "categories": [
+        "cs.IT",
+        "cs.AI",
+        "cs.CY",
+        "cs.LG"
+      ],
+      "published": "2026-09-30T18:44:13+00:00",
+      "link": "https://arxiv.org/pdf/2610.00571v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Introduces SLIDER to evaluate reasoning quality using partial information decomposition, measuring repetitive reasoning",
+      "llm_evidence_cn": "引入SLIDER框架，利用部分信息分解评估推理质量，衡量重复推理",
+      "llm_evidence": "引入SLIDER框架，利用部分信息分解评估推理质量，衡量重复推理",
+      "canonical_evidence": "引入SLIDER框架，利用部分信息分解评估推理质量，衡量重复推理",
+      "llm_tldr_en": "SLIDER leverages partial information decomposition to disentangle information between consecutive reasoning steps into unique, redundant, and synergistic components, and proposes Step-RRI to quantify repetitive reasoning in LLM reasoning trajectories.",
+      "llm_tldr_cn": "大型推理模型虽提升数学问题解决，但常产生冗长重复或错误的推理轨迹。本文提出SLIDER解释框架，利用部分信息分解将相邻推理步骤间的信息分解为唯一、冗余与协同分量。基于此提出步级重复推理指数Step-RRI，量化推理过程中的冗余。该框架为评估和优化推理质量提供了新工具。",
+      "llm_tldr": "大型推理模型虽提升数学问题解决，但常产生冗长重复或错误的推理轨迹。本文提出SLIDER解释框架，利用部分信息分解将相邻推理步骤间的信息分解为唯一、冗余与协同分量。基于此提出步级重复推理指数Step-RRI，量化推理过程中的冗余。该框架为评估和优化推理质量提供了新工具。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Chain-of-Thought Reasoning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.00613v1",
+      "source": "arxiv",
+      "title": "Spatial Strategies, Not Actions: Vector-Quantized Geodesics as Tools for LLM-Driven Agents",
+      "abstract": "Large language model (LLM) based agents are often criticized for lacking spatial understanding and mainly exploiting statistical text patterns. We investigate their spatial comprehension through an architecture combining geometrical tools with a LLM serving as a high-level orchestrator in grid-world environments. The agent first collects geodesic trajectories, which are then vector-quantized to extract a representative subset. Offline, the LLM associates a natural language description of the underlying behavioral patterns to each selected trajectory, making it a tool. Online, the LLM chooses the appropriate tool conditioned on the current state and goal. Low-level control is handled by primitive actions that execute the trajectory associated with the tool. From an agentic AI perspective, this approach separates learning into two levels: tool discovery is handled through unsupervised quantization of trajectories, while reasoning and decision-making are handled by the LLM. We test the approach in a partially observable dynamic 2D grid environment with an open vision-language model (Qwen3.6-35B-A3B). Pairing the geometry-derived tool library with an agent-centered zoom tool and a collision detection tool lets a fast, non-reasoning configuration match the goal-reaching rate of a much more costly chain-of-thought version, while cutting the cost of a decision from minutes to seconds.",
+      "authors": [
+        "Gabriel Turinici"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.RO",
+        "eess.SY"
+      ],
+      "published": "2026-09-30T19:16:47+00:00",
+      "link": "https://arxiv.org/pdf/2610.00613v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM-driven agent uses vector-quantized geodesics as tools",
+      "llm_evidence_cn": "LLM驱动的智能体将向量量化测地线作为工具",
+      "llm_evidence": "LLM驱动的智能体将向量量化测地线作为工具",
+      "canonical_evidence": "LLM驱动的智能体将向量量化测地线作为工具",
+      "llm_tldr_en": "LLM agent orchestrates spatial tasks by using vector-quantized geodesic trajectories as tools, combining geometric methods with high-level planning.",
+      "llm_tldr_cn": "该工作针对LLM智能体空间理解不足的问题，提出结合几何工具与LLM高层编排的架构。智能体收集测地线轨迹并向量量化，离线为每条轨迹关联自然语言描述使其成为工具，在线时LLM根据状态和目标选择工具，低层控制由原始动作执行。实验表明该设计能提升LLM在网格世界中的空间策略能力，为智能体的工具增强提供新途径。",
+      "llm_tldr": "该工作针对LLM智能体空间理解不足的问题，提出结合几何工具与LLM高层编排的架构。智能体收集测地线轨迹并向量量化，离线为每条轨迹关联自然语言描述使其成为工具，在线时LLM根据状态和目标选择工具，低层控制由原始动作执行。实验表明该设计能提升LLM在网格世界中的空间策略能力，为智能体的工具增强提供新途径。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Tool-Augmented Language Models",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.00905v1",
+      "source": "arxiv",
+      "title": "Understanding Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems",
+      "abstract": "With the advancement of LLM-based multi-agent systems (MAS), an increasing number of opensource projects are adopting multi-agent architectures as the foundation of their core functionality. Although research and practice on MAS have attracted considerable attention, limited studies have explored the challenges faced by practitioners of open-source LLM-based MAS, the causes of these challenges, and potential solutions. To address this gap,we conducted an empirical study to understand the issues that practitioners encounter when developing and using open-source LLM-based MAS, the possible causes of these issues, and potential solutions. We collected 22,848 closed issues from 21 open-source LLM-basedMASand applied a mixed automated and manual filtering approach to reduce the dataset to 944 issues related to LLM-based MAS.We then analyzed these issues to understand the frequent issues encountered by practitioners, their underlying causes, and potential solutions. Our study results show that (1) Orchestration & Execution Issue is the most common issue faced by practitioners, (2) Workflow Problem, Tool Integration Problem, and Memory Problem are identified as the most frequent causes of the issues, and (3) Optimize Workflow is the predominant solution to the issues. Based on the study results, we derive empirically grounded implications for practitioners and researchers aimed at improving orchestration, tool integration, and memory mechanisms in LLM-based MAS.",
+      "authors": [
+        "Asad Ur Rehman",
+        "Syed Mohammad Kashif",
+        "Ruiyin Li",
+        "Peng Liang",
+        "Zengyang Li",
+        "Arif Ali Khan"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "published": "2026-10-01T01:34:45+00:00",
+      "link": "https://arxiv.org/pdf/2610.00905v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "empirical study of LLM-based multi-agent systems challenges",
+      "llm_evidence_cn": "对LLM多智能体系统挑战的实证研究",
+      "llm_evidence": "对LLM多智能体系统挑战的实证研究",
+      "canonical_evidence": "对LLM多智能体系统挑战的实证研究",
+      "llm_tldr_en": "An empirical study analyzing 22,848 issues from 21 open-source LLM-based multi-agent systems to understand challenges, causes, and solutions.",
+      "llm_tldr_cn": "本文针对开源LLM多智能体系统在实践中面临的挑战、原因及解决方案缺乏研究的问题，对21个开源项目中的22,848个已关闭问题进行了实证分析。通过混合自动与人工方法，归纳了开发和使用中常见的问题类型、根因及应对策略。研究发现多智能体协作、通信和可靠性是关键痛点，为社区提供了改进指导。",
+      "llm_tldr": "本文针对开源LLM多智能体系统在实践中面临的挑战、原因及解决方案缺乏研究的问题，对21个开源项目中的22,848个已关闭问题进行了实证分析。通过混合自动与人工方法，归纳了开发和使用中常见的问题类型、根因及应对策略。研究发现多智能体协作、通信和可靠性是关键痛点，为社区提供了改进指导。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Multi-Agent Systems",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.01195v1",
+      "source": "arxiv",
+      "title": "Federated Agent Optimization",
+      "abstract": "Large language model (LLM) agents increasingly operate in private environments and accumulate valuable experience from task execution, tool use, feedback, and local knowledge. Yet such experience is distributed across organizations and cannot be directly shared because of privacy and proprietary constraints. Conventional federated learning is insufficient for this setting, as agent capabilities extend beyond model parameters to memory, tools, rewards, skills, and structured knowledge. In this paper, we formulate \\textbf{Federated Agent Optimization (FAO)}, which studies how distributed agents can collaboratively improve through controlled information exchange while keeping raw data, complete trajectories, and private knowledge local. We define FAO as a multi-objective problem balancing agent utility, privacy leakage, and communication cost, and organize its optimization space across policy, memory, tool use, reward, and structured knowledge and skills. We further characterize how private experience can be abstracted, protected, aggregated, and adapted into transferable capabilities, providing a unified view of how agents can benefit from one another without direct experience sharing. Finally, we identify the key challenges of FAO and outline several promising directions for future research toward trustworthy federated agent systems.",
+      "authors": [
+        "Qiang Yang",
+        "Zhiqiang Kou",
+        "Xueyi Zhang",
+        "Dong-Dong Wu",
+        "Hanlin Gu",
+        "Jing Guo",
+        "Yang Liu",
+        "Di Jiang",
+        "Qian Xu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-01T07:06:00+00:00",
+      "link": "https://arxiv.org/pdf/2610.01195v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Formulates federated agent optimization for distributed LLM agents to collaboratively improve while preserving privacy",
+      "llm_evidence_cn": "提出联邦智能体优化问题，分布式LLM智能体在保护隐私的同时协作改进",
+      "llm_evidence": "提出联邦智能体优化问题，分布式LLM智能体在保护隐私的同时协作改进",
+      "canonical_evidence": "提出联邦智能体优化问题，分布式LLM智能体在保护隐私的同时协作改进",
+      "llm_tldr_en": "Defines Federated Agent Optimization (FAO), a framework for distributed LLM agents to exchange controlled information without sharing raw data or trajectories, balancing agent utility and privacy.",
+      "llm_tldr_cn": "LLM智能体在私有环境中积累宝贵经验，但经验分散且受隐私限制难以共享。传统联邦学习无法涵盖智能体的记忆、工具、奖励和技能等能力。本文形式化联邦智能体优化（FAO），研究分布式智能体如何通过受控信息交换协作改进，同时保持原始数据与完整轨迹本地化。FAO定义为多目标问题，平衡智能体效用与隐私保护。该工作为跨组织智能体协作提供了新框架。",
+      "llm_tldr": "LLM智能体在私有环境中积累宝贵经验，但经验分散且受隐私限制难以共享。传统联邦学习无法涵盖智能体的记忆、工具、奖励和技能等能力。本文形式化联邦智能体优化（FAO），研究分布式智能体如何通过受控信息交换协作改进，同时保持原始数据与完整轨迹本地化。FAO定义为多目标问题，平衡智能体效用与隐私保护。该工作为跨组织智能体协作提供了新框架。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.04137v1",
+      "source": "arxiv",
+      "title": "Dynamic Harness Search: Building Multi-Agent Systems Per-Query via Prediction",
+      "abstract": "Agent harnesses specify the roles, instructions, tools, and communication structure used to solve a task, and the right harness depends on the query. Because the value of each design choice is observable only through execution, tailoring a harness to each query has required either executing alternatives at inference time or costly manual design. We introduce SHIFT, which moves execution out of the per-query search loop. A local LLM architect learns a policy over harness-building actions from search, and a value function that predicts, from measured executions, a utility balancing accuracy against execution cost. For each query, Monte Carlo tree search uses these predictions to construct a harness. Across 9,193 tasks in six benchmarks, from math to document and general-assistant tasks, with a Gemini 3.5 Flash executor, SHIFT attains the highest mean accuracy, about 80%, outperforming 17 baselines that span prompting, prompt optimization, and workflow search, and exceeding the strongest baseline by 7.2 percentage points. A cheaper mode of SHIFT also attains a higher mean accuracy than every baseline while using 32% fewer execution tokens than the strongest baseline. We further show that choosing structure, instructions, and tools jointly beats choosing only instructions or only tools by up to 9.1 percentage points, and that learned value selection identifies more accurate harnesses with lower execution cost from candidate pools.",
+      "authors": [
+        "Som Sagar",
+        "Shasha Li",
+        "Hejie Cui",
+        "Ransalu Senanayake",
+        "Sercan Ö. Arık"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-02T23:18:55+00:00",
+      "link": "https://arxiv.org/pdf/2610.04137v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Builds multi-agent systems per query via harness search",
+      "llm_evidence_cn": "通过线束搜索按查询构建多智能体系统",
+      "llm_evidence": "通过线束搜索按查询构建多智能体系统",
+      "canonical_evidence": "通过线束搜索按查询构建多智能体系统",
+      "llm_tldr_en": "Addresses costly manual design of agent harnesses by using learned policy and value function to construct per-query multi-agent systems via Monte Carlo tree search.",
+      "llm_tldr_cn": "针对为每个查询手动设计智能体线束成本高的问题，提出SHIFT方法，通过本地LLM架构师学习线束构建策略和价值函数，利用蒙特卡洛树搜索为每个查询动态构建多智能体系统。在六个基准的9193个任务上实验，平衡准确率和执行成本，实现高效定制化多智能体协作。",
+      "llm_tldr": "针对为每个查询手动设计智能体线束成本高的问题，提出SHIFT方法，通过本地LLM架构师学习线束构建策略和价值函数，利用蒙特卡洛树搜索为每个查询动态构建多智能体系统。在六个基准的9193个任务上实验，平衡准确率和执行成本，实现高效定制化多智能体协作。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Multi-Agent Systems",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.04672v1",
+      "source": "arxiv",
+      "title": "MASBench: Benchmarking LLM-based Multi-Agent Collaboration under Partial Observability",
+      "abstract": "Large language models (LLMs) have progressively evolved into the core of autonomous agents. Building on this progress, LLM-based multi-agent systems (MAS) coordinate multiple agents into a synergistic team to accomplish complex tasks that exceed the capabilities of individual agents. The effectiveness of such systems depends not only on the agents themselves, but also on how collaboration mechanisms are designed and organized. Note that real-world collaboration is typically partially observable, where each agent can only access partial information about the environment due to physical or privacy-related constraints. However, many existing multi-agent benchmarks assume global observability, and leave limited support for systematically evaluating collaboration mechanisms. To bridge this gap, we introduce MASBench, a multi-agent collaboration benchmark designed under partially observable constraints. It is organized into three progressive task categories: Reasoning, Scheduling, and Game. Through this structure, we progressively evaluate three representative collaboration mechanisms: Protocol, Memory, and Routing. MASBench further provides deterministic evaluation metrics, including performance score, communication cost, and cost effectiveness, to characterize both collaboration outcomes and communication overhead. Experiments across diverse LLM backbones and mechanism configurations offer empirical guidance for effective MAS design. Code is available at: https://github.com/BUPT-GAMMA/MASBench",
+      "authors": [
+        "Qizhi Chu",
+        "Zekai Yu",
+        "Sijie Wen",
+        "Yang Liu",
+        "Chen Qian",
+        "Cheng Yang",
+        "Chuan Shi",
+        "Zhiyuan Liu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-03T17:40:24+00:00",
+      "link": "https://arxiv.org/pdf/2610.04672v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Benchmark for LLM-based multi-agent collaboration under partial observability",
+      "llm_evidence_cn": "部分可观测性下基于LLM的多智能体协作基准测试",
+      "llm_evidence": "部分可观测性下基于LLM的多智能体协作基准测试",
+      "canonical_evidence": "部分可观测性下基于LLM的多智能体协作基准测试",
+      "llm_tldr_en": "Introduces MASBench, a benchmark designed to evaluate LLM-based multi-agent collaboration under realistic partial observability conditions.",
+      "llm_tldr_cn": "针对现有LLM多智能体基准多假设全局可观测的问题，提出MASBench基准以评估部分可观测条件下的多智能体协作。该基准支持系统评估不同协作机制在信息受限环境下的表现，为多智能体系统的设计与比较提供了平台。实验表明部分可观测性显著影响合作效果，凸显了该基准的重要性。",
+      "llm_tldr": "针对现有LLM多智能体基准多假设全局可观测的问题，提出MASBench基准以评估部分可观测条件下的多智能体协作。该基准支持系统评估不同协作机制在信息受限环境下的表现，为多智能体系统的设计与比较提供了平台。实验表明部分可观测性显著影响合作效果，凸显了该基准的重要性。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.05176v1",
+      "source": "arxiv",
+      "title": "AECG: Asymmetric Experience Consolidation and Governance In Multi-Agent Systems",
+      "abstract": "Large language model (LLM)-based multi-agent systems increasingly rely on memory to transform execution trajectories into reusable procedural knowledge. Yet repeated retrieval also makes memory errors persistent: memory pollution arises when outdated, weakly supported, or spuriously successful procedures become recurring components of future reasoning. Multi-agent execution introduces an additional structural risk. Scope collapse occurs when procedural knowledge escapes the coordination scope in which it was shown effective and is repeatedly reused at incompatible decision levels, allowing local errors to influence cascades of downstream decisions. Meanwhile, task-level failures provide ambiguous supervision because they rarely reveal which recalled knowledge was responsible. We introduce AECG, a framework for asymmetric experience consolidation and governance for multi-agent systems. AECG turns memory from static experience storage into a dynamic reliability-governance loop, preserving coordination scope and using multi-scale, confidence-aware reliability to detect degradation. It then combines degradation with downstream impact to prioritize high-risk knowledge under a bounded review budget, applies targeted interventions, and reactivates revised skills only after paired replay. Across three multi-agent frameworks and four benchmarks, AECG achieves the best score in 11 of 12 framework--benchmark settings and improves over the strongest competing memory method by as much as 10.23 percentage points; removing scope preservation reduces accuracy by up to 16.89 points. AECG thereby reframes multi-agent memory from passive accumulation into auditable reliability governance. Code is available at https://github.com/fenhg297/AECG",
+      "authors": [
+        "Ao Tian",
+        "Jialong Liu",
+        "Daqi Zheng",
+        "Xin Sun",
+        "Mengting Li",
+        "Zhizhao Xiao",
+        "Zijian Huang",
+        "Honglei Wang",
+        "Zijian Hei",
+        "Yukun Yan"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-04T12:38:03+00:00",
+      "link": "https://arxiv.org/pdf/2610.05176v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Consolidates and governs procedural knowledge in multi-agent systems",
+      "llm_evidence_cn": "在多智能体系统中整合与治理程序性知识",
+      "llm_evidence": "在多智能体系统中整合与治理程序性知识",
+      "canonical_evidence": "在多智能体系统中整合与治理程序性知识",
+      "llm_tldr_en": "Targets memory pollution and scope collapse in multi-agent LLM systems via asymmetric experience consolidation and governance mechanisms.",
+      "llm_tldr_cn": "针对多智能体系统中记忆污染和范围崩溃问题，提出AECG框架，通过非对称经验整合与治理机制，管理程序性知识的检索与复用。区分不同协调范围，防止局部错误级联影响下游决策，提升多智能体系统记忆可靠性。",
+      "llm_tldr": "针对多智能体系统中记忆污染和范围崩溃问题，提出AECG框架，通过非对称经验整合与治理机制，管理程序性知识的检索与复用。区分不同协调范围，防止局部错误级联影响下游决策，提升多智能体系统记忆可靠性。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Multi-Agent Systems",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.05481v1",
+      "source": "arxiv",
+      "title": "CodeForge-MA: Execution-Verified Multi-Agent Learning with Language-Conditioned LoRA for Multilingual Code Generation",
+      "abstract": "Large language models for code generation often fail on execution, multilingual coverage, and contamination control, especially under frozen backbone constraints. We present CodeForge-MA, a unified framework that improves code synthesis through a multi-agent data forge, execution verified reinforced instruction tuning, and a language conditioned mixture of LoRA adapters. Four specialized agents, Composer, Reviewer, Executor, and Curator, iteratively refine instruction code pairs, validate them with tests, and filter duplicates and benchmark leakage. During training, we combine masked supervised fine tuning with a test driven reinforcement objective to align generations with executable correctness. For the larger model, we use sparse expert routing over low rank adapters to improve cross language transfer while keeping the base model unchanged at inference. Experiments show that joint data, objective, and adapter design yields robust gains across programming languages.",
+      "authors": [
+        "Zhizhou Gu",
+        "Xianting Wu",
+        "Siyu Gu",
+        "Tian Zhang",
+        "Kejian Tong"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-10-04T19:40:17+00:00",
+      "link": "https://arxiv.org/pdf/2610.05481v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent data forge with language-conditioned LoRA adapters",
+      "llm_evidence_cn": "多智能体数据锻造与语言条件 LoRA 适配器",
+      "llm_evidence": "多智能体数据锻造与语言条件 LoRA 适配器",
+      "canonical_evidence": "多智能体数据锻造与语言条件 LoRA 适配器",
+      "llm_tldr_en": "Proposes CodeForge-MA, a framework combining multi-agent data generation, execution-verified RL, and language-conditioned LoRA for multilingual code generation.",
+      "llm_tldr_cn": "代码生成模型常面临可执行性差、多语言覆盖不足和基准污染问题。本文提出 CodeForge-MA，通过四种专门智能体迭代精炼数据，并用执行验证的强化指令调优和语言条件 LoRA 适配器训练。实验表明该方法在冻结主干下提升可执行代码生成质量，为多语言代码生成提供统一框架。",
+      "llm_tldr": "代码生成模型常面临可执行性差、多语言覆盖不足和基准污染问题。本文提出 CodeForge-MA，通过四种专门智能体迭代精炼数据，并用执行验证的强化指令调优和语言条件 LoRA 适配器训练。实验表明该方法在冻结主干下提升可执行代码生成质量，为多语言代码生成提供统一框架。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Multi-Agent Systems",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.05800v1",
+      "source": "arxiv",
+      "title": "Adaptive Utilization of Low-Rank Adaptation via Conditioned Gating",
+      "abstract": "Low-Rank Adaptation (LoRA) achieves parameter-efficient fine-tuning by constraining model updates to a low-rank subspace and has been widely used in practice. However, LoRA typically employs a shared low-rank update across tokens, which limits its ability to fully exploit the adaptation subspace for tokens from different sequences. To address this issue, we propose an adaptive utilization of Low-Rank Adaptation (U-LoRA), which employs conditioned gating to explicitly learn effective token-level utilization of the limited low-rank adaptation subspace. Specifically, U-LoRA generates utilization coefficients along low-rank directions for each token and jointly coordinates and constrains them using sequence-level contextual information, thereby inducing more consistent adaptive patterns within a sentence. To further enhance training stability, we introduce a bias-corrected exponential moving average (EMA) historical prior that calibrates utilization signals across optimization steps, suppressing noise caused by batch-to-batch fluctuations. The effectiveness of our method arises from a better utilization of the existing low-rank subspace via input-conditioned strategies, rather than from expanding the subspace. Experiments on mathematical reasoning and natural language understanding benchmarks demonstrate that U-LoRA achieves competitive performance under comparable parameter budgets when with strong LoRA baselines and recent variants.",
+      "authors": [
+        "Guang Yang",
+        "Changhao Guan",
+        "Chao Huang",
+        "Yufeng Chen",
+        "Kaiyu Huang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-10-05T04:43:53+00:00",
+      "link": "https://arxiv.org/pdf/2610.05800v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Token-level adaptive LoRA utilization via conditioned gating",
+      "llm_evidence_cn": "基于条件门控的令牌级自适应LoRA",
+      "llm_evidence": "基于条件门控的令牌级自适应LoRA",
+      "canonical_evidence": "基于条件门控的令牌级自适应LoRA",
+      "llm_tldr_en": "Proposes U-LoRA, which uses conditioned gating to generate token-level utilization coefficients for low-rank adaptation directions, improving adaptation over standard shared LoRA updates.",
+      "llm_tldr_cn": "该论文指出LoRA对所有令牌使用共享低秩更新，限制了适配子空间的利用效率。作者提出U-LoRA方法，通过条件门控为每个令牌生成沿低秩方向的利用系数，并结合序列上下文进行协调约束。实验表明U-LoRA能更有效地利用低秩子空间，提升参数高效微调性能。该工作扩展了LoRA的表达能力，为自适应参数高效微调提供了新方案。",
+      "llm_tldr": "该论文指出LoRA对所有令牌使用共享低秩更新，限制了适配子空间的利用效率。作者提出U-LoRA方法，通过条件门控为每个令牌生成沿低秩方向的利用系数，并结合序列上下文进行协调约束。实验表明U-LoRA能更有效地利用低秩子空间，提升参数高效微调性能。该工作扩展了LoRA的表达能力，为自适应参数高效微调提供了新方案。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Parameter-Efficient Fine-Tuning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.06069v1",
+      "source": "arxiv",
+      "title": "Attention Tax, Handoff Tax: A Stylised Model of When Multi-Agent LLM Systems Help",
+      "abstract": "Recent work on multi-agent LLM systems reaches sharply different conclusions: some results show that a single agent with the same information and compute should dominate a delegated system, others that multi-agent gains grow with task depth. We argue that much of the disagreement comes from modelling different bottlenecks, and introduce a stylised reliability model built around two trade-offs. Decomposition reduces the burden of long contexts but incurs a handoff tax when information is compressed or transferred between agents. Redundancy gains from multiple samples, but its benefit depends on how much their failures are shared. With reasoning budget, verification, and task structure added, the model yields two crossover conditions: decomposition becomes preferable once the attention cost avoided by resetting context exceeds the handoff cost, and parallel sampling at equal budget is eventually preferable when its shared-failure floor lies below the error floor of one agent thinking longer. We connect these regimes to recent theoretical and empirical results. On a ledger-reconciliation task we measure the context-degradation curve and the handoff tax from single-agent and handoff runs alone. From these the model places the crossover at depth 10 and predicts decomposition to win at depths 20, 50, and 100. It does, on step-level and final-balance accuracy, and the decomposed system's success, which the prediction never sees, lands within 9 percentage points of the predicted rate at every depth.",
+      "authors": [
+        "Akshit Anchan",
+        "Nayonika Sen"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-10-05T10:04:20+00:00",
+      "link": "https://arxiv.org/pdf/2610.06069v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "stylised reliability model for multi-agent LLM systems",
+      "llm_evidence_cn": "多智能体 LLM 系统的风格化可靠性模型",
+      "llm_evidence": "多智能体 LLM 系统的风格化可靠性模型",
+      "canonical_evidence": "多智能体 LLM 系统的风格化可靠性模型",
+      "llm_tldr_en": "Presents a stylised reliability model analyzing trade-offs in multi-agent LLM systems, identifying conditions under which decomposition or redundancy helps.",
+      "llm_tldr_cn": "针对多智能体 LLM 系统研究结论矛盾的现象，提出风格化可靠性模型。模型围绕分解带来的注意力负担减轻与交接税，以及冗余带来的收益与共享失败，刻画两种交叉条件。分析揭示任务结构与推理预算对多智能体有效性的影响，为理解多智能体系统的适用场景提供理论框架。",
+      "llm_tldr": "针对多智能体 LLM 系统研究结论矛盾的现象，提出风格化可靠性模型。模型围绕分解带来的注意力负担减轻与交接税，以及冗余带来的收益与共享失败，刻画两种交叉条件。分析揭示任务结构与推理预算对多智能体有效性的影响，为理解多智能体系统的适用场景提供理论框架。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Multi-Agent Systems",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.06293v1",
+      "source": "arxiv",
+      "title": "VepAgent: Bridging Causal-Transition via Tool-Augmented Reinforcement Learning for Video Event Prediction",
+      "abstract": "Multimodal Large Language Models (MLLMs) have demonstrated remarkable potential in video understanding, yet their reliance on retrospective summarization and text-centric priors often limits their ability to bridge unobserved causal transitions when applied to Video Event Prediction (VEP). To address this, we propose VepAgent, an agentic framework that integrates causal-transition reasoning with tool-augmented reinforcement learning (RL) for robust VEP. Unlike prior methods that passively project future trajectories from historical dependencies, our approach explicitly models the logical progression from terminal observed states to future events. Specifically, we first construct futurebench-4K, a high-quality chain-of-thought dataset for supervised fine-tuning (SFT) that effectively bridges the causal-logic gap by structuring the deduction of unobserved intermediate states. Subsequently, we develop a diagnostic tool library integrating state tracking, frame retrieval, and region magnification, enabling the agent to dynamically augment reasoning with external tools to recover missing spatio-temporal evidence and resolve visual ambiguities during inference. Moreover, we propose a composite reward mechanism that jointly optimizes prediction accuracy, causal coherence, and reliable prior, compelling the agent to rely on genuine visual grounding rather than superficial textual similarities. Extensive evaluations on FutureBench and NEPBench datasets demonstrate that our method achieves state-of-the-art performance, significantly outperforming larger MLLMs and validating the empirical effectiveness of our agentic, future-oriented reasoning paradigm.",
+      "authors": [
+        "Qiutong Chen",
+        "Yuchan Guo",
+        "Zhenlong Yuan",
+        "Haobo Yang",
+        "Fangfang Lin",
+        "Xinyi Long",
+        "Yin Wang",
+        "Zijian Song",
+        "Rui Lan",
+        "Shi Qiu",
+        "Boyuan Pan",
+        "Yang Luo",
+        "Yuyin Zhou"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-10-05T13:19:10+00:00",
+      "link": "https://arxiv.org/pdf/2610.06293v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "tool-augmented RL for causal-transition reasoning",
+      "llm_evidence_cn": "工具增强强化学习实现因果转移推理",
+      "llm_evidence": "工具增强强化学习实现因果转移推理",
+      "canonical_evidence": "工具增强强化学习实现因果转移推理",
+      "llm_tldr_en": "Proposes VepAgent, an agentic framework combining causal-transition reasoning with tool-augmented RL for video event prediction.",
+      "llm_tldr_cn": "针对视频事件预测中未观测因果转移建模不足的问题，提出 VepAgent 框架。该框架将因果转移推理与工具增强强化学习相结合，显式建模从观测状态到未来事件的逻辑进程。在构建的 futurebench-4K 基准上，VepAgent 提升预测鲁棒性，为多模态智能体提供新思路。",
+      "llm_tldr": "针对视频事件预测中未观测因果转移建模不足的问题，提出 VepAgent 框架。该框架将因果转移推理与工具增强强化学习相结合，显式建模从观测状态到未来事件的逻辑进程。在构建的 futurebench-4K 基准上，VepAgent 提升预测鲁棒性，为多模态智能体提供新思路。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Tool-Augmented Language Models",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.06542v1",
+      "source": "arxiv",
+      "title": "A Fine-Grained Analysis of the LoRA Fine-Tuning Landscape with Implications for Data Selection",
+      "abstract": "Low-Rank Adaptation (LoRA) has become a standard approach for parameter-efficient fine-tuning, yet a fundamental practical question remains unresolved: how should the adapter rank be chosen? An overly small rank may lead to a poorly conditioned optimization landscape, whereas an unnecessarily large rank sacrifices the efficiency that motivates LoRA in the first place. Existing theoretical analyses provide only limited guidance on this trade-off, and their guarantees are typically established under restrictive theoretical settings. We address this gap by developing a substantially sharper landscape theory for LoRA, building on modern results from nonconvex low-rank matrix sensing. Our central insight is that the appropriate adapter rank should depend on the quality of the data-induced optimization geometry, rather than on the model alone. To formalize this connection, we introduce LoRA-RIP, a data-dependent restricted-isometry metric that characterizes the conditioning of the cross-entropy (CE) objective along LoRA-relevant low-rank directions. We prove that sufficient rank over-parameterization, with the required rank explicitly determined by the LoRA-RIP constant, eliminates spurious local minima, thereby extending existing RIP-based guarantees beyond the classical 1/3 regime. This characterization further enables principled data selection under a fixed rank budget. Experiments across language and vision tasks support these theoretical predictions, showing that rank and data quality are two coupled resources that should be jointly considered for more efficient and reliable LoRA fine-tuning.",
+      "authors": [
+        "Bowen Zhang",
+        "Changrui Fang",
+        "Xinsong Ma",
+        "Jiaye Teng",
+        "Ziye Ma"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-05T15:39:08+00:00",
+      "link": "https://arxiv.org/pdf/2610.06542v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Analyzes LoRA fine-tuning landscape and rank selection",
+      "llm_evidence_cn": "LoRA微调景观分析与秩选择",
+      "llm_evidence": "LoRA微调景观分析与秩选择",
+      "canonical_evidence": "LoRA微调景观分析与秩选择",
+      "llm_tldr_en": "This paper provides a sharper theoretical analysis of the LoRA optimization landscape to guide adapter rank selection, leveraging nonconvex low-rank matrix sensing. It shows how rank affects conditioning and offers implications for data selection in fine-tuning.",
+      "llm_tldr_cn": "本文针对LoRA微调中适配器秩的选择难题，利用非凸低秩矩阵感知的现代结果，建立了更精细的优化景观理论，揭示了秩大小对优化条件数的影响。该理论为实际应用中的秩选择和数据选择提供了可操作的指导，有助于在参数效率与模型性能之间取得更好平衡。",
+      "llm_tldr": "本文针对LoRA微调中适配器秩的选择难题，利用非凸低秩矩阵感知的现代结果，建立了更精细的优化景观理论，揭示了秩大小对优化条件数的影响。该理论为实际应用中的秩选择和数据选择提供了可操作的指导，有助于在参数效率与模型性能之间取得更好平衡。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on efficient fine tuning, LoRA, QLoRA, instruction tuning, RLHF, DPO, and alignment of large language models.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.06830v1",
+      "source": "arxiv",
+      "title": "MemPilot: Orchestrating On-Demand Multimodal Memory Curation for LLM Agents",
+      "abstract": "Memory has become integral to the LLM agent ecosystem, supporting information retention and reuse across interactions. However, most existing agent memory systems construct memory in a query-agnostic manner, which can incur unnecessary preprocessing cost and discard details that later prove essential. Recent studies have begun shifting memory processing toward runtime adaptation, but typically specialize in particular operations or fixed processing schemes, leaving flexible control over performance, cost, and latency largely underexplored. To address this challenge, we present \\textbf{MemPilot}, a flexible framework that orchestrates on-demand memory curation under different performance--cost--latency preferences. Specifically, we optimize a multi-step LLM policy via reinforcement learning to iteratively choose between retrieving from query-agnostic memory and delegating query-specific curation of raw multimodal history to heterogeneous LLMs and VLMs. The policy jointly controls evidence amount, curation instructions, model selection, and visual access, enabling fine-grained allocation of runtime computation. To optimize this policy under competing objectives, we adapt objective-wise advantage decoupling by separately estimating each objective's advantage before aggregation. Moreover, we introduce prefix-based marginal utility estimation for fine-grained credit assignment across multi-step rollouts. Experiments on five multimodal agent-memory benchmarks demonstrate favorable performance--cost--latency trade-offs across optimization preferences, with preference sweeps yielding broader frontiers than existing trade-off-aware baselines.",
+      "authors": [
+        "Haozhen Zhang",
+        "Haodong Yue",
+        "Quanyu Long",
+        "Jianzhu Bao",
+        "Qingyuan Liu",
+        "Tao Feng",
+        "Bohan Liu",
+        "Weida Liang",
+        "Wenya Wang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-10-05T17:58:06+00:00",
+      "link": "https://arxiv.org/pdf/2610.06830v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "flexible on-demand memory curation for LLM agents",
+      "llm_evidence_cn": "面向 LLM 智能体的按需多模态记忆编排",
+      "llm_evidence": "面向 LLM 智能体的按需多模态记忆编排",
+      "canonical_evidence": "面向 LLM 智能体的按需多模态记忆编排",
+      "llm_tldr_en": "Presents MemPilot, a framework for on-demand multimodal memory curation in LLM agents that balances performance, cost, and latency via flexible multi-objective optimization.",
+      "llm_tldr_cn": "现有智能体记忆系统通常在查询无关方式下构建，造成不必要预处理并丢失关键细节。本文提出 MemPilot 框架，支持按需的多模态记忆编排，在不同性能-成本-延迟偏好下灵活权衡。实验表明该框架能根据需求动态优化记忆操作。该工作为智能体记忆管理提供了更实用的自适应方案。",
+      "llm_tldr": "现有智能体记忆系统通常在查询无关方式下构建，造成不必要预处理并丢失关键细节。本文提出 MemPilot 框架，支持按需的多模态记忆编排，在不同性能-成本-延迟偏好下灵活权衡。实验表明该框架能根据需求动态优化记忆操作。该工作为智能体记忆管理提供了更实用的自适应方案。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.06964v1",
+      "source": "arxiv",
+      "title": "Principles that Guide, Actions that Inform: Agent Evolution via Knowledge Abstraction",
+      "abstract": "Large language model (LLM) agents have demonstrated strong capabilities in interactive environments, yet their ability to continually evolve from experience remains limited. Although fine-tuning enables adaptation, its dependence on parameter access and high computational costs restrict its flexibility, especially for large-scale and closed-source LLMs. External memory offers an alternative by allowing agents to accumulate experience without modifying model parameters. However, existing methods mainly focus on experience representation and organization, while the acquired knowledge remains tightly coupled with specific tasks and contexts, limiting generalization. A key challenge is how to transform concrete interactions into abstract and reusable knowledge that guides future decisions beyond individual experiences.   To address this challenge, we propose SAGA (\\underline{\\textbf{S}}elf-evolving \\underline{\\textbf{A}}gents through Experience-\\underline{\\textbf{G}}rounded \\underline{\\textbf{A}}bstraction), a framework for experience-grounded knowledge abstraction and utilization in LLM agents. SAGA progressively transforms interaction trajectories into episodic descriptions, reusable procedures, and principles with explicit applicability conditions, while maintaining links to execution evidence. Retrieved principles are instantiated into task-specific guidance and used to refine candidate actions through corrective feedback and resampling. This creates an execution--abstraction feedback loop, where accumulated knowledge guides future interactions and new experiences continuously update hierarchical memory. Experiments on ScienceWorld and ALFWorld demonstrate improved task performance, with ablation studies highlighting the importance of contextual instantiation and action regulation for leveraging principle-level knowledge.",
+      "authors": [
+        "Bowen Ye",
+        "Yongchao Xu",
+        "Junkai Ma",
+        "Xiang Yin",
+        "Wenzhao Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-10-03T17:29:38+00:00",
+      "link": "https://arxiv.org/pdf/2610.06964v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM agent experience evolution and external memory knowledge abstraction",
+      "llm_evidence_cn": "LLM 智能体经验演化与外部记忆知识抽象",
+      "llm_evidence": "LLM 智能体经验演化与外部记忆知识抽象",
+      "canonical_evidence": "LLM 智能体经验演化与外部记忆知识抽象",
+      "llm_tldr_en": "Proposes a method to evolve LLM agents by abstracting agent experiences into reusable principles through external memory, enabling adaptation without fine-tuning.",
+      "llm_tldr_cn": "现有 LLM 智能体难以从经验中持续演化，外部记忆方法常受限于具体任务。本文提出将具体交互抽象为通用原则以更新外部记忆，使智能体无需微调即可适应新任务。实验表明抽象知识能提升跨任务泛化能力。该工作为无需参数更新的大规模智能体持续学习提供了新路径。",
+      "llm_tldr": "现有 LLM 智能体难以从经验中持续演化，外部记忆方法常受限于具体任务。本文提出将具体交互抽象为通用原则以更新外部记忆，使智能体无需微调即可适应新任务。实验表明抽象知识能提升跨任务泛化能力。该工作为无需参数更新的大规模智能体持续学习提供了新路径。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.07553v1",
+      "source": "arxiv",
+      "title": "Which and When to Admit: Gradient Admission for Data-Centric Small Language Model Finetuning",
+      "abstract": "LoRA fine-tuning adapts small language models (SLMs) to heterogeneous instruction data within a low-rank update subspace, making it vulnerable to three structural problems: conflicting gradients that cancel, static data selection that cannot track evolving learning dynamics, and subspace saturation that causes later updates to overwrite useful directions. We argue that effective adaptation therefore requires controlling which data-induced gradients enter the LoRA subspace and when. We propose GRADE (GRadient-Aligned Data-centric rEcipe), a data-centric framework combining two mechanisms: a state-aware selector that continually admits samples aligned with the evolving multi-task gradient field, and a self-calibrating step-level gate that rejects updates likely to cause destructive overwrite near saturation. Across three current-generation backbones and a heterogeneous seven-dataset instruction pool, GRADE outperforms strong data-selection and PEFT-stabilization baselines in accuracy and robustness. It is the only method to improve consistently over standard LoRA on every architecture, while producing more coherent gradient trajectories and less destructive overwrite. These results show that successful SLM adaptation depends not only on which data are selected, but also on which gradients are allowed to enter and persist in the constrained update subspace.",
+      "authors": [
+        "Hongyu Cao",
+        "Yanchi Liu",
+        "Kunpeng Liu",
+        "Xujiang Zhao",
+        "Wei Cheng",
+        "Zhengzhang Chen",
+        "Yanjie Fu",
+        "Haifeng Chen"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-10-06T00:34:38+00:00",
+      "link": "https://arxiv.org/pdf/2610.07553v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Improves LoRA fine-tuning via gradient admission control",
+      "llm_evidence_cn": "通过梯度准入控制改进LoRA微调",
+      "llm_evidence": "通过梯度准入控制改进LoRA微调",
+      "canonical_evidence": "通过梯度准入控制改进LoRA微调",
+      "llm_tldr_en": "Addresses conflicting gradients and subspace saturation in LoRA fine-tuning by selectively admitting data-induced gradients via a state-aware selector and self-calibrating gating.",
+      "llm_tldr_cn": "针对LoRA微调小语言模型时存在的梯度冲突、静态数据选择和子空间饱和问题，提出GRADE框架，包含状态感知选择器和自校准步进门控，动态控制进入低秩子空间的数据梯度。在异构指令数据上提升适应效果，增强小模型微调稳定性。",
+      "llm_tldr": "针对LoRA微调小语言模型时存在的梯度冲突、静态数据选择和子空间饱和问题，提出GRADE框架，包含状态感知选择器和自校准步进门控，动态控制进入低秩子空间的数据梯度。在异构指令数据上提升适应效果，增强小模型微调稳定性。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Parameter-Efficient Fine-Tuning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.07676v1",
+      "source": "arxiv",
+      "title": "Exact-Solution Volume and Length Generalization in Transformers",
+      "abstract": "Research on transformer expressivity shows whether a transformer is capable of solving a given task, but gives little indication of whether the solution, if learned, is generalizable to longer input lengths. We study this question through normalized exact-solution volume (NESV): the fraction of a bounded parameter region that achieves an exact solution on every input of length $n$. For fixed-width, single-layer transformers with $\\log n$-scaled attention, we establish asymptotic bounds on NESV for four tasks: FIRST ($Θ(1)$), MAJORITY ($Θ(1/(n\\log n))$), INDEX ($Θ(1/n^3)$), and PARITY ($0$). These results are consistent with previous empirical results: the faster the exact-solution volume decays with input length, the harder it is to length-generalize on that task. Looking deeper into INDEX, our volume analysis reveals two error sources that grow with $n$. Consequently, we study a transformer model that would structurally eliminate one of the terms, theoretically improving the NESV bound to $Θ(n^{-1})$, and empirically achieving 85% accuracy when tested at $10\\times$ the training length, compared with the 60% accuracy of the original model. We conclude that volume analysis may be a useful approach to identify concrete sources of length sensitivity and thus provide insights into task-specific model refinements.",
+      "authors": [
+        "Yijia Jessica Zhu",
+        "David Chiang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-10-06T03:11:14+00:00",
+      "link": "https://arxiv.org/pdf/2610.07676v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Theoretical analysis of transformer length generalization",
+      "llm_evidence_cn": "Transformer长度泛化的理论分析",
+      "llm_evidence": "Transformer长度泛化的理论分析",
+      "canonical_evidence": "Transformer长度泛化的理论分析",
+      "llm_tldr_en": "Introduces normalized exact-solution volume to measure fraction of parameter space achieving exact solutions, showing decay rates correlate with length generalization difficulty in single-layer transformers.",
+      "llm_tldr_cn": "该论文研究Transformer在长度泛化方面的能力，提出归一化精确解体积（NESV）指标，衡量参数空间中能对长度n输入实现精确解的比例。针对固定宽度单层Transformer，给出了FIRST、MAJORITY等四个任务的渐近界。结果表明精确解体积随输入长度衰减越快，长度泛化越困难，与经验观察一致。该理论为理解Transformer长度泛化提供了新框架。",
+      "llm_tldr": "该论文研究Transformer在长度泛化方面的能力，提出归一化精确解体积（NESV）指标，衡量参数空间中能对长度n输入实现精确解的比例。针对固定宽度单层Transformer，给出了FIRST、MAJORITY等四个任务的渐近界。结果表明精确解体积随输入长度衰减越快，长度泛化越困难，与经验观察一致。该理论为理解Transformer长度泛化提供了新框架。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.07787v1",
+      "source": "arxiv",
+      "title": "OOPMAS: Object-Oriented Multi-Agent Systems for Query-Level Workflow Generation",
+      "abstract": "Multi-agent systems (MAS) powered by large language models have shown strong performance across code generation, mathematical reasoning, and question answering. However, existing methods for automating MAS design mostly operate at the task level, producing a single fixed workflow per benchmark that is applied uniformly to all queries. This assumption fails under realistic conditions. Query difficulty varies widely within a task, and real-world workloads mix heterogeneous task types. We introduce OOPMAS, a training-free framework that generates both the agent set and the coordination workflow at the granularity of individual queries. Agents are represented as object-oriented class definitions with dedicated roles, tools, and persistent state, and workflows are expressed as executable main functions over these agent objects. A dynamic skill library accumulates structured lessons from execution feedback across optimization rounds, enabling in-context improvement without any gradient updates or fine-tuning. On a mixed-task benchmark of queries spanning code, math, and QA, OOPMAS achieves 89.6% accuracy, outperforming the strongest baseline by 18.1 percentage points. A model-swap study across four LLM backbones shows consistent scaling, reaching 92.4% with the strongest model.",
+      "authors": [
+        "Qi Cheng",
+        "Shengyu Chen",
+        "Wei Cheng",
+        "Yiqun Xie",
+        "Xiaowei Jia",
+        "Haoyu Wang",
+        "Haifeng Chen"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-06T05:31:29+00:00",
+      "link": "https://arxiv.org/pdf/2610.07787v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "query-level multi-agent workflow generation with object-oriented design",
+      "llm_evidence_cn": "面向查询的多智能体工作流生成与面向对象设计",
+      "llm_evidence": "面向查询的多智能体工作流生成与面向对象设计",
+      "canonical_evidence": "面向查询的多智能体工作流生成与面向对象设计",
+      "llm_tldr_en": "OOPMAS generates agent sets and coordination workflows at per-query granularity using object-oriented class definitions, improving flexibility across heterogeneous tasks.",
+      "llm_tldr_cn": "本文针对现有多智能体系统设计大多停留在任务级、无法适应查询难度差异和异构任务混合的问题，提出OOPMAS框架，以训练无关的方式为每个查询生成智能体集合与协调工作流。智能体被表示为面向对象类定义，包含专用角色、工具和持久状态。实验表明，该方法在多种基准上优于固定工作流，显著提升多智能体系统的适应性和性能。",
+      "llm_tldr": "本文针对现有多智能体系统设计大多停留在任务级、无法适应查询难度差异和异构任务混合的问题，提出OOPMAS框架，以训练无关的方式为每个查询生成智能体集合与协调工作流。智能体被表示为面向对象类定义，包含专用角色、工具和持久状态。实验表明，该方法在多种基准上优于固定工作流，显著提升多智能体系统的适应性和性能。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Multi-Agent Systems",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.07835v1",
+      "source": "arxiv",
+      "title": "DHCG: Dynamic Construction of Hierarchical Collaboration Graphs for LLM-Based Multi-Agent Reasoning",
+      "abstract": "LLM-based multi-agent systems (MAS) have demonstrated strong capabilities in solving complex problems across diverse domains. Recently, the dynamic orchestration of agent systems has become an important research direction. However, existing methods suffer from limited composition, misaligned dependencies, and inflexible scale, restricting their ability to adapt to reasoning requirements during execution. To address these limitations, we reframe MAS design as a partially observable Markov decision process, in which both the composition and scale of the MAS are dynamically determined. We propose DHCG, a novel framework that coordinates three modules (Planner, Worker, and Generator) to progressively construct a dynamic hierarchical collaboration graph from scratch based on the query and evolving execution feedback. At each step, guided by feedback, the Planner generates a set of distinct and complementary roles tailored to the current reasoning needs and selectively routes relevant information to each role. It can also finalize the hierarchical collaboration graph early or progressively expand it when additional reasoning is required. We further introduce action-aware preference optimization to train the Planner to make more effective decisions when constructing hierarchical collaboration graphs. We systematically evaluate DHCG across code generation, mathematical reasoning, and domain-specific reasoning benchmarks. DHCG achieves state-of-the-art average performance among the compared methods, improving over the single-agent baseline by 13.06 points and outperforming both static and dynamic MAS baselines by 2.77-8.02 points. Additional experiments further demonstrate its generalization across different Planner backbones and unseen Worker models.",
+      "authors": [
+        "Jie Ren",
+        "Jiakang Yuan",
+        "Chenyu Huang",
+        "Hezeer Ma",
+        "Jiayuan Fan",
+        "Tao Chen"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-06T06:33:40+00:00",
+      "link": "https://arxiv.org/pdf/2610.07835v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "dynamic hierarchical collaboration graphs for LLM-based multi-agent reasoning",
+      "llm_evidence_cn": "面向LLM多智能体推理的动态层次协作图构建",
+      "llm_evidence": "面向LLM多智能体推理的动态层次协作图构建",
+      "canonical_evidence": "面向LLM多智能体推理的动态层次协作图构建",
+      "llm_tldr_en": "DHCG reframes LLM-based multi-agent system design as a POMDP and dynamically constructs hierarchical collaboration graphs via Planner, Worker, and Generator modules to adapt composition and scale during reasoning.",
+      "llm_tldr_cn": "现有LLM多智能体系统在动态编排上存在组合受限、依赖错位和规模僵化等问题。DHCG将多智能体系统设计建模为部分可观测马尔可夫决策过程，由规划器、工作者和生成器三个模块逐步构建动态层次协作图。该方法在执行过程中动态确定智能体的组成与规模，以适配推理需求。实验表明可提升复杂问题求解的适应性和效果。",
+      "llm_tldr": "现有LLM多智能体系统在动态编排上存在组合受限、依赖错位和规模僵化等问题。DHCG将多智能体系统设计建模为部分可观测马尔可夫决策过程，由规划器、工作者和生成器三个模块逐步构建动态层次协作图。该方法在执行过程中动态确定智能体的组成与规模，以适配推理需求。实验表明可提升复杂问题求解的适应性和效果。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.07848v1",
+      "source": "arxiv",
+      "title": "Dynamic Positional Attention Modulation for Parameter-Efficient Fine-Tuning of Large Language Models",
+      "abstract": "Parameter-efficient fine-tuning (PEFT) has become a standard approach for adapting large language models to downstream tasks. However, most existing PEFT methods rely on uniform and static adaptations, without accounting for the structured heterogeneity of attention across dimensions, heads, layers, and input tokens. In practice, attention representations exhibit non-uniform behavior, and positional encoding mechanisms such as rotary positional embeddings (RoPE) induce dimension-dependent positional structure, making uniform adaptation suboptimal. In this work, we propose DyPAM (Dynamic Positional Attention Modulation), a PEFT method that adapts how positional information contributes to attention by operating directly on the query and key representations. DyPAM combines input-conditioned, dimension-wise modulation with head-wise and layer-wise structural modulation, performing fine-grained adaptation of positional attention aligned with the RoPE-induced structure without modifying the pretrained backbone. Extensive experiments on mathematical and commonsense reasoning benchmarks across multiple backbone models demonstrate that DyPAM consistently outperforms existing strong PEFT baselines.",
+      "authors": [
+        "Dayan Pan",
+        "Jingyuan Wang",
+        "Xie Yu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-10-06T06:55:38+00:00",
+      "link": "https://arxiv.org/pdf/2610.07848v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes DyPAM, a PEFT method that dynamically adapts positional contributions in attention for heterogeneous structure",
+      "llm_evidence_cn": "提出DyPAM，一种动态调整注意力中位置贡献的参数高效微调方法",
+      "llm_evidence": "提出DyPAM，一种动态调整注意力中位置贡献的参数高效微调方法",
+      "canonical_evidence": "提出DyPAM，一种动态调整注意力中位置贡献的参数高效微调方法",
+      "llm_tldr_en": "DyPAM addresses uniform static PEFT by modulating positional information in attention based on dimension-position structure from RoPE, improving adaptation efficiency for LLMs.",
+      "llm_tldr_cn": "现有参数高效微调（PEFT）方法采用统一静态调整，忽略注意力跨维度、头、层的结构异质性。DyPAM提出动态位置注意力调制，直接在RoPE机制上调整位置信息对注意力的贡献，适应维度依赖的位置结构。该方法旨在以参数高效方式捕捉注意力中的非均匀行为，有望提升微调效果。",
+      "llm_tldr": "现有参数高效微调（PEFT）方法采用统一静态调整，忽略注意力跨维度、头、层的结构异质性。DyPAM提出动态位置注意力调制，直接在RoPE机制上调整位置信息对注意力的贡献，适应维度依赖的位置结构。该方法旨在以参数高效方式捕捉注意力中的非均匀行为，有望提升微调效果。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Parameter-Efficient Fine-Tuning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.08155v1",
+      "source": "arxiv",
+      "title": "Token-Efficient Multi-Agent Collaboration via System One-Guided Computational Division of Labor",
+      "abstract": "Large language model (LLM)-based multi-agent systems (MAS) have become a promising paradigm for complex information-seeking and reasoning tasks by enabling collaborative problem solving among specialized agents. However, existing MAS frameworks tightly couple task reasoning with coordination operations, including task selection, role assignment, message routing, and context management. As interactions grow, using powerful LLMs for these bounded control decisions introduces substantial token overhead and latency, limiting the scalability of agentic Web services. In this paper, we investigate whether coordination can be decoupled from expensive reasoning without compromising collaborative performance. We propose S1-MAS, a token-efficient multi-agent framework based on System One-guided computational division of labor. S1-MAS assigns bounded coordination decisions to lightweight System One models while reserving open-ended reasoning for capable LLM workers. Specifically, a lightweight controller selects inspection conditions, chooses subsequent tasks, and determines termination, while a compact reader retrieves condition-relevant evidence from authorized sources to support these decisions. Through a decision-evidence loop, selected tasks dynamically determine worker roles and source access, enabling adaptive collaboration without task-specific training. Extensive experiments on seven diverse benchmarks demonstrate that S1-MAS achieves superior accuracy while substantially reducing the inference cost. Across individual comparisons with AgentVerse, DyLAN, and SelfOrg on seven benchmarks, S1-MAS reduces GPT-4o token consumption by 44.9%-97.2% and measured end-to-end latency by 37.8%-93.0%. These results highlight its potential for scalable and cost-effective agentic Web applications.",
+      "authors": [
+        "Zihan Zhou",
+        "Xinzhe Hu",
+        "Hanxu Yang",
+        "Liangjian Wen",
+        "Zhao Kang"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.AI"
+      ],
+      "published": "2026-10-06T11:11:05+00:00",
+      "link": "https://arxiv.org/pdf/2610.08155v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Token-efficient multi-agent collaboration via decoupling coordination from reasoning",
+      "llm_evidence_cn": "通过将协调与推理解耦实现token高效的多智能体协作",
+      "llm_evidence": "通过将协调与推理解耦实现token高效的多智能体协作",
+      "canonical_evidence": "通过将协调与推理解耦实现token高效的多智能体协作",
+      "llm_tldr_en": "Proposes S1-MAS to reduce token overhead in LLM-based multi-agent systems by using System One thinking for coordination while preserving reasoning quality.",
+      "llm_tldr_cn": "本文针对LLM多智能体系统中协调操作带来巨大token开销和延迟的问题，提出S1-MAS框架，将协调控制与昂贵推理解耦，利用快速System One思维处理任务选择、角色分配等协调决策，从而降低token消耗并提升可扩展性。实验结果表明该方法在保持协作性能的同时显著提高效率，为大规模智能体服务提供了新的设计思路。",
+      "llm_tldr": "本文针对LLM多智能体系统中协调操作带来巨大token开销和延迟的问题，提出S1-MAS框架，将协调控制与昂贵推理解耦，利用快速System One思维处理任务选择、角色分配等协调决策，从而降低token消耗并提升可扩展性。实验结果表明该方法在保持协作性能的同时显著提高效率，为大规模智能体服务提供了新的设计思路。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Multi-Agent Systems",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.08312v1",
+      "source": "arxiv",
+      "title": "CoDe-LoRA: Mitigating the Orthogonality Dilemma in Continual Learning of LLMs via Knowledge Consolidation and Decoupling",
+      "abstract": "Continual learning (CL) is essential for Large Language Models (LLMs) to sequentially adapt to evolving tasks. To mitigate catastrophic forgetting, recent advances implement low-rank adaptation with orthogonal projections (e.g., O-LoRA) to isolate task parameters. However, we reveal that such strict geometric constraints trigger an \"Orthogonality Dilemma\": rigid parameter isolation impedes the transfer and accumulation of shared representations across semantically related tasks. In this work, we propose a new replay-free method, called Consolidation and Decoupling LoRA (CoDe-LoRA), for CL of LLMs. CoDe-LoRA disentangles the learning process into Consolidating Universal Knowledge and Decoupling Task-Specific Knowledge. To achieve this, CoDe-LoRA leverages an adaptive null space projection mechanism and semantic routing to balance knowledge accumulation with task-specific adaptation. Experimental results across four backbones and three CL benchmarks show that CoDe-LoRA achieves the best average accuracy. Our code is available at https://github.com/Estrellajer/CoDe-LoRA.",
+      "authors": [
+        "Maoqi Liu",
+        "Quan Fang",
+        "Yufei He"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-10-06T13:17:25+00:00",
+      "link": "https://arxiv.org/pdf/2610.08312v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LoRA-based continual learning with knowledge consolidation and decoupling",
+      "llm_evidence_cn": "基于 LoRA 的知识整合与解耦持续学习方法",
+      "llm_evidence": "基于 LoRA 的知识整合与解耦持续学习方法",
+      "canonical_evidence": "基于 LoRA 的知识整合与解耦持续学习方法",
+      "llm_tldr_en": "Proposes CoDe-LoRA, a replay-free LoRA method that disentangles universal knowledge consolidation and task-specific decoupling to address the orthogonality dilemma in continual learning.",
+      "llm_tldr_cn": "针对 LLM 持续学习中严格正交约束阻碍共享表征迁移的问题，提出 CoDe-LoRA。该方法将学习过程分离为通用知识整合与任务特定解耦，无需重放。实验表明 CoDe-LoRA 在多个任务上优于现有 LoRA 变体，缓解遗忘并促进知识迁移。",
+      "llm_tldr": "针对 LLM 持续学习中严格正交约束阻碍共享表征迁移的问题，提出 CoDe-LoRA。该方法将学习过程分离为通用知识整合与任务特定解耦，无需重放。实验表明 CoDe-LoRA 在多个任务上优于现有 LoRA 变体，缓解遗忘并促进知识迁移。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on efficient fine tuning, LoRA, QLoRA, instruction tuning, RLHF, DPO, and alignment of large language models.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.09858v1",
+      "source": "arxiv",
+      "title": "Training Advisors for LLM Agents from Task Outcomes",
+      "abstract": "Large language model agents tackle multi-step tasks by interleaving reasoning and tool calls with observations from the environment. Prior work has shown that natural-language feedback can help these agents revise their decisions during task execution. We introduce Caddie, a method for training critics to provide natural-language analysis and advice as agents work through a task. Unlike approaches that rely on step-level labels or reference critiques, Caddie learns from whether the agent ultimately succeeds after receiving the critic's feedback. We optimize the critic through reinforcement learning while keeping the base model frozen. Trained on multi-hop question answering with a single base model, our Qwen3-4B critic improves success rates across four base models of different scales and architectures, including three not used during critic training. On the MuSiQue benchmark, the trained critic improves Qwen3-4B's success rate by more than 25 percentage points, surpassing the performance of Kimi K3 without a critic. The same critic also yields gains on out-of-domain interactive benchmarks, including $τ^3$ and DeepDive, with no additional training. Our results show that agents can decide when to seek help from a critic at inference time and that outcome-based critic training can produce guidance that transfers across base models and task domains.",
+      "authors": [
+        "Sergei Polezhaev",
+        "Barys Liskavets",
+        "Ori Press",
+        "Alexander Golubev"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-10-07T11:14:26+00:00",
+      "link": "https://arxiv.org/pdf/2610.09858v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Training critics that provide natural-language advice to LLM agents during multi-step tool-using tasks",
+      "llm_evidence_cn": "为LLM智能体训练提供自然语言建议的评论模型，用于多步骤工具使用任务",
+      "llm_evidence": "为LLM智能体训练提供自然语言建议的评论模型，用于多步骤工具使用任务",
+      "canonical_evidence": "为LLM智能体训练提供自然语言建议的评论模型，用于多步骤工具使用任务",
+      "llm_tldr_en": "Caddie trains lightweight critics via RL from final task outcomes to advise LLM agents during execution, improving success rates across multiple base models without step-level labels.",
+      "llm_tldr_cn": "现有LLM智能体在多步骤推理与工具调用中缺乏有效的自然语言反馈。本文提出Caddie，利用任务最终成功与否作为奖励，通过强化学习训练评论模型，为智能体执行过程提供分析和建议。在多跳问答任务上，基于Qwen3-4B的评论模型能提升四种不同基座模型的成功率，且无需步骤级标签。该方法为LLM智能体的监督与改进提供了通用途径。",
+      "llm_tldr": "现有LLM智能体在多步骤推理与工具调用中缺乏有效的自然语言反馈。本文提出Caddie，利用任务最终成功与否作为奖励，通过强化学习训练评论模型，为智能体执行过程提供分析和建议。在多跳问答任务上，基于Qwen3-4B的评论模型能提升四种不同基座模型的成功率，且无需步骤级标签。该方法为LLM智能体的监督与改进提供了通用途径。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.10114v1",
+      "source": "arxiv",
+      "title": "Mechanics of Long-Context Hybrid Models Part 1.1: From Hybrid Attention to Hybrid Position",
+      "abstract": "The architectural design of Large Language Models (LLMs) is shifting from traditional full-attention-only models to hybrid models, which combine different attention modules to improve long-context efficiency and performance in length extrapolation and context extension. To explain why hybrid models work and how to design them better, we propose Mechanics of Long-Context Hybrid Models. As Part 1.1 of this series, we begin with hybrids of full attention and either sliding-window attention (SWA) or gated variants of linear attention (LA), represented by GLA and GDN. We first observe a Seesaw Effect in Context Extension: LA hybrids benefit more from long-context continual pretraining, whereas SWA hybrids perform better under length extrapolation. We attribute this behavior to differences in the positional inductive biases induced by these attention mechanisms. We find that SWA hybrids suffer from a Short-Context Learning Trap, Short-Window Weariness, and Long-Window Laziness, and require extended windows to enhance performance in continual long-context pretraining. For LA hybrids, we summarize the Matthew Effect of Hybrid Position Extrapolation and propose Sliding-Window Linear Attention, achieving 16$\\times$ training-free length extrapolation while maintaining 100\\% accuracy on NIAH-SK1 in 64k context length.",
+      "authors": [
+        "Xiaoran Liu",
+        "Ziwei He",
+        "Xipeng Qiu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-10-07T14:02:35+00:00",
+      "link": "https://arxiv.org/pdf/2610.10114v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Hybrid attention architectures for long-context efficiency",
+      "llm_evidence_cn": "混合注意力架构提升长上下文效率",
+      "llm_evidence": "混合注意力架构提升长上下文效率",
+      "canonical_evidence": "混合注意力架构提升长上下文效率",
+      "llm_tldr_en": "Analyzes hybrid attention models (full+SWA or linear) to explain long-context performance and guide design, observing a seesaw effect between continual pretraining and length extrapolation.",
+      "llm_tldr_cn": "该论文针对LLM架构从纯注意力向混合注意力转变的趋势，研究混合全注意力与滑动窗口或门控线性注意力的长上下文模型，分析其性能差异并指导设计。通过实验揭示了线性注意力混合模型在持续预训练中获益更大，而滑动窗口混合模型在长度外推上表现更好。该研究为长上下文模型设计提供了机理性解释。",
+      "llm_tldr": "该论文针对LLM架构从纯注意力向混合注意力转变的趋势，研究混合全注意力与滑动窗口或门控线性注意力的长上下文模型，分析其性能差异并指导设计。通过实验揭示了线性注意力混合模型在持续预训练中获益更大，而滑动窗口混合模型在长度外推上表现更好。该研究为长上下文模型设计提供了机理性解释。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.10303v1",
+      "source": "arxiv",
+      "title": "On the Necessity of Attention-FFN Split in Vision Transformers",
+      "abstract": "The standard Transformer architecture relies on a rigid pattern that alternates Attention and Feed-Forward Network (FFN) layers. Despite its widespread adoption, the inductive bias imposed by this strict separation has not been systematically examined. In this work, we investigate the necessity of the Attention-FFN dichotomy in Vision Transformers (ViTs). To facilitate this analysis, we introduce the AttenFeed module, a unified component that integrates the functional properties of both Attention and FFN. Based on this module, we devise the unified Vision Transformer (uViT), which replaces the conventional alternating Attention-FFN structure with a sequence of AttenFeed modules. We then use uViT as a control group that relaxes the Attention-FFN dichotomy of the standard ViT and systematically compare the two models across multiple datasets and model scales. Our experiments reveal that the Attention-FFN dichotomy can hinder performance at smaller model scales due to the rigid parameter allocation of ViTs. The AttenFeed module and uViT serve as new analytical tools for understanding the Attention-FFN structure and offer theoretical insights into the heuristically designed architecture of conventional ViTs.",
+      "authors": [
+        "Junhyeok Kim",
+        "Jinyeong Kim",
+        "Jae Wan Park",
+        "Seong Jae Hwang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-10-07T15:57:13+00:00",
+      "link": "https://arxiv.org/pdf/2610.10303v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "investigates Transformer architecture, proposes unified Attention-FFN module",
+      "llm_evidence_cn": "研究Transformer架构，提出统一Attention-FFN模块",
+      "llm_evidence": "研究Transformer架构，提出统一Attention-FFN模块",
+      "canonical_evidence": "研究Transformer架构，提出统一Attention-FFN模块",
+      "llm_tldr_en": "Proposes uViT, which replaces the alternating Attention-FFN structure with a unified AttenFeed module, questioning the necessity of the split in Vision Transformers.",
+      "llm_tldr_cn": "该工作针对Vision Transformer中Attention和FFN严格交替设计的必要性提出疑问，设计统一的AttenFeed模块，集成两者的功能属性，构建uViT模型作为对照组。通过放松Attention-FFN二分约束，系统分析取消组件分离对模型性能的影响，为Transformer架构的简化与改进提供实验依据。",
+      "llm_tldr": "该工作针对Vision Transformer中Attention和FFN严格交替设计的必要性提出疑问，设计统一的AttenFeed模块，集成两者的功能属性，构建uViT模型作为对照组。通过放松Attention-FFN二分约束，系统分析取消组件分离对模型性能的影响，为Transformer架构的简化与改进提供实验依据。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.11345v1",
+      "source": "arxiv",
+      "title": "SynCo: Data Synthesis Co-Training for Self-Evolving LLMs via Multi-Agent Reinforcement Learning",
+      "abstract": "Self-evolving LLM agents promise to improve autonomously through continual interaction and learning, reducing their dependence on manually curated supervision. Realizing this promise requires not only updating the agent, but also evolving its training experience as its capabilities change. However, most existing pipelines rely on static datasets or separately updated synthesis models, causing previously useful tasks to become trivial while overly difficult tasks remain uninformative. This growing mismatch between agent capability and training experience limits sustained self-improvement. To address this problem, we propose SynCo, an agentic data synthesis co-training framework for self-evolving LLMs based on multi-agent reinforcement learning. SynCo jointly optimizes two independently parameterized agents: a Synthesizer that constructs training tasks from the Reasoner's evolving capability state, and a Reasoner that learns from the resulting experience. Each synthesized task induces multiple Reasoner rollouts whose outcomes provide complementary rewards to both agents. Correctness feedback improves the Reasoner, while task quality, answer reliability, and outcome-grounded teachability guide the Synthesizer. Their updates are fed back into subsequent synthesis rounds, allowing the task-solving policy and its training distribution to evolve together. Extensive experiments across eight mathematical reasoning benchmarks demonstrate that SynCo substantially outperforms a broad range of existing synthetic-data methods and controlled baselines, achieving the strongest overall performance while deriving most of its gains from previously unsolved problems.",
+      "authors": [
+        "Wei Yang",
+        "Shawn Li",
+        "Yuehan Qin",
+        "Yawei Wang",
+        "Mingxi Wang",
+        "Shixuan Li",
+        "Tiankai Yang",
+        "Jiate Li",
+        "Jesse Thomason",
+        "Xuezhe Ma",
+        "Yue Zhao"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-08T06:40:18+00:00",
+      "link": "https://arxiv.org/pdf/2610.11345v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent reinforcement learning for self-evolving LLM data synthesis",
+      "llm_evidence_cn": "多智能体强化学习驱动的自进化数据合成训练",
+      "llm_evidence": "多智能体强化学习驱动的自进化数据合成训练",
+      "canonical_evidence": "多智能体强化学习驱动的自进化数据合成训练",
+      "llm_tldr_en": "Proposes SynCo, a co-training framework using multi-agent RL to synthesize evolving training data for self-improving LLM agents.",
+      "llm_tldr_cn": "针对自进化 LLM 智能体训练数据与能力不匹配的问题，提出 SynCo 框架。该框架利用多智能体强化学习动态合成训练数据，与智能体能力协同进化。实验表明 SynCo 提升智能体持续自我改进能力，减少对人工监督的依赖。",
+      "llm_tldr": "针对自进化 LLM 智能体训练数据与能力不匹配的问题，提出 SynCo 框架。该框架利用多智能体强化学习动态合成训练数据，与智能体能力协同进化。实验表明 SynCo 提升智能体持续自我改进能力，减少对人工监督的依赖。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Multi-Agent Systems",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.11472v1",
+      "source": "arxiv",
+      "title": "From Chain-of-Thought to Loops: Non-Autoregressive Latent Reasoning via Looped Transformers",
+      "abstract": "Chain-of-thought (CoT) reasoning often improves language-model performance by giving models additional computation before answering. However, explicit CoT expresses this computation as a sequence of autoregressively generated tokens. Latent reasoning replaces these tokens with compact continuous states, but most autoregressive latent-reasoning methods retain a left-to-right dependency among latent vectors. We introduce LLoCoT: a looped latent-reasoning framework that replaces left-to-right latent generation with iterative refinement of a compact latent workspace. A shared transformer is reapplied for a small number of refinement iterations, jointly updating the latent slots based on the prompt and the evolving workspace state. Using the refined state, a probabilistic head predicts a distribution from which latent tokens are sampled in parallel and used to condition an autoregressive decoder for answer generation. Training uses continuous representations derived from explicit CoT together with a final-answer prediction loss and likelihood-based supervision of the latent states. Across HumanEval and MBPP, LLoCoT achieves the highest mean among the evaluated methods, performing on par in accuracy with Reasoning SFT, our explicit-CoT baseline, while outperforming the base model, answer-only SFT and NF-CoT. Relative to Reasoning SFT, LLoCoT reduces time to the first answer token by approximately $36\\times$ and reasoning-phase latency by approximately $42\\times$, while increasing end-to-end throughput by $9.2\\%$. This design replaces serial thought generation with parallel latent-slot refinement while retaining probabilistic latent modeling and autoregressive answer decoding.",
+      "authors": [
+        "Gerard Grau García",
+        "Arnau Padrés Masdemont",
+        "Niccolò Grillo",
+        "Jordi Ros-Giralt",
+        "Arash Behboodi",
+        "Victor Conchello Vendrell"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-08T08:21:31+00:00",
+      "link": "https://arxiv.org/pdf/2610.11472v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes LLoCoT, a looped latent-reasoning framework that replaces autoregressive CoT with iterative refinement of compact latent states",
+      "llm_evidence_cn": "提出LLoCoT，用迭代精炼紧凑潜状态替代自回归链式思考",
+      "llm_evidence": "提出LLoCoT，用迭代精炼紧凑潜状态替代自回归链式思考",
+      "canonical_evidence": "提出LLoCoT，用迭代精炼紧凑潜状态替代自回归链式思考",
+      "llm_tldr_en": "LLoCoT replaces left-to-right latent generation in chain-of-thought reasoning with iterative refinement of a compact latent workspace using a shared transformer, reducing autoregressive dependencies and improving reasoning efficiency.",
+      "llm_tldr_cn": "链式思考推理通过额外计算提升语言模型表现，但显式CoT需自回归生成令牌，潜推理仍保留左右依赖。本文提出LLoCoT框架，用共享Transformer对紧凑潜空间迭代精炼，每次迭代联合更新潜槽，消除左到右依赖。实验表明该非自回归潜推理方法在保持性能的同时提高效率。为潜推理提供了新范式。",
+      "llm_tldr": "链式思考推理通过额外计算提升语言模型表现，但显式CoT需自回归生成令牌，潜推理仍保留左右依赖。本文提出LLoCoT框架，用共享Transformer对紧凑潜空间迭代精炼，每次迭代联合更新潜槽，消除左到右依赖。实验表明该非自回归潜推理方法在保持性能的同时提高效率。为潜推理提供了新范式。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Chain-of-Thought Reasoning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.11620v1",
+      "source": "arxiv",
+      "title": "Where to Adapt Matters: Layer-Selective Fine-Tuning for Capability Retention",
+      "abstract": "Parameter-efficient fine-tuning (PEFT) enables large language models (LLMs) to adapt to specialized tasks, but often at the cost of degrading general capabilities acquired during pretraining. Existing approaches primarily mitigate this trade-off through data replay or regularization, relying on additional data or explicit optimization constraints. We instead focus on a different question: where should adaptation be applied? We find that fine-tuning different Transformer layers produces different target-task gains and degrees of capability degradation, suggesting that not all layers are equally suitable for adaptation. To characterize this difference, we use layer-wise empirical Fisher information to measure target-task sensitivity. However, computing Fisher scores requires backward computation and becomes increasingly expensive for large models. We therefore introduce input--output cosine similarity as a lightweight, forward-only proxy for ranking layer sensitivity. Across models and tasks, layers with lower input--output similarity consistently exhibit higher empirical Fisher scores. Building on this observation, we propose Layer-Selective LoRA (LS-LoRA), which places trainable LoRA adapters only in layers with low input--output similarity. Experiments on mathematical reasoning and code generation show that LS-LoRA improves average target-task performance while retaining substantially more commonsense reasoning capability than standard all-layer LoRA, demonstrating that carefully choosing where to adapt can provide a simple and effective way to balance target-task adaptation and general capability retention.",
+      "authors": [
+        "Zhiqiang Pang",
+        "Zihong Sun",
+        "Qi Xie",
+        "Jun Shu",
+        "Deyu Meng",
+        "Zongben Xu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-08T09:59:16+00:00",
+      "link": "https://arxiv.org/pdf/2610.11620v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "layer-selective fine-tuning within PEFT to retain general capabilities",
+      "llm_evidence_cn": "PEFT 中层级选择性微调以保留通用能力",
+      "llm_evidence": "PEFT 中层级选择性微调以保留通用能力",
+      "canonical_evidence": "PEFT 中层级选择性微调以保留通用能力",
+      "llm_tldr_en": "Investigates which Transformer layers should be fine-tuned to balance task adaptation and capability retention, using layer-wise Fisher information to guide layer-selective PEFT.",
+      "llm_tldr_cn": "PEFT 在适应任务时往往会削弱预训练模型通用能力。本文聚焦应微调哪些 Transformer 层，利用逐层经验 Fisher 信息度量任务敏感性，提出层级选择性微调策略。实验发现不同层对任务增益和灾难性遗忘影响不同，选择性微调能更好保留通用能力。该工作为 PEFT 应用提供了更精细的层级选择指导。",
+      "llm_tldr": "PEFT 在适应任务时往往会削弱预训练模型通用能力。本文聚焦应微调哪些 Transformer 层，利用逐层经验 Fisher 信息度量任务敏感性，提出层级选择性微调策略。实验发现不同层对任务增益和灾难性遗忘影响不同，选择性微调能更好保留通用能力。该工作为 PEFT 应用提供了更精细的层级选择指导。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Parameter-Efficient Fine-Tuning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.38809v1",
+      "source": "arxiv",
+      "title": "StateTree: Enhancing Long-Term Dialogue Reasoning via Reinforcement Learning",
+      "abstract": "Large language models deployed as personalized assistants must reason over long, evolving interaction histories. However, in long-term dialogue reasoning, relevant evidence is scattered across sessions, preferences may be revised over time, and standard long-context training fails to address these challenges under data scarcity and prohibitive computational costs. We propose StateTree, a data-driven RL method that constructs a challenging auxiliary task from scarce dialogues with verifiable ground truth. StateTree augments multi-session dialogues with a tree-structured path-tracing task: key-value records are embedded across sessions to form a binary tree. Solving the task requires the model to traverse from root to leaf by retrieving records across sessions and comparing timestamps to resolve branches, then recover the hidden target question among distractor leaves. We apply curriculum RL training progressively increasing tree depth and introduce a compositional variant whose edges carry step-level reasoning fragments, training the model to compose partial cues into coherent queries. Trained on 10K-token contexts, StateTree generalizes to 128K tokens without full-length RL costs and exhibits capabilities including cross-session retrieval, temporal reasoning, knowledge update, and compositional multi-hop reasoning. StateTree outperforms both SFT and RL-based baselines while preserving short-context general reasoning. StateTree-7B achieves gains up to +23.60% on LongMemEval (128k), and StateTree-14B reaches 59.00% accuracy on LongMemEval, surpassing QwenLong-L1-32B (45.20%).",
+      "authors": [
+        "Naen Xu",
+        "Wanqing Cui",
+        "Yibo Hu",
+        "Shixin Hong",
+        "Hengyu An",
+        "Meiguang Jin",
+        "Junfeng Ma",
+        "Tianyu Du"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-09-30T02:38:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.38809v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "RL-based method for long-term dialogue reasoning",
+      "llm_evidence_cn": "基于强化学习的长期对话推理方法",
+      "llm_evidence": "基于强化学习的长期对话推理方法",
+      "canonical_evidence": "基于强化学习的长期对话推理方法",
+      "llm_tldr_en": "Proposes StateTree, a data-driven RL method that creates tree-structured auxiliary tasks to improve long-term dialogue reasoning under data scarcity.",
+      "llm_tldr_cn": "针对长期对话推理中证据分散、偏好演变及数据稀缺问题，提出 StateTree 方法。该方法利用强化学习从稀缺对话中构建树状路径追踪辅助任务，训练模型逐层检索记录。实验证明 StateTree 提升长期对话推理能力，为个性化助手的发展提供支撑。",
+      "llm_tldr": "针对长期对话推理中证据分散、偏好演变及数据稀缺问题，提出 StateTree 方法。该方法利用强化学习从稀缺对话中构建树状路径追踪辅助任务，训练模型逐层检索记录。实验证明 StateTree 提升长期对话推理能力，为个性化助手的发展提供支撑。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on chain of thought prompting, multi step reasoning, self consistency, mathematical reasoning, and reinforcement learning for improving LLM reasoning.",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.39394v1",
+      "source": "arxiv",
+      "title": "Can Computation from Earlier Problems Help LLMs Solve New Ones?",
+      "abstract": "Large language models often solve independent problems in the same conversation. Can computation from earlier problems help them solve new ones? To answer this question, we first conduct preliminary experiments showing that retained history can raise or lower later-turn accuracy, even within the same domain. To understand these effects, we use controlled replay to isolate internal state changes specific to each problem-history pairing. Across different histories, these changes preserve similar relationships among current problems. To improve reasoning under retained history, we introduce STAIR (Stale-Token Attention for Inter-query Reuse). STAIR captures keys and values from earlier response generation in a fixed bank. It learns to redirect current queries when they read this bank during prompt processing. The base model remains frozen; only 12,288 parameters are trained. Across three Qwen models and four benchmarks, STAIR improves average later-turn accuracy by up to 11.67 percentage points over the unmodified model with history.",
+      "authors": [
+        "Jipei He",
+        "Wenhui Tan",
+        "Xiaoyi Yu",
+        "Enver Sangineto",
+        "Fiorenzo Parascandolo",
+        "Rita Cucchiara",
+        "Ruihua Song"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-09-30T09:43:16+00:00",
+      "link": "https://arxiv.org/pdf/2609.39394v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Proposes STAIR, stale-token attention that reuses computation from earlier problems to improve later reasoning",
+      "llm_evidence_cn": "提出STAIR，利用早前问题的陈旧令牌注意力复用计算以改善后续推理",
+      "llm_evidence": "提出STAIR，利用早前问题的陈旧令牌注意力复用计算以改善后续推理",
+      "canonical_evidence": "提出STAIR，利用早前问题的陈旧令牌注意力复用计算以改善后续推理",
+      "llm_tldr_en": "Investigates whether computation from earlier problems can help LLMs solve new ones; introduces STAIR, an attention mechanism that captures keys/values from earlier responses in a bank and redirects current queries, improving reasoning under retained history.",
+      "llm_tldr_cn": "LLM常在同一对话中解决独立问题，早期问题的计算能否帮助新问题？本文先实验证明保留历史可能提升或降低后续准确率。通过控制重放隔离内部状态变化，发现跨历史保持相似关系。提出STAIR方法，将早期响应生成的键值对存入固定记忆库，引导当前查询关注。实验显示STAIR能改善历史保留下的推理效果。",
+      "llm_tldr": "LLM常在同一对话中解决独立问题，早期问题的计算能否帮助新问题？本文先实验证明保留历史可能提升或降低后续准确率。通过控制重放隔离内部状态变化，发现跨历史保持相似关系。提出STAIR方法，将早期响应生成的键值对存入固定记忆库，引导当前查询关注。实验显示STAIR能改善历史保留下的推理效果。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.01170v1",
+      "source": "arxiv",
+      "title": "HeadEdit: Calibrating Language Model Behavior Through the Frozen Unembedding Matrix",
+      "abstract": "Alignment does not eliminate behavioral errors in language models. Models may still refuse benign requests, call unnecessary tools, or yield to false user claims. Current methods mitigate such errors as a computation problem, and rarely explore if the desired behavior is already encoded in the model's representation. Motivated by the observation that behavior-relevant information remains linearly decodable from the final hidden state even when the resulting logits produce the undesired behavior, we introduce HeadEdit, a gradient-free method that calibrates model behavior through the unembedding matrix. HeadEdit extracts a low-rank behavioral subspace from paired completions and uses each prompt's coordinates within it to generate a vocabulary-wide correction, thereby implementing implicitly adaptive steering without manually specified target tokens or parameter updates. HeadEdit improves all nine experimental settings across three tasks and three model families, with negligible inference overhead and no systematic loss of general capabilities. It also reveals a connection to gradient-based alignment. HeadEdit's low-dimensional representation partly predicts how preference tuning changes output logits on unseen prompts. The subspace learned from the model can also be reused after tuning, improving performance without re-extracting or retuning. These results show that HeadEdit provides a practical, lightweight, and interpretable way to calibrate model behavior through the unembedding matrix.",
+      "authors": [
+        "Zirui He",
+        "Haiyan Zhao",
+        "Jingyu Hu",
+        "Yinghao Wu",
+        "Chenxi Yuan",
+        "Yingcong Li",
+        "Yandong Bai",
+        "Mengnan Du"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-10-01T06:45:29+00:00",
+      "link": "https://arxiv.org/pdf/2610.01170v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Gradient-free behavioral calibration via low-rank subspace in frozen unembedding matrix",
+      "llm_evidence_cn": "通过冻结解嵌入矩阵中的低秩子空间进行无梯度行为校准",
+      "llm_evidence": "通过冻结解嵌入矩阵中的低秩子空间进行无梯度行为校准",
+      "canonical_evidence": "通过冻结解嵌入矩阵中的低秩子空间进行无梯度行为校准",
+      "llm_tldr_en": "Proposes HeadEdit, a gradient-free method that calibrates LM behavior by extracting a low-rank behavioral subspace from the unembedding matrix to correct errors like refusal or unnecessary tool calls.",
+      "llm_tldr_cn": "针对语言模型在拒绝、工具调用等方面仍存在行为错误的问题，提出HeadEdit方法。该方法从成对补全中提取低秩行为子空间，并利用提示在该子空间中的坐标生成词汇调整，从而在不进行梯度更新的情况下校准模型行为。实验表明该方法能有效修正模型的不期望行为。",
+      "llm_tldr": "针对语言模型在拒绝、工具调用等方面仍存在行为错误的问题，提出HeadEdit方法。该方法从成对补全中提取低秩行为子空间，并利用提示在该子空间中的坐标生成词汇调整，从而在不进行梯度更新的情况下校准模型行为。实验表明该方法能有效修正模型的不期望行为。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on efficient fine tuning, LoRA, QLoRA, instruction tuning, RLHF, DPO, and alignment of large language models.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.38832v1",
+      "source": "arxiv",
+      "title": "Scaling Parameter and Context in Attention: Native Sparse Attention from Mixture-of-Head",
+      "abstract": "Scaling attention parameters can improve language model quality, but retaining full token histories makes additional heads costly at long contexts. Furthermore, since attention retrieves and combines contextual information, parameter scaling should also support longer contexts. We therefore ask whether attention parameter scaling can directly enable efficient and effective context scaling. We introduce NAMOH, an architecture-native sparse attention mechanism that activates $K$ of $H$ heads per token. Each head retains only its assigned tokens and performs causal attention within this subsequence. Head selection thus jointly determines active parameters and available context without scanning the full history. Under balanced assignments, increasing $H$ at fixed $K$ shortens head histories and reduces per-token key-value (KV) access without increasing total KV storage. We further support head-relative rotary position embeddings to shorten positional spans within routed subsequences, aiming to mitigate position-induced attention noise. Experiments show that NAMOH can outperform fully activated models with the same total parameters, while enabling more efficient long-context inference than smaller dense models with matched active parameter counts. It remains compatible with GQA and existing sparse attention mechanisms. We hope this work offers a new path for scaling attention, with parameter scaling directly enabling context scaling.",
+      "authors": [
+        "Zizhuo Fu",
+        "Runsheng Wang",
+        "Meng Li"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-30T02:53:17+00:00",
+      "link": "https://arxiv.org/pdf/2609.38832v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes NAMOH, a native sparse attention that activates a subset of heads per token, jointly scaling parameters and context",
+      "llm_evidence_cn": "提出NAMOH，一种原生稀疏注意力，每token激活部分头，联合扩展参数和上下文",
+      "llm_evidence": "提出NAMOH，一种原生稀疏注意力，每token激活部分头，联合扩展参数和上下文",
+      "canonical_evidence": "提出NAMOH，一种原生稀疏注意力，每token激活部分头，联合扩展参数和上下文",
+      "llm_tldr_en": "NAMOH activates K of H heads per token, each head attending to assigned subsequence, enabling parameter scaling to also scale context efficiently without scanning full history.",
+      "llm_tldr_cn": "扩展注意力参数可提升语言模型质量，但保留全历史使额外头在长上下文代价高。本文提出NAMOH，一种架构原生稀疏注意力，每个token激活H个头中的K个，每个头仅处理分配的子序列，从而头部选择同时决定活动参数与可用上下文，无需扫描全历史。在平衡分配下，该机制为注意力参数与上下文同步扩展提供高效途径。",
+      "llm_tldr": "扩展注意力参数可提升语言模型质量，但保留全历史使额外头在长上下文代价高。本文提出NAMOH，一种架构原生稀疏注意力，每个token激活H个头中的K个，每个头仅处理分配的子序列，从而头部选择同时决定活动参数与可用上下文，无需扫描全历史。在平衡分配下，该机制为注意力参数与上下文同步扩展提供高效途径。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.39701v1",
+      "source": "arxiv",
+      "title": "Values as Style: Disentangling Values from Semantics with One-Way Mixing for Low-Damage LLM Steering",
+      "abstract": "Value steering should change an LLM's normative priorities while preserving the scenario, facts, and task constraints underlying its answer. Conventional activation edits often change both. We introduce an editable semantic-value interface on frozen residual states, with a one-way semantic-to-value pathway that grounds value recognition in context. Stop-gradient blocks feedback through this pathway; swap consistency, topic de-confounding, and decorrelation encourage selective codes. At inference, editing the value code produces a residual delta while holding the semantic code fixed. On two instruction-tuned backbones, this interface improves semantic preservation and reduces benign refusals at comparable value alignment. A matched mixing-by-gating ablation separates representation learning from selective edit activation, and dimension-matched probes establish improved code selectivity. Against validation-selected prompting on LLaMA-3.1-8B, the method achieves comparable alignment (0.750 vs. 0.748), higher BERTScore (0.938 vs. 0.923), and fewer contradictions (5.1% vs. 7.6%). Human ratings and cross-taxonomy controls provide complementary evidence for low-damage value steering.",
+      "authors": [
+        "Jiale Dai",
+        "Hongcan Deng",
+        "Liuxian Ma",
+        "Xiaoke Niu",
+        "Guojie Song"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CY",
+        "cs.LG"
+      ],
+      "published": "2026-09-30T13:20:20+00:00",
+      "link": "https://arxiv.org/pdf/2609.39701v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "value steering for LLM alignment with semantic preservation",
+      "llm_evidence_cn": "面向LLM对齐的价值观操控，同时保持语义不变",
+      "llm_evidence": "面向LLM对齐的价值观操控，同时保持语义不变",
+      "canonical_evidence": "面向LLM对齐的价值观操控，同时保持语义不变",
+      "llm_tldr_en": "Introduces an editable semantic-value interface on frozen residual states to steer LLM values with low damage to semantics, improving alignment while reducing refusals.",
+      "llm_tldr_cn": "该工作针对传统激活编辑方法在改变LLM价值观时往往同时改变语义内容的问题，提出在冻结残差状态上构建可编辑的语义-价值观接口，通过单向语义到价值观通路实现价值观操控。采用停梯度、交换一致性、主题去混淆等方法选择性编码，编辑价值观代码产生残差增量，在保持语义的同时调整模型对齐行为，减少良性拒绝。实验表明该方法有效。",
+      "llm_tldr": "该工作针对传统激活编辑方法在改变LLM价值观时往往同时改变语义内容的问题，提出在冻结残差状态上构建可编辑的语义-价值观接口，通过单向语义到价值观通路实现价值观操控。采用停梯度、交换一致性、主题去混淆等方法选择性编码，编辑价值观代码产生残差增量，在保持语义的同时调整模型对齐行为，减少良性拒绝。实验表明该方法有效。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on efficient fine tuning, LoRA, QLoRA, instruction tuning, RLHF, DPO, and alignment of large language models.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.02856v1",
+      "source": "arxiv",
+      "title": "Adaptive Mutual Distillation for Balanced Multi-Task Post-Training of Large Language Models",
+      "abstract": "Multi-task post-training of large language models (LLMs) aims to improve performance across tasks with unequal amounts of training data. Existing methods focus primarily on balancing task contributions during single-model training. Different task-balancing strategies can produce models with complementary strengths, creating opportunities for mutual distillation. However, the usefulness of cross-model supervision can vary across tasks, transfer directions, and stages of training. We propose Adaptive Mutual Distillation (AMD), a collaborative post-training framework that jointly trains two models with different task-balancing strategies. AMD evaluates candidate adjustments to distillation weights through short training probes shared across tasks, then uses task-wise validation scores to select an adjustment for each task and transfer direction. Across six benchmarks and three LLM backbones, both AMD models achieve higher average benchmark scores than supervised fine-tuning (SFT) baselines trained with the same sampling strategies. They also outperform the task-balancing methods evaluated in our experiments. Merging the two trained models can further improve their average benchmark score while yielding a single model for inference. The merged models outperform multi-task SFT by an average of 2.91 points across the three backbones.",
+      "authors": [
+        "Baohang Li",
+        "Xiaocheng Feng",
+        "Yichong Huang",
+        "Chengpeng Fu",
+        "Wenshuai Huo",
+        "Zekun Zhou",
+        "Zekun Yuan",
+        "Tingjia Zhang",
+        "Bing Qin"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-10-02T05:42:22+00:00",
+      "link": "https://arxiv.org/pdf/2610.02856v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "balanced multi-task post-training of LLMs via adaptive mutual distillation",
+      "llm_evidence_cn": "通过自适应互蒸馏实现LLM多任务后训练的均衡",
+      "llm_evidence": "通过自适应互蒸馏实现LLM多任务后训练的均衡",
+      "canonical_evidence": "通过自适应互蒸馏实现LLM多任务后训练的均衡",
+      "llm_tldr_en": "AMD jointly trains two models with different task-balancing strategies and adaptively adjusts distillation weights via short training probes, improving performance on imbalanced multi-task post-training.",
+      "llm_tldr_cn": "多任务后训练常遇到不同任务数据量不均的问题。现有方法侧重单模型训练中的任务贡献平衡，不同策略的模型具有互补优势。AMD联合训练两个采用不同任务平衡策略的模型，通过共享的短训练探针评估蒸馏权重候选调整，自适应地利用跨模型监督。该框架可提升数据不平衡场景下的多任务后训练效果。",
+      "llm_tldr": "多任务后训练常遇到不同任务数据量不均的问题。现有方法侧重单模型训练中的任务贡献平衡，不同策略的模型具有互补优势。AMD联合训练两个采用不同任务平衡策略的模型，通过共享的短训练探针评估蒸馏权重候选调整，自适应地利用跨模型监督。该框架可提升数据不平衡场景下的多任务后训练效果。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on efficient fine tuning, LoRA, QLoRA, instruction tuning, RLHF, DPO, and alignment of large language models.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.39306v1",
+      "source": "arxiv",
+      "title": "ReSAIL: Mitigating Collapse in Iterative Agent Self-Distillation",
+      "abstract": "Iterative self-distillation enables LLM agents to learn from successive deployments, offering a path toward recursive self-improvement (RSI). Yet our experiments with existing methods reveal a collapse in deployment performance across cycles, while task performance with privileged information (PI) also declines. We address this collapse by prioritizing informative interaction steps for distillation and preserving PI-conditioned behavior as the student becomes the next teacher. We introduce Retentive and Selective Augmentation for Iterative Self-Distillation (ReSAIL), a plug-in augmentation for iterative PI-based self-distillation. ReSAIL selects interaction steps where PI most strongly changes the teacher's predictions and balances the resulting distillation losses across trajectories. It also regularizes the student's PI-conditioned output distributions toward those of the frozen teacher at selected and unselected steps to preserve PI-conditioned behavior for supervision in the next cycle. On ALFWorld and TextCraft, ReSAIL sustains substantial gains across model scales over three cycles, with an average absolute gain of 22.5% in final-cycle success rates when added to self-distillation baselines. Sensitivity-guided selection of offline data also improves action prediction accuracy for multimodal GUI agents on AITZ. These findings provide the first evidence that a more robust learning mechanism can effectively mitigate performance collapse in iterative agent self-distillation over deployment trajectories.",
+      "authors": [
+        "Shengjie Jin",
+        "Hengbo Xu",
+        "Zelong Sun",
+        "YuJie Guo",
+        "Zhiwu Lu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-30T08:49:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.39306v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Mitigates collapse in iterative self-distillation for LLM agents",
+      "llm_evidence_cn": "缓解LLM智能体迭代自蒸馏中的性能崩溃",
+      "llm_evidence": "缓解LLM智能体迭代自蒸馏中的性能崩溃",
+      "canonical_evidence": "缓解LLM智能体迭代自蒸馏中的性能崩溃",
+      "llm_tldr_en": "Addresses performance collapse in iterative self-distillation of LLM agents by prioritizing informative steps and preserving privileged information behavior.",
+      "llm_tldr_cn": "针对LLM智能体迭代自蒸馏中出现部署性能崩溃和特权信息性能下降的问题，提出ReSAIL即插即用增强方法，通过选择特权信息影响最大的交互步骤并平衡蒸馏数据。实验显示可稳定递归自我改进过程，为智能体持续学习提供有效方案。",
+      "llm_tldr": "针对LLM智能体迭代自蒸馏中出现部署性能崩溃和特权信息性能下降的问题，提出ReSAIL即插即用增强方法，通过选择特权信息影响最大的交互步骤并平衡蒸馏数据。实验显示可稳定递归自我改进过程，为智能体持续学习提供有效方案。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.00689v1",
+      "source": "arxiv",
+      "title": "Towards Robust Numerical Claim Verification",
+      "abstract": "Large language models (LLMs) are widely used for claim verification, yet remain brittle for numerical reasoning: even small changes in value can sharply degrade accuracy. We show that this brittleness persists in frontier LLMs, but can be mitigated through adversarial fine-tuning on numerically perturbed examples. Using parameter-efficient fine-tuning, small Qwen3 models (0.6B$\\unicode{x2013}$8B) reach 98.7% accuracy on label-flipping perturbations, outperforming larger zero-shot models and frontier systems (GPT-5.4 Pro (74.0%) and Gemini 2.5 Flash (73.9%)). The gains generalise to unseen perturbation types, indicating robust numerical decision boundaries rather than memorised edits. Robustness also transfers without target-domain data, significantly improving cross-lingual performance in Spanish. We further show that the same fine-tuning recipe confers robustness to evidence-side perturbations, using the VitaminC dataset.",
+      "authors": [
+        "Peter Røysland Aarnes",
+        "Vinay Setty"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-30T20:34:55+00:00",
+      "link": "https://arxiv.org/pdf/2610.00689v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Adversarial fine-tuning via parameter-efficient fine-tuning for numerical robustness",
+      "llm_evidence_cn": "参数高效微调提高数值推理鲁棒性",
+      "llm_evidence": "参数高效微调提高数值推理鲁棒性",
+      "canonical_evidence": "参数高效微调提高数值推理鲁棒性",
+      "llm_tldr_en": "LLMs are brittle to numerical perturbations in claim verification; adversarial fine-tuning with PEFT on small models yields high robustness, outperforming frontier LLMs and transferring cross-lingually.",
+      "llm_tldr_cn": "该论文指出大语言模型在数值声明验证中对数值扰动极为脆弱，即使前沿模型也会因微小数值变化而准确率骤降。作者提出使用参数高效微调对数值扰动样本进行对抗性微调，使小型Qwen3模型在标签翻转扰动上达到98.7%准确率，超过更大模型和前沿系统。该方法还展现出跨语言迁移能力，表明模型学到了稳健的数值决策边界而非记忆。该工作展示了参数高效微调在提升数值推理鲁棒性方面的潜力。",
+      "llm_tldr": "该论文指出大语言模型在数值声明验证中对数值扰动极为脆弱，即使前沿模型也会因微小数值变化而准确率骤降。作者提出使用参数高效微调对数值扰动样本进行对抗性微调，使小型Qwen3模型在标签翻转扰动上达到98.7%准确率，超过更大模型和前沿系统。该方法还展现出跨语言迁移能力，表明模型学到了稳健的数值决策边界而非记忆。该工作展示了参数高效微调在提升数值推理鲁棒性方面的潜力。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Parameter-Efficient Fine-Tuning",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.05564v1",
+      "source": "arxiv",
+      "title": "Lend Me Your Eyes: Instruction-Aware Text Embeddings via Attention Relay",
+      "abstract": "Text embedding models trained with contrastive learning learn to follow task instructions from instruction-paired data, while instruction-tuned LLMs already know how to follow them. We show that this instruction-following ability can carry over from an LLM to a Transformer-based embedder without any training. We propose Attention Relay, which passes the attention weights an LLM produces to the embedder's own attention. Across six instruction-tuned LLMs from the Qwen3, Llama 3.1 and OLMo 3 families and ten widely used embedding models that differ in tokenizer, size and pooling type, Attention Relay makes nearly every combination instruction-aware. Experiments that break the method down into its parts show that the LLM's attention weights track the instruction in its later layers and come largely from instruction tuning. They also show that relaying these weights selects which content in the text matters: it makes the aspect of the text that the instruction asks about dominant in the embedding, or restores that aspect where averaging had diluted it.",
+      "authors": [
+        "Yiyuan Luo",
+        "Vaggos Chatziafratis"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-10-04T21:52:10+00:00",
+      "link": "https://arxiv.org/pdf/2610.05564v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Transfers instruction-following via attention weights from LLM to embedder",
+      "llm_evidence_cn": "通过注意力权重从LLM向嵌入器传递指令遵循能力",
+      "llm_evidence": "通过注意力权重从LLM向嵌入器传递指令遵循能力",
+      "canonical_evidence": "通过注意力权重从LLM向嵌入器传递指令遵循能力",
+      "llm_tldr_en": "Shows that instruction-following ability can be transferred from an instruction-tuned LLM to a Transformer embedder by relaying attention weights, without training.",
+      "llm_tldr_cn": "针对文本嵌入模型缺乏指令遵循能力的问题，提出Attention Relay方法，通过传递LLM产生的注意力权重到嵌入器自身注意力，实现零训练迁移。在多种LLM和嵌入模型组合上验证，使几乎所有组合变得指令感知。分析表明LLM注意力权重追踪指令相关信息。",
+      "llm_tldr": "针对文本嵌入模型缺乏指令遵循能力的问题，提出Attention Relay方法，通过传递LLM产生的注意力权重到嵌入器自身注意力，实现零训练迁移。在多种LLM和嵌入模型组合上验证，使几乎所有组合变得指令感知。分析表明LLM注意力权重追踪指令相关信息。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.39740v1",
+      "source": "arxiv",
+      "title": "LatentHarness: Learning Latent Actions for Memory and Reasoning via Counterfactual Policy Distillation",
+      "abstract": "Long-context reasoning faces two complementary bottlenecks: retaining evidence across long inputs and sustaining computation across many reasoning steps. Existing approaches largely address them separately, with external memory extending access to distant evidence and latent reasoning compressing multi-step computation. We introduce LatentHarness, which unifies memory access and latent reasoning as sequential latent action selection. At each internal step, the model chooses THINK for further computation, RECALL from a fast-weight memory of input evidence and intermediate reasoning states, or EXIT to emit the next token. We train this policy with counterfactual policy distillation, which branches every action for one step and scores its effect on the emitted token. These gains teach the policy when memory is more useful than further reasoning, while gradients through counterfactual recall teach which intermediate states should be retained in memory for future use. Across six general and long-context reasoning benchmarks, LatentHarness at 1.4B improves on the strongest baselines by 2.8% and 10.0% relative, respectively, and runs 5.9x faster than the strongest long-context baseline.",
+      "authors": [
+        "Xiaoqiang Wang",
+        "Suyuchen Wang",
+        "Bang Liu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-30T13:42:26+00:00",
+      "link": "https://arxiv.org/pdf/2609.39740v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Latent actions unify memory and multi-step reasoning",
+      "llm_evidence_cn": "潜在动作统一记忆与多步推理",
+      "llm_evidence": "潜在动作统一记忆与多步推理",
+      "canonical_evidence": "潜在动作统一记忆与多步推理",
+      "llm_tldr_en": "LatentHarness treats memory access and latent reasoning as sequential latent actions (THINK/RECALL/EXIT) trained via counterfactual policy distillation, improving long-context reasoning.",
+      "llm_tldr_cn": "该论文针对长上下文推理中保留证据和维持多步计算两大瓶颈，提出LatentHarness方法，将记忆访问和潜在推理统一为顺序潜在动作选择。模型在每一步内部选择思考、回忆或退出，并通过反事实策略蒸馏进行训练。该方法提升了长输入上的推理能力，为高效长上下文推理提供了新途径。",
+      "llm_tldr": "该论文针对长上下文推理中保留证据和维持多步计算两大瓶颈，提出LatentHarness方法，将记忆访问和潜在推理统一为顺序潜在动作选择。模型在每一步内部选择思考、回忆或退出，并通过反事实策略蒸馏进行训练。该方法提升了长输入上的推理能力，为高效长上下文推理提供了新途径。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on chain of thought prompting, multi step reasoning, self consistency, mathematical reasoning, and reinforcement learning for improving LLM reasoning.",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.00958v1",
+      "source": "arxiv",
+      "title": "Role-aware Heuristic Episodic Attention for Conversational LLMs",
+      "abstract": "Large language models often lose track of persistent instructions and relevant information as multi-turn conversations grow. We study this cumulative contextual decay through three related failure modes: attention pollution, dilution, and drift. We propose REA (Role-aware Heuristic Episodic Attention), a context-management framework that assigns different persistence and representation policies to instructions and episodic interactions. Instructional Memory retains identified global constraints in a dedicated prefix. Episodic Memory preserves user inputs and compresses model replies, while heuristic retrieval selects raw text, compressed representations, or omission for each historical turn. On Long-MT-Bench+, REA improves the judge score from 6.32 to 7.36 on a 10-point scale, a 16.5% relative gain over the Vanilla baseline, and reduces average latency by 2.91$\\times$. Additional evaluations show aggregate gains on three backbones spanning 1.7B-7B parameters and on Chinese and English role-playing tasks. These results support role-aware context management as a practical approach to maintaining conversational continuity and instruction adherence.",
+      "authors": [
+        "Wanyang Hong",
+        "Zhaoning Zhang",
+        "Yi Chen",
+        "Libo Zhang",
+        "Baihui Liu",
+        "Linbo Qiao",
+        "Zhiliang Tian",
+        "Dongsheng Li"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-10-01T02:39:52+00:00",
+      "link": "https://arxiv.org/pdf/2610.00958v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Manages contextual memory for conversational LLMs to mitigate decay",
+      "llm_evidence_cn": "为对话LLM管理上下文记忆以缓解衰减",
+      "llm_evidence": "为对话LLM管理上下文记忆以缓解衰减",
+      "canonical_evidence": "为对话LLM管理上下文记忆以缓解衰减",
+      "llm_tldr_en": "Proposes REA, a context-management framework that assigns different persistence policies to instructions and episodic interactions to combat contextual decay in long conversations.",
+      "llm_tldr_cn": "针对大型语言模型在多轮对话中遗忘持久指令和信息的问题，提出REA框架，为指令和情节交互分配不同持久化策略，利用启发式检索选择原始文本、压缩表示或省略。在Long-MT-Bench+上提升评测分数，缓解注意力污染、稀释和漂移，增强对话记忆能力。",
+      "llm_tldr": "针对大型语言模型在多轮对话中遗忘持久指令和信息的问题，提出REA框架，为指令和情节交互分配不同持久化策略，利用启发式检索选择原始文本、压缩表示或省略。在Long-MT-Bench+上提升评测分数，缓解注意力污染、稀释和漂移，增强对话记忆能力。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}
