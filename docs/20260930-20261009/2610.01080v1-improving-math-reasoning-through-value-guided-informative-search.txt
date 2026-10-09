@@ -1,0 +1,319 @@
+Title: Improving Math Reasoning through Value-guided Informative Search
+
+URL Source: https://arxiv.org/pdf/2610.01080v1
+
+Published Time: Fri, 02 Oct 2026 01:01:38 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# Improving Math Reasoning through Value-guided Informative Search 
+
+Shaohuai Liu 1,2,* Yuning Wu 1,* Haoran Liu 1
+
+Chaoqun Jia 1 Devin Chen 1 Kai Wei 1,† 1Amazon 
+
+> 2
+
+Department of Electrical and Computer Engineering, Texas A&M University 
+
+{shaohuai,yuningwu,liuhr,enzojia,devichen,kaiwe}@amazon.com liushaohuai5@tamu.edu 
+
+> *
+
+Equal contribution. †Corresponding author. 
+
+## Abstract 
+
+Reinforcement learning with verifiable rewards (RLVR) has substantially improved the mathematical reasoning capabilities of large language models. Recent work introduces search into RLVR rollouts to increase trajectory diversity, but diversity alone does not ensure that the search-induced rollout policy improves upon the current policy. To address this gap, we propose APIVIS, a training-time framework that adapts finite-budget Gumbel search to chunk-level mathematical reasoning. APIVIS combines direct and searched responses within each rollout group, allowing improvements found by search to produce informative relative rewards. It further applies selective supervision to search-improved tokens, preserving a learning signal when uniform group rewards render GRPO ineffective. We show that exact value-guided selection improves the expected verifier reward at each searched state and that this guarantee extends to the complete rollout policy, with a corresponding approximate guarantee under bounded value-estimation error. Experiments on widely recognized mathematical reasoning benchmarks and different model scales demonstrate substantial improvements over competitive search-based methods, validating the effectiveness of APIVIS. 
+
+## 1 Introduction 
+
+Reinforcement learning with verifiable rewards (RLVR) improves mathematical reasoning by op-timizing groups of responses scored by an exact answer checker [Shao et al., 2024, DeepSeek-AI, 2025]. While GRPO and its relatives dominate current RLVR pipelines, their learning signal is largely determined by rollout diversity. Standard pipelines draw several complete responses independently from the current policy, yet token-level randomness often produces surface variations of the same rea-soning path. This limits the reasoning strategies available for learning; when the responses also share the same final return, their group-relative advantages vanish altogether. RLVR therefore faces both an exploration problem and a learnability problem: its rollout operator must improve the trajectory distribution and expose a preference that the policy can learn. A natural remedy is to make trajectory generation principled rather than rely on independent sampling. At inference time, process-reward and value-guided search already provide effective test-time scaling by selecting among candidate continuations [Lightman et al., 2024, Wang et al., 2025]. This success has motivated training-time search for rollout diversity or learning targets, but existing methods improve returned responses rather than establish an improved rollout policy (Appendix A). Greater diversity may restore relative contrast, and extra search may improve correctness, but neither guarantees that the search-induced policy dominates the current policy. We therefore ask: can search                       
+
+> Preprint. arXiv:2610.01080v1 [cs.AI] 1 Oct 2026 (a) V: score each
+> expanded state
+> prefix
+> append continuation
+> st
+> a1v1a2v2a3v3a4v4
+> v2, 1 v2, 2 v2, 3 v2, 4 v3, 1 v3, 2 v3, 3 v3, 4
+> st+ 1
+> (b)
+> direct generation search
+> InfoSFT
+> GRPO
+> xrxr
+> Initial TS-LLM LATR GRPO APIVIS 010 20 30 40 (c)
+> 18.97 36.15 36.54 36.82 40.02
+
+Figure 1: APIVIS at a glance. (a) A frozen value model scores expanded chunk states while Gumbel sequential halving allocates the search budget and commits the highest-Q continuation. (b) Each RLVR group mixes three direct and three searched responses; return contrast trains GRPO, while improved searched tokens provide selective supervision. (c) Mean Avg@16 across MATH-500, AIME-2024, AIME-2025, and OlympiadBench, where APIVIS outperforms all baselines. 
+
+act as a guaranteed policy-improvement operator inside RLVR, and can that improvement remain learnable when group returns are identical? 
+
+Gumbel MuZero offers an inspiration but not a direct solution. Its central idea is to define a searched policy by monotonically reweighting the prior policy with completed action values, ensuring that the expected value under the searched distribution is no lower than under the prior; Gumbel action sampling and sequential halving approximate this operator under a limited simulation budget [Danihelka et al., 2022]. This construction assumes a finite, enumerable action set whose prior probabilities and action values refer to the same decision. In language reasoning, actions are variable-length chunks, the candidate set is itself sampled from the policy, and values are estimated probabilities of reaching correct answers given the response prefixes. Search may commit several chunks within one completion. Translating the improvement operator therefore requires defining the policy induced jointly by candidate generation and value-based selection, proving that the local inequality survives random candidate sets and composes across a complete trajectory, and quantifying the effect of value error. The resulting local preference must then be transferred to the language model even when identical final returns remove the group-relative signal. We introduce APIVIS, which treats reasoning chunks as search actions and uses value-guided Gumbel search as an improvement operator inside online RLVR. Each rollout group mixes direct and searched responses, while a selective auxiliary loss trains only on search-improved tokens. The former converts better search outcomes into group-relative contrast; the latter preserves an improvement-aligned signal when GRPO group returns are uninformative, provided that the value-improvement filter admits searched tokens. In the reported configuration, successful and failed trajectories have the same InfoSFT weight, so an all-failure group can receive InfoSFT supervision even though its group-relative GRPO gradient is zero. We summarize our contributions as follows: • We formulate value-guided selection over sampled reasoning chunks and prove statewise and complete-response policy improvement, with an explicit degradation bound under value-estimation error. • We propose APIVIS, which combines finite-budget chunk search, mixed-policy rollout groups, and selective supervision to distill accepted search-improved decisions, including uniform-return groups for which the group-relative gradient vanishes. • We evaluate APIVIS at Qwen3-1.7B and Qwen3-4B scales, obtaining consistent improve-ments over direct RLVR and search-based baselines. 
+
+## 2 Value-guided informative search 
+
+Chunk-level reasoning process. For problem x, state s contains the prompt and committed reasoning, and action a is the next variable-length reasoning chunk. The transition appends the chunk, 
+
+s′ = s ◦ a, and the only reward is terminal correctness r(x, y ) ∈ { 0, 1}. We write 
+
+Qπ (s, a ) = E[r | s, a, then follow π], (1) 2where π is the current language-model policy. Chunks keep the tree shallow and align with partial solutions scored by token-level value models [Wang et al., 2025]; Appendix B specifies the operational chunk boundaries. 
+
+Value-guided chunk search. At fixed chunk boundaries, π proposes C candidates and a frozen value model scores their prefixes (Figure 1a). Gumbel sequential halving allocates S simulations by repeatedly pruning weak roots and expanding survivors. The rollout commits the final principal chunk and resumes decoding; the completed response receives the usual terminal verifier reward. Concretely, root candidates are sampled independently from the current policy and assigned independent Gumbel variables. Simulations are divided across sequential-halving phases. Each simulation descends from its assigned root through least-visited children with deterministic tie breaking, evaluates an unexpanded or terminal leaf with the frozen value model, expands a nonterminal leaf with policy-sampled chunks, and backs the leaf value up through visit counts, value sums, and their mean. At each phase boundary, the lower-scoring half of the roots is removed. After the final phase, the highest-scoring surviving root and its highest-value principal continuation are committed; discarded branches never enter the training batch. 
+
+Mixed-policy rollout groups. Each six-response group contains three direct samples from π and three from the search-induced policy μ (Figure 1b). GRPO normalizes all six returns together, so improvements found by search create within-group contrast while direct responses anchor learning to the current policy. 
+
+Policy-improvement view. The core property does not depend on a particular tree implementation. Let As = ( a1, . . . , a C ) ∼ π(· | s)C and qi = Qπ (s, a i). For any non-decreasing transform h, define a value-improved distribution over candidate slots, 
+
+ρh(i | A s) = exp( h(qi)) 
+
+PCj=1 exp( h(qj )) . (2) This includes increasingly greedy value selection as the scale of h grows. 
+
+Theorem 1 (Selective chunk-level improvement) . For every fixed candidate list, 
+
+X
+
+> i
+
+ρh(i | A s)qi ≥ 1
+
+C
+
+X
+
+> i
+
+qi. (3) 
+
+Averaging over candidate lists therefore induces a chunk policy πh with Ea∼πh Qπ (s, a ) ≥ V π (s). If selection uses estimates bQ satisfying | bQ − Qπ | ≤ ϵ on all candidates, the right-hand side becomes 
+
+V π (s) − 2ϵ. Let a completion policy μ use the improved rule only at the scheduled searched states and use π elsewhere. Then exact values imply V μ(s0) ≥ V π (s0) at the initial prompt state; with at most K searched states, V μ(s0) ≥ V π (s0) − 2Kϵ .
+
+The proof combines monotone-reweighting covariance with the finite-horizon performance-difference identity (Appendix E). Trajectory-level improvement does not require search at every chunk boundary: unsearched states contribute zero advantage, so gains at searched states compose over the complete response. Our implementation approximates Eq. (2) using finite-budget sequential halving and a frozen value model. Thus the theorem identifies the target operator and exposes value error; it is not an unconditional claim about the learned parameterized policy. 
+
+Learning from informative continuations. All committed tokens train with the same group-relative loss as the sampling baseline. A committed searched chunk enters mask M only when its backed-up value improves on the pre-search state or the policy’s direct candidate. The auxiliary objective is 
+
+LInfoSFT = − 1
+
+Z
+
+X
+
+> i
+
+wi
+
+X
+
+> t∈M i
+
+log πθ (y(i) 
+
+> t
+
+| x, y (i)
+
+> <t
+
+), L = LGRPO + wILInfoSFT . (4) In the reported experiment, wi = 1 for both verified-success and failed trajectories; terminal correctness is not an admission requirement. If the weighted mask is empty, we define the auxiliary loss to have exactly zero gradient. When group returns are identical, GRPO is zero. InfoSFT supplies supervision only when M is nonempty and its trajectory weight is nonzero. Under the reported weighting this can occur for both all-success and all-failure groups. Mixed-return groups may receive both group-relative learning and selective supervision on admitted searched trajectories. 3Table 1: Validation-rank-1 Avg@16 verifier accuracy (%) at two model scales. Each trained row uses one training seed.                                                        
+
+> Method MATH-500 AIME-24 AIME-25 Olympiad Avg.
+> Qwen3-1.7B-Base 47.60 4.38 2.29 18.61 18.22 + GRPO 63.50 6.25 3.12 28.16 25.26 + LATR + GRPO 57.79 5.83 2.50 24.23 22.59 + MCTS-alpha + GRPO 64.38 6.25 2.29 27.47 25.10 + APIVIS + InfoSFT 66.17 9.58 4.58 30.80 27.79
+> Qwen3-4B-Base 45.44 4.58 4.17 21.68 18.97 + GRPO 78.83 13.75 10.62 44.07 36.82 + LATR 79.74 12.29 10.83 43.29 36.54 + TS-LLM 77.39 13.75 11.04 42.42 36.15 + APIVIS 81.15 16.46 14.79 47.66 40.02
+
+## 3 Experiments 
+
+3.1 Setup 
+
+We evaluate Qwen3-1.7B-Base and Qwen3-4B-Base. Every run uses the same ordered Open-RS training data [Dang and Ngo, 2025], verifier, optimizer, and data schedule: 64 prompts per step, six completions per prompt, and 100 training steps. At both scales we compare the initial policy, GRPO, LATR, and APIVIS; the 4B study additionally includes TS-LLM, while the 1.7B study includes a matched MCTS-alpha + GRPO baseline. LATR retains its native branching rule. TS-LLM and the matched MCTS-alpha baseline use MCTS with the same per-search simulation budget as the Gumbel search in APIVIS. Search placement in APIVIS is fixed across trajectories. Each APIVIS group contains three directly sampled completions and three search-generated completions. All mathematical training results use one training seed. Search methods additionally incur candidate-generation and value-model inference cost. Over the archived 4B runs, APIVIS uses 20.06 logged training hours (160.51 GPU-hours), compared with 6.32 hours for GRPO, 38.64 for LATR, and 40.16 for TS-LLM; Appendix C.1 gives the full accounting. We evaluate direct policy decoding on MATH-500 [Hendrycks et al., 2021], AIME-2024, AIME-2025, and OlympiadBench [He et al., 2024]. For each problem, Avg@16 is the mean verifier accuracy over 16 sampled completions at temperature 0.7 and top-p = 0 .95 . The validation artifact is a deterministic 0.5% split of Open-RS generated with seed 42 (35 prompts). Each validation point uses four direct-policy samples per prompt. For every headline model-comparison row, we select the saved checkpoint ranked first by validation mean@4, with earlier-step tie breaking, and only then run the four full test benchmarks. The reported APIVIS runs use fixed 3-direct/3-search in training rollouts; Appendix C lists all hyperparameters. 
+
+3.2 Main Results 
+
+Table 1 compares the rollout and search strategies at both model scales. With Qwen3-4B-Base, APIVIS achieves 40 .02 average Avg@16, exceeding GRPO, LATR, and TS-LLM by 3.20 , 3.48 ,and 3.87 percentage points, respectively, and performs best on all four benchmarks. Neither LATR (36 .54 ) nor TS-LLM ( 36 .15 ) improves the average over GRPO ( 36 .82 ). Search-based generation alone therefore does not automatically translate into a stronger directly decoded policy under this protocol. Relative to GRPO, APIVIS gains 2.32 points on MATH-500, 2.71 on AIME-2024, 4.17 on AIME-2025, and 3.59 on OlympiadBench. Relative to the LATR baseline, the gains are 1.41 , 4.17 , 3.96 , and 
+
+4.37 points, respectively. With Qwen3-1.7B-Base, APIVIS reaches 27 .79 , compared with 25 .26 for GRPO, 22 .59 for LATR, and 25 .10 for MCTS-alpha + GRPO: gains of 2.53 , 5.20 , and 2.69 points, respectively. 
+
+Training-rollout search diagnostic. Archived telemetry shows higher mean terminal reward for searched than direct completions at both scales: a 0.0630 lift at 1.7B and 0.0541 at 4B. Prompt-level 4comparisons nevertheless include losses, so search improves the rollout distribution on average rather than every prompt; Figure 3 shows the per-step dynamics, and Appendix F.4 gives the full statistics. 
+
+Value-model ranking diagnostic. At the Qwen3-1.7B step-95 checkpoint, a no-update diag-nostic over all 35 validation roots finds positive candidate-ranking signal (Spearman 0.239 , 95% CI [0 .035 , 0.433] ; top-1 lift 0.039 , 95% CI [0 .008 , 0.077] ). At the Qwen3-4B step-100 check-point, the rank-correlation point estimate is positive but inconclusive (Spearman 0.146 , 95% CI 
+
+[−0.075 , 0.368] ), with zero aggregate top-1 lift ( 0.000 , 95% CI [−0.032 , 0.029] ). Monitoring such ranking statistics may provide a practical signal that value-model quality has plateaued and that another round of value training is warranted. 
+
+3.3 Ablation Analysis 
+
+Table 4 isolates search and selective supervision under the same fixed 3-direct/3-search layout. Replacing MCTS-alpha with the policy-improvement Gumbel operator raises average Avg@16 from 
+
+36 .29 to 39 .32 , a 3.03 -point gain. Adding InfoSFT gives a further 0.70 points, reaching 40 .02 . Its largest incremental gains occur on AIME-2025 ( 1.04 ) and OlympiadBench ( 1.06 ), consistent with, but not by itself establishing, the proposed benefit of selective distillation when group-level contrast is absent. Together, these results support both value-guided selection and explicit learning from searched continuations. 
+
+InfoSFT group diagnostic. At a fixed 1.7B step-95 checkpoint, 31 of 64 diagnostic groups are all-zero and hence have zero group-relative GRPO signal, yet contain 10,209 positively weighted InfoSFT tokens. This verifies the effective loss semantics, not historical group prevalence; see Appendix F.4. The search-chunk budget K has a non-monotonic effect (Table 5). Increasing K from 5 to 10 
+
+raises average Avg@16 from 39 .20 to 40 .02 , whereas K = 20 falls slightly to 39 .84 . Although 
+
+K = 20 is strongest on AIME-2024 and OlympiadBench, it regresses on MATH-500 and AIME-2025 and does not improve mean Pass@16 over K = 5 . Thus, allowing more searched decisions does not automatically produce a more learnable policy. The corresponding mean numbers of distinct normalized final answers per problem are 4.36 , 4.20 , and 4.37 , showing no monotonic diversity collapse as K increases; see Appendix F.2. An adaptive informative-state variant retains essentially the same Avg@16 as fixed placement while reducing mean step time, although it remains more expensive than GRPO and differs in InfoSFT weighting; see Appendix F.3. Appendix D reports validation dynamics. 
+
+## 4 Discussion 
+
+Limitations. The value model is frozen throughout training. This keeps the search signal stable and makes the comparison interpretable, but it also prevents the value function from adapting as the policy improves; stale or miscalibrated values can misrank chunks, and the approximate guarantee degrades with value error. Moreover, finite-budget sequential halving only approximates the ideal improved distribution, and our experiments consider single-turn mathematical completions with terminal verification. The experiments cover two model scales but use one training seed per configuration, and the ablations do not separately isolate the effect of mixed direct/search group construction. 
+
+Future work. A natural next step is to co-train the value model and policy while controlling critic drift, so that search quality can track the evolving policy without destabilizing the improvement operator. Monitoring candidate-ranking quality may provide a practical signal that the value model has plateaued and should undergo another round of training. Extending APIVIS to multi-turn reasoning is also important: agentic tasks require values over dialogue and environment states, search budgets allocated across turns, and learning from intermediate feedback rather than a single terminal answer. 5References 
+
+Umesh Bodhwani, Thanh Tran, and Kai Wei. GAUGE: When not to trust LLM-as-a-judge in user-simulated evaluation of task-oriented agents. arXiv preprint arXiv:2609.12191 , 2026. doi: 10.48550/arXiv.2609.12191. Quy-Anh Dang and Chris Ngo. Reinforcement learning for reasoning in small LLMs: What works and what doesn’t. arXiv preprint arXiv:2503.16219 , 2025. doi: 10.48550/arXiv.2503.16219. Ivo Danihelka, Arthur Guez, Julian Schrittwieser, and David Silver. Policy improvement by planning with gumbel. In International Conference on Learning Representations , 2022. URL https: //openreview.net/forum?id=bERaNdoegnO .DeepSeek-AI. DeepSeek-R1: Incentivizing reasoning capability in LLMs via reinforcement learning. 
+
+arXiv preprint arXiv:2501.12948 , 2025. doi: 10.48550/arXiv.2501.12948. Chaoqun He, Renjie Luo, Yuzhuo Bai, Shengding Hu, Zhen Thai, Junhao Shen, Jinyi Hu, Xu Han, Yujie Huang, Yuxiang Zhang, Jie Liu, Lei Qi, Zhiyuan Liu, and Maosong Sun. OlympiadBench: A challenging benchmark for promoting AGI with olympiad-level bilingual multimodal scientific problems. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 3828–3850. Association for Computational Linguistics, 2024. doi: 10.18653/v1/2024.acl-long.211. Dan Hendrycks, Collin Burns, Saurav Kadavath, Akul Arora, Steven Basart, Eric Tang, Dawn Song, and Jacob Steinhardt. Measuring mathematical problem solving with the MATH dataset. In 
+
+NeurIPS Datasets and Benchmarks Track , 2021. URL https://openreview.net/forum?id= 7Bywt2mQsCe .Chanuk Lee, Sangwoo Park, Minki Kang, and Sung Ju Hwang. Nudging beyond the comfort zone: Efficient strategy-guided exploration for RLVR. arXiv preprint arXiv:2605.15726 , 2026. URL 
+
+https://arxiv.org/abs/2605.15726 .Hunter Lightman, Vineet Kosaraju, Yura Burda, Harri Edwards, Bowen Baker, Teddy Lee, Jan Leike, John Schulman, Ilya Sutskever, and Karl Cobbe. Let’s verify step by step. In International Conference on Learning Representations , 2024. URL https://openreview.net/forum?id= v8L0pN6EOi .Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, Y. K. Li, Y. Wu, and Daya Guo. DeepSeekMath: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 , 2024. doi: 10.48550/arXiv.2402.03300. Xingyu Shen, Huishuai Zhang, Peng Li, Yinchun Wang, and Dongyan Zhao. Boosting LLM exploration via weak-model guidance in RLVR. arXiv preprint arXiv:2608.27420 , 2026. URL 
+
+https://arxiv.org/abs/2608.27420 .Ziyu Wan, Xidong Feng, Muning Wen, Stephen Marcus McAleer, Ying Wen, Weinan Zhang, and Jun Wang. AlphaZero-like tree-search can guide large language model decoding and training. In 
+
+Proceedings of the 41st International Conference on Machine Learning , volume 235 of Proceedings of Machine Learning Research , pages 49890–49920. PMLR, 2024. URL https://proceedings. mlr.press/v235/wan24c.html .Kaiwen Wang, Jin Peng Zhou, Jonathan Daniel Chang, Zhaolin Gao, Nathan Kallus, Kianté Brantley, and Wen Sun. Value-guided search for efficient chain-of-thought reasoning. In Advances in Neural Information Processing Systems , 2025. URL https://openreview.net/forum?id= jOsuKwiCL0 .Shangyu Xing, Siyuan Wang, Chenyuan Yang, Xinyu Dai, and Xiang Ren. Lookahead tree-based rollouts for enhanced trajectory-level exploration in reinforcement learning with verifiable rewards. 
+
+arXiv preprint arXiv:2510.24302 , 2025. doi: 10.48550/arXiv.2510.24302. Qiying Yu, Zheng Zhang, Ruofei Zhu, Yufeng Yuan, Yu Yue, Tiantian Fan, Gaohong Liu, Lingjun Liu, Xin Liu, et al. DAPO: An open-source LLM reinforcement learning system at scale. arXiv preprint arXiv:2503.14476 , 2025. URL https://arxiv.org/abs/2503.14476 .6Dan Zhang, Sining Zhoubian, Ziniu Hu, Yisong Yue, Yuxiao Dong, and Jie Tang. ReST-MCTS*: LLM self-training via process reward guided tree search. In Advances in Neural Information Processing Systems , volume 37, 2024. doi: 10.52202/079017-2066. Ziqi Zhao, Zhaochun Ren, Jiahong Zou, Liu Yang, Zhiwei Xu, Xuri Ge, Zhumin Chen, Xinyu Ma, Daiting Shi, Shuaiqiang Wang, Dawei Yin, and Xin Xin. Reinforced efficient reasoning via semantically diverse exploration. In Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 47994–48007. Association for Computational Linguistics, 2026. doi: 10.18653/v1/2026.acl-long.2216. 7A Related Work 
+
+RLVR and rollout diversity. GRPO normalizes verifier rewards within responses sampled for one prompt, removing the need for a learned critic [Shao et al., 2024]; DeepSeek-R1 demonstrates the effectiveness of this recipe for mathematical reasoning [DeepSeek-AI, 2025]. Its update, however, depends on the responses exposing useful return differences. When ancestral samples follow similar reasoning paths or receive the same return, group-relative learning supplies little information. This motivates changing the rollout operator rather than only the optimizer. 
+
+Search for inference-time reasoning. Process-reward models rank intermediate solutions and support best-of-n or tree-style test-time scaling [Lightman et al., 2024]. Value-guided search extends this idea to partial reasoning traces scored by a token-level value model [Wang et al., 2025]. These methods improve the answer returned for a fixed prompt, but they need not define a searched distribution that improves the policy used for subsequent training. 
+
+Search for training-time exploration. LATR branches and prunes during RLVR generation to increase trajectory diversity [Xing et al., 2025], while ROSE resamples from uncertain positions and assigns tree-structured credit [Zhao et al., 2026]. TS-LLM and ReST-MCTS ∗ instead use tree search to construct learning targets [Wan et al., 2024, Zhang et al., 2024]. These approaches establish the utility of search during training, but do not guarantee that the search-induced rollout policy dominates the current language-model policy. 
+
+Context-guided exploration and informative sampling. Search is not the only way to change the rollout distribution. NudgeRL conditions generation on lightweight strategy contexts and distills the discovered behavior back into the base policy [Lee et al., 2026], while weak-model guidance uses prefixes from a weaker policy to move rollouts outside the current policy’s typical trajectories [Shen et al., 2026]. DAPO dynamic sampling instead resamples prompts to increase the supply of groups with nonzero relative advantages [Yu et al., 2025]. These approaches address closely related exploration or learnability failures without online value-guided tree search. Our experiments do not compare them under matched total compute. Complementarily, GAUGE shows that LLM-as-a-judge evaluation of user-simulated task-oriented agents can be poorly anchored to grounded task success, motivating verifiable rewards when they are available [Bodhwani et al., 2026]. 
+
+Search as policy improvement. Gumbel MuZero combines Gumbel action sampling and sequential halving to approximate a value-improved policy under a small simulation budget [Danihelka et al., 2022]. APIVIS adapts this principle to sampled, variable-length reasoning chunks, then couples searched continuations to both group-relative learning and selective supervision. The distinction is that search is treated as an explicit improvement operator, not only as a source of diverse or high-reward trajectories. 
+
+## B Reasoning Chunk Definition 
+
+We factor each completion into variable-length chunks rather than individual tokens. A state contains the prompt and all chunks committed so far; an action is the next chunk, and the transition appends that chunk to the response prefix. Operationally, generation of one chunk stops at the first of • a decoded blank line "\n\n" , which marks a reasoning-step boundary; • a decoded "</answer>" tag, which closes the final answer; or • the EOS token. These boundaries are additionally subject to the remaining response budget and a safety token limit that prevents a pathological single chunk when no boundary fires. Truncation is applied directly to token IDs, so the retained text is always the exact decoded prefix. This definition keeps the search tree shallow, allows candidates to share the same prefix and KV cache, and matches the block-wise granularity used by the frozen value model. 8Table 2: Core hyperparameters shared by the Qwen3-1.7B-Base and Qwen3-4B-Base experiments. APIVIS settings refer to the reported fixed 3-direct/3-search C4/S8/K10 configuration. 
+
+Category Hyperparameter Value Training Base policy Qwen3-1.7B-Base or Qwen3-4B-Base Training Data Open-RS, 7,000 source prompts; deterministic seed-42 split and order Training Seed / optimizer steps 1 / 100 
+
+Training Per-step batch 64 prompts; 6 completions per prompt (384 total) Training PPO minibatch / epochs 16 prompts / 1 epoch Optimization Actor learning rate 1 × 10 −6
+
+Optimization Schedule Constant; 5% warmup (5 steps) Optimization GRPO objective DAPO token-mean; full-completion scope; weight 1.0 Optimization KL / rollout correction Explicit KL disabled; token-level TIS threshold 2.0, no batch normalization Rollout Training token caps 512 prompt tokens; 3,584 completion tokens Rollout Training sampler Temperature 1.0; top-p 1.0 APIVIS Group composition 3 direct and 3 searched completions APIVIS Search budget C = 4 candidates; S = 8 simulations; K = 10 searched chunks APIVIS Placement / commitment Fixed, non-adaptive placement; highest-Q principal path APIVIS Value model Frozen VGS-AI/DeepSeek-VM-1.5B APIVIS InfoSFT Weight 0.1; searched-continuation scope; failed-trajectory weight 1; terminal correctness not required APIVIS InfoSFT admission Value gain > 0.001 or value margin > 0.001 
+
+Evaluation Validation / selection 35 held-out Open-RS prompts; four samples per prompt; be-fore training and nominally every 5 steps for search runs, every 10 steps for GRPO; select validation rank 1 by mean@4 with earliest-step tie breaking Evaluation Full evaluation Avg@16; 16 samples per problem; temperature 0.7; top-p
+
+0.95 Evaluation Evaluation token caps 512 prompt tokens; 8,192 completion tokens 
+
+## C Core Hyperparameters 
+
+Table 2 summarizes the reported fixed APIVIS configuration and the shared training and evaluation protocol. 
+
+C.1 Compute Accounting 
+
+Table 3: Logged training time and approximate eight-GPU cost. Summed time excludes downtime between resumed processes. 
+
+Scale / method Steps Training hours GPU-hours 4B GRPO 100 6.32 50.57 4B MCTS-alpha 100 18.24 145.92 4B Gumbel 100 19.19 153.50 
+
+4B APIVIS 100 20.06 160.51 
+
+4B LATR 100 38.64 309.15 4B TS-LLM 100 40.16 321.31 1.7B APIVIS 100 9.96 79.70 
+
+Training hours sum the logged durations of completed optimization steps; GPU-hours multiply this quantity by eight. Exact generated-token counters are absent for the archived APIVIS and TS-LLM runs, so Table 3 provides transparent wall-clock accounting rather than a token- or compute-matched efficiency comparison. 9D Training Dynamics 0 20 40 60 80 100                    
+
+> Training step
+> 0.2 0.3 0.4 0.5
+> Validation score (Avg@4)
+> (a)
+> 020 40 60 80 100
+> Training step
+> 0.0 0.5 1.0 1.5
+> Policy entropy
+> (b)
+> 020 40 60 80 100
+> Training step
+> 750 1000 1250 1500 1750 2000
+> Response length  (c)
+> 020 40 60 80 100
+> Training step
+> 4
+> 2
+> 02
+> PPO KL
+> ×10 4
+> (d)
+> GRPO LATR TS-LLM APIVIS
+
+Figure 2: Qwen3-4B-Base training dynamics for the four methods in Table 1: validation Avg@4, policy entropy, response length, and PPO KL. Faint traces show logged values, solid lines show centered running means over a 10-step radius, and bands show the local minimum–maximum range within that window. All methods improve rapidly over the first 20–40 steps, followed by substantial validation noise. APIVIS ends at 0.529 , above GRPO ( 0.486 ), LATR ( 0.479 ), and TS-LLM ( 0.464 ). Because the curves overlap rather than separate uniformly, we treat the full Avg@16 evaluation in Table 1, not any single validation point, as the primary comparison. The optimization panels additionally expose changes in policy entropy, generated response length, and PPO KL rather than presenting validation in isolation. The shaded ranges describe local temporal variation within each single run, not uncertainty across seeds. Checkpoint selection nevertheless follows validation rank 1 (maximum mean@4 with earlier-step tie breaking), before any full-test result is used. 
+
+## E Proof of Theorem 1 
+
+For a fixed candidate list, let ρ0(i) = 1 /C and let the random variable q take value qi when i ∼ ρ0.Equation (2) reweights ρ0 by exp( h(q)) , so 
+
+Eρh [q] = Eρ0 [q] + Cov ρ0 (q, exp( h(q))) 
+
+Eρ0 [exp( h(q))] ≥ Eρ0 [q]. (5) The covariance is nonnegative because h is non-decreasing. Averaging over candidate lists proves the exact statewise claim because a uniformly selected candidate has marginal distribution π(· | s). If selection uses bQ, applying | bQ − Qπ | ≤ ϵ before and after the improvement inequality loses at most 
+
+2ϵ. Finally, the performance-difference identity sums the statewise advantage under the selectively searched policy. Unsearched states contribute zero, exact searched states contribute nonnegative advantage, and at most K approximate searched states contribute no less than −2ϵ each. 
+
+## F Controlled Search Ablations 
+
+F.1 Search Operator and Selective Supervision 
+
+We separate the contribution of the search operator from the auxiliary distillation signal using three fixed 3-direct/3-search configurations. All rows use Qwen3-4B-Base, the same data order and 10 training seed, full-completion GRPO, and the same C = 4 , S = 8 , K = 10 search budget. Replacing MCTS-alpha with Gumbel sequential halving changes only the search operator; adding InfoSFT to the Gumbel run then tests selective supervision on value-improving searched continuations. Table 4: Avg@16 verifier accuracy (%) for fixed 3-direct/3-search runs. Each row is one training seed evaluated at its validation-rank-1 checkpoint.                     
+
+> Method MATH-500 AIME-24 AIME-25 Olympiad Avg. MCTS-alpha + GRPO 78.55 12.92 10.62 43.06 36.29 Gumbel + GRPO 80.70 16.25 13.75 46.60 39.32 Gumbel + GRPO + InfoSFT 81.15 16.46 14.79 47.66 40.02
+
+Gumbel search improves the four-benchmark average from 36 .29 to 39 .32 , a 3.03 -point gain over MCTS-alpha under the matched rollout layout. InfoSFT contributes a further 0.70 points, reaching 
+
+40 .02 , with the largest incremental gains on AIME-2025 and OlympiadBench. These are controlled single-seed ablations and do not estimate training-seed uncertainty. 
+
+F.2 Search-Chunk Budget 
+
+We vary the maximum number of searched chunks K while holding the fixed 3-direct/3-search layout, 
+
+C = 4 candidates, S = 8 simulations, GRPO, and InfoSFT fixed. Table 5: Avg@16 verifier accuracy (%) as the search-chunk budget K varies. Each setting uses one training seed and a best-validation checkpoint; K = 20 uses a validation-co-best checkpoint because the strict earliest tied checkpoint lacks a completed full evaluation.                     
+
+> KMATH-500 AIME-24 AIME-25 Olympiad Avg. 581.04 15.42 14.38 45.98 39.20 10 81.15 16.46 14.79 47.66 40.02
+> 20 80.39 18.75 12.50 47.72 39.84
+
+Mean Pass@16, the fraction of problems solved by at least one of 16 samples averaged across benchmarks, is 62 .83 , 60 .28 , and 61 .04 for K = 5 , 10 , 20 , respectively. The coverage result is also non-monotonic. Across the same frozen 16-sample evaluation artifacts, the mean numbers of distinct normalized final answers per problem are 4.36 , 4.20 , and 4.37 for K = 5 , 10 , 20 . Distinct correct answers per solved problem are 1.16 , 1.19 , and 1.18 , respectively. Thus, the observed performance changes are not accompanied by a monotonic collapse in answer diversity. Normalization extracts the final boxed answer and standardizes its string form; it is not a symbolic-equivalence test. 
+
+F.3 Adaptive Informative-State Placement 
+
+The reported APIVIS model uses fixed placement, but we also evaluate adaptive placement for mathematical reasoning. At each eligible chunk boundary, the detector first measures uncertainty under the deployed policy sampler. Let ℓ(s) be the next-token logits and 
+
+qs = TopP(softmax( ℓ(s)/τ ), p ) , eHπ (s) = H(qs)log | supp( qs)| . (6) The normalized value ambiguity of the frozen Bernoulli success estimate is 
+
+A(s) = 4 V (s) 1 − V (s) ∈ [0 , 1] . (7) The historical C4/S8 adaptive run uses the informative-state score 
+
+I(s) = eHπ (s)A(s), d(s) = 1
+
+h eHπ (s) > η H ∧ I (s) > κ 
+
+i
+
+. (8) The entropy test is evaluated first, so states that fail it incur no value-model detector call. Search is applied to the first K accepted boundaries. We set ηH = 0 .1, K = 10 , and κ = 0 .1 for all runs. These placement rules select where to search; they are distinct from InfoSFT admission, which selects searched continuations after observing value gain or margin. 11 Table 6: Validation-rank-1 Avg@16 and full 100-step training telemetry for Qwen3-4B-Base. Chunks are searched chunks per designated search trajectory; GPU-hours use eight GPUs. 
+
+Method Avg. Chunks Step (s) GPU-h GRPO 36.82 – 227.57 50.57 Adaptive C4/S8 39.98 0.52 441.75 98.17 Adaptive C8/S16 40.06 1.07 883.91 196.42 Fixed C4/S8 40.02 3.91 722.30 160.51 
+
+The C4/S8 adaptive run reduces mean searched chunks by 86 .8% and mean step time by 38 .8% 
+
+relative to fixed placement, while its Avg@16 changes by only −0.04 points. However, it remains 
+
+1.94 × slower per step than GRPO. It also uses failed-trajectory InfoSFT weight zero, whereas the reported fixed run uses weight one. The result therefore provides a reduced-search-compute robustness check, not a strictly compute-matched or single-factor comparison. The wider C8/S16 adaptive variant is included for completeness but does not provide an efficiency control. 
+
+F.4 Training-Time Mechanism Diagnostics 
+
+Archived training telemetry separates the three direct and three searched completions in each APIVIS group. At 1.7B, direct and searched terminal rewards average 0.1717 and 0.2347 , respectively, a 
+
+0.0630 lift; prompt-level searched-versus-direct outcomes are 22 .48% wins, 67 .91% ties, and 9.61% 
+
+losses. At 4B, the corresponding rewards are 0.2968 and 0.3509 , a 0.0541 lift, with 25 .14% wins, 
+
+61 .02% ties, and 13 .84% losses. 1 20 40 60 80 100      
+
+> Training step
+> 0.05
+> 0.00 0.05 0.10 0.15 0.20
+> Search - direct reward  (a) Qwen3-1.7B-Base
+> mean lift = +0.063
+> 5-step mean run mean
+> 120 40 60 80 100
+> Training step
+> (b) Qwen3-4B-Base
+> mean lift = +0.054
+
+Figure 3: Per-step searched-minus-direct terminal reward for the reported APIVIS runs. Thin lines show raw training-step values, thick lines show centered five-step means, and dashed lines show run means. Positive values indicate that searched completions outperform direct completions within the same training rollout groups. We also run a production-faithful, no-update diagnostic on 64 six-response groups at the 1.7B step-95 checkpoint. Among the 31 all-zero groups, for which group-relative GRPO is zero, 25 .8% of trajectories have a nonempty InfoSFT mask with positive trajectory weight, totaling 10,209 admitted tokens. The diagnostic confirms that all-failure groups can receive InfoSFT supervision under the reported configuration. Because it is a fixed-checkpoint diagnostic rather than archived training-wide group telemetry, it is not used to estimate historical all-zero-group prevalence. 12

@@ -1,0 +1,5206 @@
+Title: Quantifying the Stability of Multi-Step Reasoning via Error Amplification
+
+URL Source: https://arxiv.org/pdf/2610.06404v1
+
+Published Time: Tue, 06 Oct 2026 03:34:16 GMT
+
+Number of Pages: 37
+
+Markdown Content:
+# Quantifying the Stability of Multi-Step Reasoning via Error Amplification 
+
+Dongyue Li 
+
+Northeastern University Boston, MA 
+
+li.dongyu@northeastern.edu 
+
+Ziniu Zhang 
+
+Northeastern University Boston, MA 
+
+zhang.zini@northeastern.edu 
+
+Minxuan Duan 
+
+Northeastern University Boston, MA 
+
+dminxuan@gmail.com 
+
+Hongyang R. Zhang 
+
+Northeastern University Boston, MA 
+
+ho.zhang@northeastern.edu 
+
+## Abstract 
+
+We consider the stability of multi-step reasoning processes, which have extensive applications in language models, including chain-of-thought and algorithmic rea-soning. While longer sequences of reasoning can improve a model’s generation capability at test time, the errors due to intermediate reasoning steps can accumu-late in autoregressive generation, and thus grow substantially at the end. In this paper, we ask: What are the key factors determining the stability of multi-step reasoning? First, we show an inference error bound governed by the product of 
+
+spectral norms of the Jacobians taken through the input space across generation steps. This product can be viewed as an error amplification factor, which could scale exponentially with the number of reasoning steps, serving as a quantitative measure of reasoning stability. Second, we analyze this measure in transformer models trained to predict simple tasks like linear and quadratic functions. We theoretically prove that the transformer model converges to a solution where the stability measure decays, thus yielding nearly zero inference loss over (arbitrarily) long steps. Finally, the stability analysis leads to several algorithmic implications for controlling the stability, through (i) chain-of-thought length compression that reduces the sensitivity of each step, and (ii) quantization-aware training that regular-izes the input Jacobian norms. We validate the proposed algorithms by fine-tuning language models on graph-algorithmic reasoning tasks and symbolic state-tracking tasks. Across seven evaluations, our algorithms improve over baseline comparisons by 3.5% on average, and by 8.2% for longer-length inputs. Ablation analysis validates that the stability measure is drastically reduced by 3-8 ×, confirming the regularization effect on the spectral norms of the (input space) Jacobians. 
+
+## 1 Introduction 
+
+Multi-step reasoning enhances language model capabilities by generating intermediate steps before producing a final answer. Specifically, for an input x, a model fW generates a reasoning sequence 
+
+(x, ˆy(1) , . . . , ˆy(T )) autoregressively. As the error in previous outputs propagates over the steps, this can destabilize long reasoning and cause severe final prediction errors [38, 28]. However, standard training like supervised fine-tuning does not explicitly control this error accumulation. In this work, we theoretically analyze such error amplification across steps, aiming to identify the key factors governing reasoning stability and design training methods that control accumulated errors.                  
+
+> 40th Conference on Neural Information Processing Systems (NeurIPS 2026). arXiv:2610.06404v1 [cs.LG] 5 Oct 2026 T= 2 T= 3 T= 4 T= 5 T= 6 0123Our bound ( right axis )Inference loss ( left axis )
+> 0510 15 (a) Evaluation of our bound values Prim’s Dijkstra Bellman-ford 01234SFT-CoT Implicit CoT Coconut Alg .1(b) Inference losses Prim’s Dijkstra Bellman-ford 020 40 60 80 (c) Spectral norm of Jacobians
+
+Figure 1: We present a bound on the inference loss in multi-step reasoning governed by the product of spectral norms of Jacobians taken through the input space across generation steps. Figure 1a: Our bound (equation (4)) tracks the inference loss on the Bellman-Ford algorithmic reasoning task, showing that both can scale exponentially with steps. Figure 1b: We design a training method that regularizes the Jacobian spectral norms, which improves the test performance over baselines. Figure 1c: Models fine-tuned with our method exhibit drastically reduced Jacobian spectral norms. Understanding such error amplification is valuable in many practical problems, especially for scaling test-time computation [6, 8]. One concrete setting is algorithmic reasoning, where models perform the step-by-step computation of classical algorithms like Bellman-Ford [20]. Models are expected to learn these underlying algorithms to generalize and extrapolate to larger, unseen inputs. However, a mistake in the early steps can corrupt the procedure. In our own experiments, we observe that the test error in a fine-tuned language model (e.g., Qwen-1.5B and Gemma-2B) can scale super-linearly with steps, as shown in Figure 1a. Empirical methods, such as training models to generate fewer steps [5] or reason in the continuous feature space [10], have been proposed to reduce these errors. Yet, the reason for their empirical benefits remains underexplored. Recent theoretical work has presented convergence and generalization guarantees of transformers trained on specific reasoning tasks, including linear regression [12, 40], state tracking [14], and path-finding in trees [34]. Their analyses focus on the task-specific transformer structures, leaving open the general cases. Studies based on PAC learning theory [1, 15] yield VC-dimension generalization bounds dependent on the entire hypothesis class. This motivates us to conduct a general analysis of multi-step reasoning with computable measures on data and fine-tuned models. We begin by analyzing the inference error amplification of multi-step reasoning. Our key finding is that the inference loss is governed by the products of the spectral norms of Jacobians taken through the input space across generation steps, which control reasoning stability. The idea is to bound the gap between the T -step inference loss, ℓ(fW ([ x, ˆy(1) , . . . , ˆy(T −1) ]) , y (T )), and the training loss, ℓ(fW ([ x, y (1) , . . . , y (T −1) ]) , y (T )), conditioned on the correct steps. Using a first-order approximation in the input space, we show that the prediction errors at step i are propagated forward by the Jacobian matrix J(t) 
+
+> i
+
+(evaluated at the t-th step output to the input y(i)). Let ρ(T ) 
+
+> i
+
+be the sum of products of ∥J(t) 
+
+> i
+
+∥ across all paths from step i to T . Then, recursively decomposing the errors yields a bound for the inference loss governed by PT −1 
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+(cf. Lemma 3.1), which we define as an error amplification factor. Empirically, this bound closely tracks the test losses on fine-tuned language models (including Qwen, Gemma, and Llama models), which can scale exponentially with T , as shown in Figure 1a. Next, we instantiate this bound by analyzing one-layer multi-head transformers trained on weight-prediction tasks for linear and quadratic functions. In both settings, we prove that the transformer converges to a solution where PT −1 
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+decays with T , with the spectral norm of the Jacobians evaluated at each step input strictly less than one. Consequently, the trained transformer achieves a test loss of O(1 /poly (d)) with input dimension d and T = Θ(log d) steps (cf. Theorem 3.4). Extending prior work on linear functions [12], our analysis for quadratic functions introduces a novel three-head transformer construction that exactly implements gradient descent (cf. Lemma 3.3), a finding that may be of independent interest. Motivated by this analysis, we propose a training method to control accumulated error by regularizing the Jacobian-based error amplification factor. Our method incorporates chain-of-thought length compression that downsamples the reasoning steps during training, and quantization-aware training 2[18, 19] that trains weights with gradients computed on the quantized model. We show that our method reduces the Jacobian spectral norms by regularizing the Hessian trace of the model loss during quantized training. We evaluate this method on five algorithmic reasoning tasks [20] and two state-tracking tasks from LEGO [39]. First, across all seven tasks, our method yields an average test accuracy improvement of 3.5 % over baselines, including implicit chain-of-thought [5] and Coconut [10], shown in Figure 1b. Second, on evaluation of length generalization with larger inputs, our method enhances the test performance by 8.2 % over baselines. Finally, ablation studies confirm that our method reduces the Jacobian-based error amplification factor by up to 8× compared to existing methods, as shown in Figure 1c. The code for replicating these empirical findings is available at https://github.com/VirtuosoResearch/Multi-step-reasoning-experiments. 
+
+Summary of contributions. First, our analysis reveals that the inference error in multi-step reasoning scales with the product of spectral norms of Jacobians taken through the input space. Second, we theoretically show that transformers trained on linear and quadratic functions converge to a regime where these norms are strictly less than one, yielding near-zero inference error. Finally, we propose a training method that regularizes these input Jacobian norms, empirically enhancing test performance and length generalization across diverse reasoning tasks. 
+
+## 2 Preliminaries 
+
+We now describe the problem setup for multi-step reasoning. Let X denote the feature space. Let 
+
+fW : X ∗ → X denote a next-token predictor with parameters W ∈ Rp, such as a language model. 
+
+fW takes a sequence of vectors in X of arbitrary length as input and outputs a single vector in X ,which is then appended to the sequence before the next prediction during inference. For an input sequence x ∈ X ∗, we assume that there exists an underlying rule generating a ground-truth sequence [x, y (1) , . . . , y (T (x)) ], where y(t) ∈ X is the ground-truth output at step t, and T (x)
+
+denotes the total number of steps, which depends on the input x. We denote the maximum number of steps as T for a particular task and bounded input lengths. As a concrete example, suppose x contains a graph and a source node; then each y(i) encodes an intermediate execution step of a graph traversal algorithm such as breadth-first search [20]. At inference time, the model fW generates T (x) steps for an input x autoregressively. We denote the prediction at step t as 
+
+by(t) = fW
+
+ [x, by(1) , . . . , by(t−1) ], with by(1) = fW (x).
+
+For simplicity of notation, we write the generated sequence after t steps as 
+
+bz(t) = [ x, by(1) , . . . , by(t)], with bz(0) = [ x].
+
+The corresponding ground-truth sequence with the correct intermediate steps is denoted as 
+
+z(t) = [ x, y (1) , . . . , y (t)], for t = 1 , . . . , T (x), and z(0) = x.
+
+During training, the model fW predicts the next step conditioned on the preceding steps that encode the ground truth. Let S = (xi, y (1)  
+
+> i
+
+, . . . , y (T (xi))  
+
+> i
+
+) ni=1 denote a training dataset of n examples, where every xi is drawn independently from an unknown distribution D. Given a loss function ℓ(·, ·),the training loss is defined as: 
+
+ˆL(fW ; S) = 1
+
+n
+
+> n
+
+X 
+
+> i=1
+> T(xi)−1
+
+X
+
+> t=0
+
+ℓ fW
+
+ z(t)
+
+> i
+
+, y (t+1) 
+
+> i
+
+. (1) At test time, the model predicts the next step conditioned on previous predictions. The outcome is evaluated by the loss function at the final step. We thus define this test loss over a random sample x
+
+drawn from the data distribution D as: 
+
+L(fW ; D) = E
+
+> x∼D
+
+h
+
+ℓ fW (bz(T (x)−1) ), y (T (x)) i
+
+. (2) To be clear, we will call the above equation (2) the inference loss . At training time, minimizing equation (1) measures the loss relative to the ground truth. At inference time, the model assimilates 3prediction errors that occurred during previous steps back into the model. Thus, the prediction errors during inference can accumulate during long generation steps. 
+
+Problem statement. We quantify how inference loss accumulates throughout generation. We study conditions under which multi-step reasoning is stable, where the inference loss L(fW ; D) remains bounded in long chains. Additionally, we design training algorithms to mitigate error accumulation and improve the stability of multi-step reasoning. 
+
+Notations. For any matrix X, let ∥X∥ denote the largest singular value (or spectral norm) of X. Let 
+
+∥X∥F denote the Frobenius norm of X. f (N ) ≲ g(N ) indicates that there exists a fixed constant c
+
+that does not grow with N such that f (N ) ≤ c · g(N ) for large enough integers of N .
+
+## 3 Theoretical Analysis 
+
+This section presents a theoretical analysis of multi-step reasoning in the above setup. First, we present a bound on the inference loss relative to the ground truth generation. We show that this bound depends on an error amplification factor defined by the product of spectral norms of Jacobian matrices measured at the input space. Second, we instantiate this bound in in-context prediction tasks for linear and quadratic functions. We show that transformer models converge to a regime where the error amplification factor decays across steps, thus yielding nearly zero inference loss. 
+
+3.1 Error Amplification in Multi-Step Reasoning 
+
+We now quantify how the inference loss accumulates across generation steps. We write the number of steps as T when the input is clear from the context. For an input x, we compare the inference loss 
+
+ℓ fW (bz(T −1) ), y (T ) of equation (2) with the loss ℓ fW (z(T −1) ), y (T ) of the prediction conditioned on the correct steps, which is what training minimizes in equation (1). To measure the difference, let e(t)(x) = fW (z(t−1) ) − y(t) and be(t)(x) = fW (bz(t−1) ) − y(t)
+
+denote the prediction error at step t conditioned on the correct steps and on the model’s generations, respectively. Consider the first-order Taylor expansion in the input space, for every t,
+
+fW (bz(t−1) ) − fW (z(t−1) ) = 
+
+> t−1
+
+X
+
+> i=1
+
+J(t) 
+
+> i
+
+(x) be(i)(x) + R(t), where J(t) 
+
+> i
+
+(x) = ∂f W (z(t−1) )
+
+∂y (i)
+
+is the input Jacobian evaluated at step t, and R(t) is the second-order remainder error term. By recursively unrolling this expansion, an error at step i affects a later step t by first propagating to an intermediate step k and then from k to t. To capture the propagation path, we define a term: 
+
+ρ(t) 
+
+> i
+
+= sup  
+
+> x∈X ∗
+
+∥J(t) 
+
+> i
+
+(x)∥ +
+
+> t−1
+
+X
+
+> k=i+1
+
+
+
+sup  
+
+> x∈X ∗
+
+∥J(t) 
+
+> k
+
+(x)∥ · ρ(k)
+
+> i
+
+
+
+, with ρ(t) 
+
+> t
+
+= 1 ,
+
+which sums, over all paths from i to t, the product of the spectral norms of the input Jacobians along the path. Therefore, an error at step t reaches the final step amplified by a factor ρ(T ) 
+
+> t
+
+.Our main result is to incorporate the spectral norm of Jacobians to quantify the accumulation of inference errors across generation steps. For every x in the support of D, we denote the maximum of the two errors, for t from 1 to T − 1, by: 
+
+sup  
+
+> x∈X ∗
+
+∥e(t)(x)∥ = εt, sup  
+
+> x∈X ∗
+
+∥be(t)(x)∥ = rt. (3) We present a bound on the (expected) inference loss as follows. 
+
+Lemma 3.1. Suppose that fW is twice differentiable with respect to its input, the loss function ℓ(·, ·)
+
+is C1-Lipschitz continuous in its first argument, and the Jacobian of fW with respect to its input is C2-Lipschitz continuous. Let L⋆(fW ; D) = Ex∼D 
+
+ℓ fW (z(T −1) , y (T )) be the expected loss at the final step of the model prediction conditioned on correct steps. Then, for any fixed W ∈ Rp
+
+that satisfies these conditions, and under equation (3), the inference loss is bounded away from the expected loss as follows: 
+
+L(fW ; D) − L⋆(fW ; D) ≤ C1 
+
+> T−1
+
+X
+
+> t=1
+
+ρ(T ) 
+
+> t
+
+εt + C1C2
+
+2
+
+> T
+
+X
+
+> t=2
+
+ρ(T )
+
+> t
+> t−1
+
+X
+
+> i=1
+
+ri
+
+!2
+
+. (4) 41 2 3 4 5 6           
+
+> T
+> 024Our bound ( right axis )Inference loss ( left axis )
+> 048
+> Breadth -first search 123456
+> T
+> 01234
+> 04812 16
+> Dijkstra algorithm 123456
+> T
+> 0123
+> 0123
+> Prim ’s algorithm
+
+Figure 2: We illustrate the loss gap and our bound in equation (4), which can scale exponentially across generation steps, tracking the growth of the inference loss. Results are evaluated on breadth-first search, Dijkstra, and Prim’s algorithm, using QWen-1.5B. The loss gap and the bound are plotted on separate axes; equation (4) is a worst-case bound and is numerically larger than the gap it bounds. Table 2 in Appendix B reports the corresponding bound-to-gap ratios and constants. The proof involves a decomposition of the error between predictions on the model-generated sequence and the correct step sequence by applying the first-order expansion recursively. The full proof is in Appendix A.1. Lemma 3.1 highlights that the inference loss is governed by PT −1 
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+, which we term an error amplification factor. Even if the training error is small, this factor can grow exponentially with T , resulting in large inference errors on long reasoning sequences. 
+
+Examples. To empirically verify our analysis, we study the scaling of inference losses on graph algorithmic reasoning tasks [20]. We fine-tune Qwen-1.5B, Llama-1B, and Gemma-2B models on tasks with graphs of 10 nodes. Inputs are text-based graph descriptions, and intermediate steps are encoded as node labels, such as the nodes along the shortest path. As a reasoning step in text-based datasets typically involves several tokens, we compute the loss, the ℓ2 error, and the Jacobian matrices token-by-token within a step, and then aggregate them over the tokens within one step. For text-based reasoning tasks, we view X as the continuous space of input embeddings. The output of fW at step t is then the expected embedding of the predicted next token, calculated as the weighted average of all token embeddings based on their predicted softmax probabilities. We compute the Jacobian of the output vector with respect to the input embeddings. We estimate its spectral norm via power iteration using Jacobian-vector products. To approximate sup x ∥J(t) 
+
+> k
+
+∥ in equation (4), we take the maximum norm across the dataset. After minimizing the training loss, we measure the loss gap and the empirical values of our bound in equation (4), for T ranging from 1 to 6. In Figure 2, the inference loss increases significantly with the number of steps. Our bound, which involves PT −1 
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+, scales exponentially with T , closely tracking the growth in inference loss. We also observe similar results on Llama-1B and Gemma-2B models, which are described in Appendix B. These results demonstrate that controlling input Jacobian norms during training is crucial for reducing accumulated errors in multi-step generation. 
+
+Remark 3.2 . Lemma 3.1 provides a worst-case upper bound that may not be numerically tight. Empirically, while we observe a consistent correlation between the bound values and inference losses across models, the numerical scales of the error amplification factor PT −1 
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+vary significantly. The bound-to-gap ratio is around 8 for Qwen-1.5B and around 10 5–10 6 for Llama-1B and Gemma-2B. We report the empirical loss gap, the bound, the bound-to-gap ratio, both terms of equation (4), and the estimated constants C1 and C2, for every model in Appendix B. 
+
+3.2 Learning Dynamics in Quadratic Models 
+
+Next, we explicitly instantiate the bound in Lemma 3.1 in training transformers on an in-context weight prediction task. We show that if the spectral norm of the input Jacobian matrix is less than one, the inference loss can be reduced close to zero. Based on prior work on in-context learning [40], we study a task that predicts the weight vector 
+
+θ⋆ ∼ N (0 , Id d) of a function, given n examples (xi, y i) where xi ∼ N (0 , Id d) and yi = gθ⋆ (xi)
+
+for a known function g. We define the ground-truth steps as iterates by performing gradient descent 50 250 500 750 1000 Training iterations 02      
+
+> L(fW;D)
+> T= 10
+> T= 20
+> T= 30
+> T= 40
+
+(a) Linear functions 0 250 500 750 1000 Training iterations 0.00.51.0 L(fW ; D)     
+
+> T= 100
+> T= 200
+> T= 300
+> T= 400
+
+(b) Quadratic functions 0 250 500 750 1000 Training iterations 01234 L(fW +U ; D) − L(fW ; D) (c) Linear functions 0 250 500 750 1000 Training iterations 0.00.51.01.5        
+
+> L(fW+U;D)−L(fW;D)
+
+(d) Quadratic functions 
+
+Figure 3: We illustrate that, in training transformers on both linear and quadratic functions, the inference loss and the noise-perturbed loss converge close to zero, and become lower with longer steps. We set d = 10 and train a one-head linear transformer on linear functions ( n = 20 , η = 0 .4)and a three-head non-linear transformer on quadratic functions ( n = 200 , η = 10 −3). For the random Gaussian noise, we set σ = 0 .002 . On the right, we consider a slightly different setting by first adding noise to the weights before computing the gradients. on the regression examples 
+
+θi+1 = θi − ηn
+
+> n
+
+X
+
+> k=1
+
+∇θ gθi (xk, y k),
+
+with a learning rate η and an initialization θ0.We consider a one-layer transformer with h non-linear self-attention heads: 
+
+fW (Z) = Z[: ,−1] +
+
+> h
+
+X
+
+> i=1
+
+W P V i Z · ϕi
+
+ Z⊤W KQ i Z[: ,−1] 
+
+> n
+
+
+
+, and Z =
+
+
+
+X 0d · · · 0d
+
+y 0 · · · 00d×n θ0 · · · θi
+
+0 1 · · · 1
+
+ , (5) where Z ∈ R(2 d+2) ×(n+i+1) is the input embedding, X = [ x1, . . . , x n], and y = [ y1, . . . , y n]. The ones in the bottom are appended for formatting convenience. For step T , the last column contains the target vector θ⋆. Following prior work [12, 14, 34], W P V i and W KQ i are the merged projection-value and key-query matrices, ϕi is a non-linear function, and Z[: ,−1] denotes the last column. We use the squared loss for this setting. 
+
+Numerical example. We validate that the transformer can achieve near-zero inference loss in this setting, for both linear and quadratic function classes. The results are shown in Figure 3. The inference loss converges to near-zero, with longer steps yielding lower inference loss. We describe our main results. For linear functions y = θ⊤X, we prove that the model exhibits inference loss of O(1 /poly(d) ) with T = Θ(log d). This is because the transformer converges to a solution where J(i) 
+
+> i−1
+
+≈ I − ηn XX ⊤ and ρ(T ) 
+
+> i
+
+≈ ∥ I − ηn XX ⊤∥T −i. The accumulated errors form a converging geometric series. We present the complete proof in Appendix A.2. Next, we present results on quadratic functions y = ( θ⊤X)⊙2, which represent a fundamental yet tractable setting for studying gradient descent dynamics [21, 26]. We first establish that a three-head transformer can exactly implement the gradient update step using cubic and squared activations. 
+
+Lemma 3.3. There exist weight matrices {W P V h , W KQ h }3 
+
+> h=1
+
+and elementwise non-linear functions 
+
+{ϕh}3
+
+> h=1
+
+, such that a three-head transformer fW ( bZT −1) outputs the T -step gradient descent solution with a learning rate η on the quadratic functions. 
+
+We then show that the transformer model converges to this construction during training, yielding near-zero inference loss. 
+
+Theorem 3.4. Let κ ∈ (0 , 1/24] , μ ∈ (0 , 4] , and α0 ∈ [3 /4, 1) be the constants. Suppose n =Θ( d2 log 5 d), η = κ/d , θ0 = α0θ⋆, and T = ⌈C log d⌉ for some C > 0 with aC > 1 for 
+
+a = log   11−μηd 
+
+. There exists an initialization such that if we run gradient flow on the training loss, then after time t = O log d + log 1
+
+> ϵ0
+
+, for any ϵ0 ≥ Θ  log dd2aC −1
+
+, the trained transformer satisfies 
+
+L(fW ; D) ≤ ϵ1 for any ϵ1 ∈  Θ( d−2aC +1 log d), 1.
+
+6The proof tracks an ordinary differential equation for the eigenvalues of the weight matrices. In the converged solution, we have 
+
+J(i) 
+
+> i−1
+
+≈ I − 2ηn XD (θi)X⊤ and ρ(T ) 
+
+> i
+
+≈ ∥ I − 2ηn XD (θi)X⊤∥T −i,
+
+where D(θi) = diag(3( X⊤θi)⊙2 − (X⊤θ⋆)⊙2). Then, the accumulated errors again form a con-verging geometric series. We present the complete proof in Appendix A.3. 
+
+Comparison with prior work. Prior analyses of transformers trained on multi-step reasoning differ from ours in their attention mechanisms, tasks, and tracked quantities. Previous works have examined one-head softmax attention on state-tracking tasks to demonstrate implicit biases and length generalization [13, 14]. Huang et al. [12] study one-head linear attention on in-context linear regression, where the trained transformer implements multi-step gradient descent. Yang et al. [34] study multi-head softmax attention on tree path-finding, where different heads specialize and coordinate across subtasks. In contrast, we study multi-head non-linear attention on quadratic regression. We identify the explicit form of Jacobians taken through the inputs at each step at convergence and connect it with the stability of the inference loss. 
+
+## 4 Proposed Methods 
+
+Our analysis suggests two strategies to mitigate accumulated errors: reducing the sequence length to limit the error amplification factor PT −1 
+
+> t=1
+
+ρ(T ) 
+
+> t
+
+and regularizing the input Jacobian spectral norms 
+
+∥J(t) 
+
+> i
+
+∥. Motivated by these insights, we design a training method combining two techniques. 
+
+(1) Chain-of-thought length compression. First, we compress the reasoning sequence by sub-sampling intermediate steps. For a training example (x, y (1) , . . . , y (T )) and a sampling factor 
+
+λ ∈ (0 , 1] , we uniformly sample T ′ = ⌊λ · T ⌋ intermediate steps to form a compressed sequence 
+
+(x, y (1) , . . . , y (T ′)), and minimize the training loss over the sampled sequence. As shown in Figures 4a and 4b, models trained on subsampled sequences consistently outperform those trained on full steps. Intermediate numbers of steps achieve the lowest inference loss on the Dijkstra and Prim tasks. Notably, subsampling steps reduces the error amplification factor by 92 ×
+
+and 181 × compared to training with all steps. Subsampling steps reduces the amplification factor but increases the per-step errors εt. Thus, the best λ is the one that balances these two effects. 
+
+(2) Regularization through quantization-aware training. Second, we incorporate quantization during supervised fine-tuning to explicitly regularize the Jacobian spectral norms. This is inspired by observations that quantized training smooths the loss landscape and provides a regularization effect [18, 19]. During the forward pass at training step t, we apply a standard uniform quantization function to the full-precision weights W (t):
+
+Q(W (t)) = ∆ · Round 
+
+
+
+Clamp (W (t) − b, W min , W max )/∆
+
+
+
++ b, 
+
+where ∆ and b are bit-width-dependent scaling and bias parameters. We use the straight-through estimator [2] to approximate the gradient ∇W ˆL(fQ(W )) ≈ ∇ Q(W ) ˆL(fQ(W ).We hypothesize that quantization-aware training acts as a regularizer on the error amplification factor. Under the Pseudo-Quantization Noise model [31, 9], the quantized model loss can be viewed as the expected loss under mean-zero randomized-rounding noise. Minimizing this loss penalizes the trace of the loss Hessian, which can be decomposed into the Jacobians taken through the input space. Figures 4c and 4d demonstrate this regularization effect. Training with lower bit-widths yields a lower error amplification factor compared to full precision. When combining 1-bit quantization, 
+
+PT −1 
+
+> t=1
+
+ρ(T ) 
+
+> t
+
+is further reduced by 3.6× and 5.8×, compared to full precision, on the Dijkstra and Prim algorithmic tasks, respectively. We also observe that, while quantization increases the prediction error at each step, it reduces the error amplification factor much more significantly, thus leading to improved performance. We report evaluations under various bit-widths in Appendix B. Taken together, we summarize our approach in Algorithm 1. 
+
+Remark 4.1 (Length generalization) . For out-of-distribution settings, the test error bound from Lemma 3.1 can increase in two aspects. First, the per-step prediction errors grow due to covariate 720 10 520     
+
+> T
+> 0123Test loss ( left axis )
+> ∑T−1
+> i=1 ρ(T)
+> i(right axis )
+> 210 2
+> 10 3
+> 10 4
+
+(a) Dijkstra 20 10 520 
+
+> T
+> 0123
+> 210 2
+> 10 3
+> 10 4
+
+(b) Prim’s algorithm 32 4 3 2 1Bit precision 010 20 30 (c) Dijkstra 32 4 3 2 1Bit precision 020 40 60 (d) Prim’s algorithm 
+
+Figure 4: Figure 4a and 4b: We show that the models trained with reduced intermediate steps yield lower inference losses than the model trained with longer steps. Correspondingly, the models exhibit lower Jacobian-based error amplification factors. Figure 4c and 4d: We show that quantization-aware training with lower bit-widths further reduces the Jacobian-based error amplification factors, yielding lower inference losses. 
+
+Algorithm 1 Jacobian-Regularized Training through Length Compression and Quantization 
+
+Input : n training examples with correct sequences (xi, y (1)  
+
+> i
+
+, . . . , y (T ) 
+
+> i
+
+) of length T
+
+Require : Pretrained language model fW (0) , number of epochs S, learning rate η, a sampling factor 
+
+λ, quantization function Q(·)
+
+Output : Fine-tuned quantized model fQ(W (S)) 
+
+> 1:
+
+for t = 0 , 1, . . . , S − 1 do  
+
+> 2:
+
+(y(1)  
+
+> i
+
+, . . . , y (T ′) 
+
+> i
+
+) ← Subsample T ′ = ⌊λ · T ⌋ steps from example i, for i = 1 , . . . , n  
+
+> 3:
+
+ˆL(fQ(W (t))) ← Compute the training loss of fQ(W (t)) on the sampled sequences  
+
+> 4:
+
+W (t+1) ← W (t) − η · ∇ Q(W (t)) ˆL(fQ(W (t))) 
+
+> 5:
+
+end for  
+
+> 6:
+
+return fQ(W (S))
+
+shift. Second, the error amplification factor accumulates over the additional steps. If the step-to-step Jacobian norm exceeds one, the extra steps multiply the error geometrically, making our regularization approach crucial. Designing training algorithms for length generalization is an interesting direction for future work, and our analysis lays a concrete direction for this. 
+
+## 5 Experiments 
+
+We evaluate our proposed method in a range of algorithmic reasoning tasks. First, our method outperforms baselines by an average of 3.5 % across five graph algorithmic and two symbolic reasoning tasks. Second, our method significantly enhances out-of-distribution length generalization, yielding an average 8.2 % improvement. Third, empirical analysis confirms that our approach reduces the error amplification factor (measured via Jacobian spectral norms) by up to 8×. Lastly, we also conduct ablation studies for various design choices of our algorithm. 
+
+5.1 Experimental Setup Datasets and models. First, we evaluate our algorithm on graph algorithmic tasks from the CLRS-Text benchmark [20], which encodes graphs as flattened adjacency lists and represents the intermediate steps as lists of node labels. We use five classic graph algorithms, including Dijkstra, Bellman-Ford, Prim’s algorithm, breadth-first search, and depth-first search. For each task, we use 2,000 training examples generated on random graphs of 10 nodes and 200 examples for validation and testing. Second, we evaluate on symbolic state-tracking reasoning tasks, namely LEGO [39]. We use two task variants: transitive (cyclic) and symmetry group actions. For each task, we use a dataset of 2,000 training examples with k = 8 variables, and 200 examples each for validation and testing. We evaluate our method in fine-tuning the QWen-1.5B models. 
+
+Baselines. We compare our method with three categories of baselines. First, we consider standard fine-tuning baselines that train without or with the provided chain-of-thought sequences, namely No CoT and SFT-CoT. Second, we consider existing chain-of-thought methods. This includes implicit 8Table 1: We report the test accuracy (%) of our method, as compared to supervised fine-tuning, implicit reasoning, and random noise injection. We evaluate five algorithmic reasoning tasks and two symbolic state-tracking reasoning tasks. For length generalization, models are evaluated on inputs 10% longer than the training sequences. All results are averaged over three random seeds. Dijkstra Bellman-Ford Prim BFS DFS Cyclic Symmetry No CoT 53.3 ± 2.0 69.9 ± 0.3 56.2 ± 0.1 85.9 ± 0.1 71.4 ± 1.4 66.8 ± 0.9 48.5 ± 3.1 SFT-CoT 73.1 ± 1.4 75.3 ± 1.5 62.3 ± 0.1 86.0 ± 0.4 54.6 ± 2.0 89.2 ± 1.2 55.8 ± 1.5 Implicit CoT 71.6 ± 0.5 72.3 ± 0.6 64.1 ± 0.3 85.5 ± 1.7 72.4 ± 0.4 75.4 ± 1.0 60.8 ± 3.6 Coconut 74.1 ± 0.3 75.6 ± 0.5 63.5 ± 1.2 85.7 ± 0.3 72.6 ± 0.7 79.5 ± 0.1 53.9 ± 0.5 NSO 74.5 ± 0.8 75.3 ± 0.0 63.2 ± 0.3 86.5 ± 0.8 55.8 ± 0.1 89.3 ± 0.8 57.2 ± 0.9 Algorithm 1 76.2 ± 1.7 80.3 ± 0.1 66.2 ± 0.3 88.3 ± 1.3 74.4 ± 1.5 94.1 ± 1.3 62.2 ± 0.8 Length generalization Dijkstra Bellman-Ford Prim BFS DFS Cyclic Symmetry No CoT 29.8 ± 0.4 42.9 ± 0.6 37.0 ± 0.5 48.5 ± 0.2 23.0 ± 0.5 55.4 ± 0.5 31.2 ± 0.7 SFT-CoT 42.1 ± 0.4 47.2 ± 0.8 34.1 ± 0.6 56.2 ± 0.6 21.5 ± 0.2 80.0 ± 0.4 48.8 ± 0.3 Implicit CoT 33.7 ± 0.3 46.5 ± 0.5 39.3 ± 0.4 54.6 ± 0.5 30.0 ± 0.3 82.5 ± 0.8 53.6 ± 1.0 Coconut 38.2 ± 0.6 38.9 ± 0.4 37.6 ± 0.9 53.9 ± 0.9 32.6 ± 0.4 80.4 ± 0.5 49.4 ± 0.2 NSO 36.4 ± 0.5 44.1 ± 0.8 38.4 ± 0.3 54.8 ± 0.2 28.2 ± 0.2 82.4 ± 0.4 51.2 ± 0.9 Algorithm 1 44.3 ± 0.8 50.1 ± 0.1 42.5 ± 0.6 59.6 ± 0.6 35.4 ± 0.8 87.2 ± 0.2 59.1 ± 0.7 CoT [5] that trains a model to directly predict the final output by gradually removing intermediate steps during training, and the chain of continuous thought (Coconut) [10] that trains a model to reason in a continuous latent space by using the hidden state as the next input embedding. Third, we consider noise stability optimization (NSO) [37] that regularizes the Hessian trace through random Gaussian noise injection. For each baseline, we evaluate the test accuracy on the final answer. 
+
+Implementations. Our algorithm includes key hyperparameters: the sampling factor λ and the quantization bit-width. We vary λ across 0.1, 0.2, 0.5, and 1. The bit-width is varied across 1, 2, 3, and 4 bits. We use the quantization methods from existing methods [19]. For the base training method, we use LoRA fine-tuning with a rank between 16 and 64. The training uses the AdamW optimizer with a learning rate in the range of 1 × 10 −5 to 4 × 10 −5. We report the hyperparameters used for each result in Appendix B. For the length generalization experiment, we additionally evaluate at 20% longer inputs on all five CLRS-Text tasks. Absolute accuracy degrades sharply for every method, falling below 25% . While our method still leads, at this accuracy level, the input-length bottleneck dominates. We therefore report the 10% setting as our main result. Further improving the length generalization on longer sequences is left for future work. 
+
+5.2 Experimental Results Improved multi-step reasoning . Table 1 details the test accuracy of our fine-tuned models across seven reasoning datasets. Our method consistently outperforms all baselines, achieving an average improvement of 3.5 % across five graph algorithmic and two symbolic state-tracking tasks. Specifi-cally, by combining sequence compression with quantization-aware training, our algorithm surpasses latent-reasoning baselines (implicit reasoning and Coconut) by up to 6.5%. 
+
+Enhanced length generalization. Next, we evaluate the trained models on examples with 10% longer input length than training examples in the lower half of Table 1. Our approach consistently exceeds baseline performance by an average of 8.2 %, demonstrating its effectiveness in suppressing error amplification during extended generation. 
+
+Reduction of the error amplification factor. Finally, to explain these performance gains, we compare the empirical error amplification factors across methods. Our algorithm drastically reduces this factor by 3–8× compared to baselines, validating our method’s regularization on Jacobian spectral norms. Quantitatively, on Qwen-1.5B across the three tasks in Figure 1c, our method reduces 
+
+PT −1 
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+by 43% relative to baselines, with a 72% average reduction in the inference loss. We further fine-tune Llama-1B and Gemma-2B on Bellman-Ford with SFT-CoT, Coconut, and Algorithm 1, and measure the full decomposition of equation (4) for each. We also find that the ordering of methods by bound value matches their ordering by empirical loss gap on both models. Relative to Coconut, our method reduces the bound by 77% and the empirical test loss gap by 58% 
+
+9on average. The absolute scale of the bound differs sharply between architectures. We report the full results in Table 4 of Appendix B. 
+
+Ablation studies. We evaluate the individual components of our method through ablation studies. First, removing either length compression or quantization-aware training degrades performance by 4.3% and 3.2%, confirming both are essential. Second, we compare intermediate step sampling strategies for length compression. We consider random sampling, removing the first, last, or equally spaced steps. Among them, random sampling yields slightly better performance and is thus adopted. Finally, we find that injecting quantization noise during training noticeably outperforms standard random Gaussian noise by 9%. 
+
+## 6 Related Work 
+
+Theoretical understanding of multi-step reasoning. Studying the training dynamics of transformers is key to understanding how multi-step reasoning improves generalization. Prior work analyzes single-head transformers trained on parity-check tasks [13, 30], and state tracking tasks [14], while [34] studies multi-head specialization on path-finding in binary trees. For the in-context weight prediction task, [12] establishes convergence for linear targets using single-head linear transformers. We extend the analysis to nonlinear multi-head transformers and quadratic functions. Complementary theoretical analyses include entropy-calibration analyses of error accumulation in autoregressive generation [4] and information-theoretic frameworks that quantify per-step information gain in multi-step reasoning [28]. Joshi et al. [15] study learning general function classes of next-token generators with CoTs in the realizable setting, showing that the sample complexity scales with the VC dimension of the hypothesis class and log( T ) of the CoT length T . Altabaa et al. [1] further improve the bound with a notion of CoT-information, which achieves faster rates than applying uniform convergence to training loss on chain-of-thought sequences. Prior work has also examined the expressiveness of transformers with chain-of-thought. Li et al. [22] show that CoT enables transformers to perform computations beyond the expressiveness limits of models without CoT. Expressiveness has been further characterized through circuit complexity under logarithmic, linear, and polynomial generation lengths [25]. Increasing CoT length has been shown to outperform parallel scaling of multiple chains on graph connectivity tasks [27]. 
+
+Generalization of language models. Recent work derives generalization bounds for LLMs via compression and subspace training [23, 24], with tighter martingale-based extensions that explain empirical pretraining scaling laws [7]. A separate line of work derives PAC-Bayes bounds for fine-tuning that depend on the loss Hessian [17, 16]. 
+
+Optimization methods for multi-step reasoning. Several recent works aim to improve multi-step reasoning beyond supervised fine-tuning. Yao et al. [35] frame this process as a latent-variable problem, minimizing gradient variance to efficiently allocate sampling budgets. A complementary line of work explores implicit reasoning. Implicit chain-of-thought [5] gradually removes intermediate steps to internalize computation. Continuous chain-of-thought [10] shifts reasoning into a continuous latent space. Semantic chain-of-thought [11] aligns implicit and explicit steps via contrastive learning. Empirically, Yeo et al. [36] investigate how long reasoning chains emerge in large language models, highlighting training computation and reward shaping as key factors. More broadly, multi-step reasoning traces also appear in experimental design settings [33, 32], where trajectory-level data is revealed over time. 
+
+## 7 Conclusion 
+
+This work provides an analysis of multi-step reasoning by bounding its inference errors via the product of input Jacobian spectral norms across generation steps. We prove that transformers trained for in-context weight prediction converge to a multi-head construction where this error amplification factor decays, achieving polynomially small test loss. We introduce a training method that explicitly controls this factor using reasoning length compression and quantization-aware training. Across seven algorithmic tasks, our approach consistently improves test accuracy and length generalization, with reduced empirical amplification factors in fine-tuned models. 10 Acknowledgement 
+
+This work received financial support from NSF award IIS-2412008 and a startup fund from North-eastern University. D. Li is supported in part by a JPMorgan Chase PhD Fellowship. Z. Zhang and M. Duan received additional financial support from Khoury PhD fellowships. 
+
+## References 
+
+[1] A. Altabaa, O. Montasser, and J. Lafferty. “CoT Information: Improved Sample Complexity under Chain-of-Thought Supervision”. In: NeurIPS (2025). [2] Y. Bengio, N. Léonard, and A. Courville. “Estimating or propagating gradients through stochastic neurons for conditional computation”. In: arXiv preprint arXiv:1308.3432 (2013). [3] E. J. Candes, X. Li, and M. Soltanolkotabi. “Phase retrieval via Wirtinger flow: Theory and algorithms”. In: IEEE Transactions on Information Theory (2015). [4] S. Cao, G. Valiant, and P. Liang. “On the entropy calibration of language models”. In: NeurIPS 
+
+(2025). [5] Y. Deng, Y. Choi, and S. Shieber. “From explicit cot to implicit cot: Learning to internalize cot step by step”. In: arXiv preprint arXiv:2405.14838 (2024). [6] R. Ehrlich, B. Brown, J. Juravsky, R. Clark, C. Ré, and A. Mirhoseini. “Codemonkeys: Scaling test-time compute for software engineering”. In: arXiv preprint arXiv:2501.14723 (2025). [7] M. Finzi, S. Kapoor, D. Granziol, A. Gu, C. De Sa, J. Z. Kolter, and A. G. Wilson. “Compute-Optimal LLMs Provably Generalize Better With Scale”. In: ICLR (2025). [8] J. Geiping, S. McLeish, N. Jain, J. Kirchenbauer, S. Singh, B. R. Bartoldson, B. Kailkhura, A. Bhatele, and T. Goldstein. “Scaling up test-time compute with latent reasoning: A recurrent depth approach”. In: NeurIPS (2025). [9] A. Gholami, S. Kim, Z. Dong, Z. Yao, M. W. Mahoney, and K. Keutzer. “A survey of quantization methods for efficient neural network inference”. In: Low-power computer vision .2022, pp. 291–326. [10] S. Hao, S. Sukhbaatar, D. Su, X. Li, Z. Hu, J. Weston, and Y. Tian. “Training large language models to reason in a continuous latent space”. In: COLM (2025). [11] Y. He, W. Zheng, Y. Zhu, Z. Zheng, L. Su, S. Vasudevan, Q. Guo, L. Hong, and J. Li. “SemCoT: Accelerating Chain-of-Thought Reasoning through Semantically-Aligned Implicit Tokens”. In: NeurIPS (2025). [12] J. Huang, Z. Wang, and J. D. Lee. “Transformers learn to implement multi-step gradient descent with chain of thought”. In: ICLR (2025). [13] R. Huang, Y. Liang, and J. Yang. “How Transformers Learn Regular Language Recognition: A Theoretical Study on Training Dynamics and Implicit Bias”. In: ICML (2025). [14] Y. Huang, Z. Wen, A. Singh, Y. Chi, and Y. Chen. “Transformers provably learn chain-of-thought reasoning with length generalization”. In: NeurIPS (2025). [15] N. Joshi, G. Vardi, A. Block, S. Goel, Z. Li, T. Misiakiewicz, and N. Srebro. “A theory of learning with autoregressive chain of thought”. In: Annual Conference on Learning Theory (COLT) (2025). [16] H. Ju, D. Li, A. Sharma, and H. R. Zhang. “Generalization in graph neural networks: Improved pac-bayesian bounds on graph diffusion”. In: International conference on artificial intelligence and statistics . PMLR. 2023, pp. 6314–6341. [17] H. Ju, D. Li, and H. R. Zhang. “Robust fine-tuning of deep neural networks with Hessian-based generalization guarantees”. In: International conference on machine learning (ICML) . 2022. [18] M. Kwun, D. Morwani, C. H. Su, S. Gil, N. Anand, and S. Kakade. “LOTION: Smoothing the Optimization Landscape for Quantized Training”. In: arXiv preprint arXiv:2510.08757 
+
+(2025). [19] D. Li, Z. Liu, K. Yi, C. Zhao, Z. Zhang, R. Krishnamoorthi, H. Khaitan, H. R. Zhang, and S. Li. “WinQ: Accelerating Quantization-Aware Training of Large Language Models around Saddle Points”. In: ICML (2026). [20] D. Li, Z. Zhang, M. Duan, E. Dobriban, and H. R. Zhang. “Efficiently Learning Branching Networks for Multitask Algorithmic Reasoning”. In: arXiv preprint arXiv:2512.01113 (2025). 11 [21] Y. Li, T. Ma, and H. Zhang. “Algorithmic regularization in over-parameterized matrix sensing and neural networks with quadratic activations”. In: Conference on learning theory . PMLR. 2018, pp. 2–47. [22] Z. Li, H. Liu, D. Zhou, and T. Ma. “Chain of thought empowers transformers to solve inherently serial problems”. In: ICLR (2024). [23] S. Lotfi, M. Finzi, S. Kapoor, A. Potapczynski, M. Goldblum, and A. G. Wilson. “PAC-Bayes compression bounds so tight that they can explain generalization”. In: Advances in Neural Information Processing Systems (NeurIPS) (2022). [24] S. Lotfi, M. Finzi, Y. Kuang, T. G. Rudner, M. Goldblum, and A. G. Wilson. “Non-vacuous generalization bounds for large language models”. In: Proceedings of the 41st International Conference on Machine Learning . 2024, pp. 32801–32818. [25] W. Merrill and A. Sabharwal. “The expressive power of transformers with chain of thought”. In: ICLR (2024). [26] A. Meterez, P. A. Nair, D. Morwani, C. Pehlevan, S. Kakade, and A. Damian. “A defense of the quadratic model”. In: arXiv preprint arXiv:2607.21716 (2026). [27] P. Mirtaheri, E. Edelman, S. Jelassi, E. Malach, and E. Boix-Adsera. “Let Me Think! A Long Chain-of-Thought Can Be Worth Exponentially Many Short Ones”. In: NeurIPS (2025). [28] J.-F. Ton, M. F. Taufiq, and Y. Liu. “Understanding Chain-of-Thought in LLMs through Information Theory”. In: International Conference on Machine Learning . PMLR. 2025, pp. 59784–59811. [29] R. Vershynin. “Introduction to the non-asymptotic analysis of random matrices”. In: Com-pressed Sensing: Theory and Applications . Ed. by Y. C. Eldar and G. Kutyniok. Cambridge University Press, 2012, pp. 210–268. [30] K. Wen, H. Zhang, H. Lin, and J. Zhang. “From sparse dependence to sparse attention: unveiling how chain-of-thought enhances transformer sample efficiency”. In: ICLR (2025). [31] B. Widrow, I. Kollar, and M.-C. Liu. “Statistical theory of quantization”. In: IEEE Transactions on instrumentation and measurement 45.2 (1996), pp. 353–361. [32] R. Xiong. “Automated experimental design with optimization from historical data simulations”. In: Available at SSRN 5126080 (2025). [33] R. Xiong, A. Chin, and S. J. Taylor. “Data-driven switchback experiments: Theoretical tradeoffs and empirical bayes designs”. In: arXiv preprint arXiv:2406.06768 (2024). [34] T. Yang, Y. Huang, Y. Liang, and Y. Chi. “Multi-head transformers provably learn symbolic multi-step reasoning via gradient descent”. In: NeurIPS (2025). [35] J. Yao, Y. Hao, H. Zhang, H. Dong, W. Xiong, N. Jiang, and T. Zhang. “Optimizing Chain-of-Thought Reasoners via Gradient Variance Minimization in Rejection Sampling and RL”. In: 
+
+NeurIPS (2025). [36] E. Yeo, Y. Tong, M. Niu, G. Neubig, and X. Yue. “Demystifying long chain-of-thought reasoning in llms”. In: ICML (2025). [37] H. R. Zhang, D. Li, and H. Ju. “Noise Stability Optimization for Finding Flat Minima: A Hessian-based Regularization Approach”. In: Transactions on Machine Learning Research (TMLR) (2024). [38] M. Zhang, O. Press, W. Merrill, A. Liu, and N. A. Smith. “How language model hallucinations can snowball”. In: Proceedings of the 41st International Conference on Machine Learning .2024, pp. 59670–59684. [39] Y. Zhang, A. Backurs, S. Bubeck, R. Eldan, S. Gunasekar, and T. Wagner. “Unveiling trans-formers with lego: a synthetic reasoning task”. In: arXiv preprint arXiv:2206.04301 (2022). [40] Z. Zhang, Z. Zhang, D. Li, L. Wang, J. Dy, and H. R. Zhang. “Linear-Time Demonstration Selection for In-Context Learning via Gradient Estimation”. In: Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing . 2025, pp. 16470–16488. 12 A Complete Proofs 
+
+This appendix provides complete proofs for all theoretical results presented in the main paper. We organize the material in the following structure: • Appendix A.1 provides the full proof for Lemma 3.1, establishing the error bound between the inference loss and the training loss in T -step generation. The proof is via a recursive expansion of the prediction error using first-order Taylor expansion. Then, we derive the bound via spectral norms of Jacobians taken through the input space. • Appendix A.2 establishes the error bounds and noise stability analysis for linear self-attention transformers trained on the weight prediction task for linear functions. We begin with preliminaries that reformulate the training and inference losses, then present the complete proof of Theorem A.5 (Section A.2.1), where standard Gaussian concentration bounds are cited and applied directly. • Appendix A.3 extends the analysis to nonlinear self-attention transformers trained on quadratic functions. We first describe the problem setup, then provide the explicit con-struction of a three-head transformer that implements gradient descent on quadratic losses (Section A.3.1). We derive the gradient dynamics under chain-of-thought training (Sec-tion A.3.2) and prove the convergence in Theorem 3.4 (Section A.3.3). 
+
+Notations. For any vector v, let ∥v∥ be the Euclidean norm of v. For any matrix X ∈ Rm×n, let 
+
+∥X∥F be the Frobenius norm and ∥X∥2 be the spectral norm of X. If X is a square matrix, then the trace of X, Tr [ X], equals the sum of X’s diagonal entries. For two functions f (n) and g(n), we write g(n) = O(f (n)) if there exists a fixed value C that does not grow with n such that g(n) ≤ C · f (n) when n is large enough. We write g(n) = Θ( f (n)) if there exists a fixed value C1 and C2 that do not grow with n such that C1f (n) ≤ g(n) ≤ C2 · f (n)
+
+when n is large enough. 
+
+A.1 Proof of Lemma 3.1 
+
+In this section, we provide the full proof for Lemma 3.1, which shows a bound on the gap between the inference loss and the true prediction loss conditioned on the ground truth. For a given input x ∼ D , let y(t) denote the ground-truth label at step t. We denote the model’s predictions under two regimes: 1. The prediction conditioned on the ground-truth preceding steps, as in the training loss, is denoted as fW (z(t−1) ).2. the prediction based on t-step autoregressive generation in the inference loss is denoted as 
+
+fW (bz(t−1) ).We define their deviations from the label y(t) at step t as e(t)(x) = fW (z(t−1) ) − y(t), and be(t)(x) = 
+
+fW (bz(t−1) ) − y(t). The prediction gap caused by autoregressive accumulation is 
+
+∆(t)(x) = fW (bz(t−1) (x)) − fW (z(t−1) (x)) .
+
+By definition, we have the relation: 
+
+be(t)(x) = e(t)(x) + ∆ (t)(x).
+
+For the Jacobian norms, we write ∥J(t) 
+
+> i
+
+∥ := sup x∈X ∗ ∥J(t) 
+
+> i
+
+(x)∥ for the norm with the supremum taken, so that ρ(t) 
+
+> i
+
+= ∥J(t) 
+
+> i
+
+∥ + Pt−1 
+
+> k=i+1
+
+∥J(t) 
+
+> k
+
+∥ ρ(k) 
+
+> i
+
+with ρ(t) 
+
+> t
+
+= 1 . Next, we present the complete proof of Lemma 3.1, based on a recursive decomposition for ∆(t)(x).
+
+Proof of Lemma 3.1. First, we bound the loss gap via Lipschitz continuity. We evaluate the two losses at step T . By the assumption that the loss function ℓ(·, ·) is C1-Lipschitz continuous with respect to its first argument, the absolute gap between the inference loss and the reference loss for a specific input x is bounded by: 
+
+ℓ fW (bz(T −1) (x)) , y (T ) − ℓ fW (z(T −1) (x)) , y (T ) ≤ C1∥∆(T )(x)∥. (6) 13 To bound the loss gap, we bound the norm of the final prediction gap ∥∆(T )(x)∥. We conduct a recursive expansion of the prediction gap ∥∆(T )(x)∥. At the base case of t = 1 , both predictions rely solely on x. Thus, ∆(1) (x) = 0 and ∥be(1) (x)∥ = ∥e(1) (x)∥.For an arbitrary step t > 1, we apply first-order Taylor’s expansion to expand the prediction on the generated prefix around the correct step sequence. Subtracting fW (z(t−1) (x)) from fW (bz(t−1) ), we obtain the prediction gap: 
+
+∆(t)(x) = 
+
+> t−1
+
+X
+
+> i=1
+
+J(t) 
+
+> i
+
+(x) be(i)(x) + R(t)(x), (7) where J(t) 
+
+> i
+
+(x) is the step-to-step Jacobian evaluated at the ground-truth context, and R(t)(x) is the higher-order Taylor remainder. Under the assumption that the Jacobian of fW is C2-Lipschitz continuous, the norm of the remainder 
+
+R(t)(x) is bounded by a quadratic function of the input deviation, based on the mean value theorem: 
+
+∥R (t)(x)∥ ≤ C2
+
+2
+
+t−1X
+
+> i=1
+
+∥be(i)(x)∥
+
+2
+
+≤ C2
+
+2
+
+> t−1
+
+X
+
+> i=1
+
+ri
+
+!2
+
+, (8) based on equation (3) (with R(1) (x) = 0 ). Applying the triangle inequality to equation (7), we have: 
+
+∥∆(t)(x)∥ ≤ 
+
+> t−1
+
+X
+
+> i=1
+
+∥J(t) 
+
+> i
+
+∥∥ be(i)(x)∥ + ∥R (t)(x)∥. (9) Using be(t)(x) = e(t)(x) + ∆ (t)(x) and applying the triangle inequality, the inference error norm is bounded by: 
+
+∥be(t)(x)∥ ≤ ∥ e(t)(x)∥ + ∥∆(t)(x)∥.
+
+Substituting equation (9) above yields the full recurrence relation for the inference error: 
+
+∥be(t)(x)∥ ≤ st(x) + 
+
+> t−1
+
+X
+
+> i=1
+
+∥J(t) 
+
+> i
+
+∥∥ be(i)(x)∥, where st(x) := ∥e(t)(x)∥ + ∥R (t)(x)∥. (10) To solve this recurrence, we recursively expand ∥be(i)(x)∥ in si(x). The first-order components become a sum of all possible directed step-to-step paths. The product of the Jacobian spectral norms along these paths forms the cumulative amplification factor ρ(t) 
+
+> i
+
+, defined recursively as: 
+
+ρ(t) 
+
+> i
+
+= sup  
+
+> x∈X ∗
+
+∥J(t) 
+
+> i
+
+(x)∥ +
+
+> t−1
+
+X
+
+> k=i+1
+
+
+
+sup  
+
+> x∈X ∗
+
+∥J(t) 
+
+> k
+
+(x)∥ · ρ(k)
+
+> i
+
+
+
+, with ρ(t) 
+
+> t
+
+= 1 .
+
+Formally, we show that 
+
+∥be(t)(x)∥ ≤ 
+
+> t
+
+X
+
+> i=1
+
+ρ(t) 
+
+> i
+
+si(x), for every t ≥ 1, (11) which holds at t = 1 by the base case. Assuming equation (11) up to step t − 1, substituting it into equation (10), we have 
+
+∥be(t)(x)∥ ≤ st(x) + 
+
+> t−1
+
+X
+
+> k=1
+
+ t−1X
+
+> i=k
+
+∥J(t) 
+
+> i
+
+∥ρ(i)
+
+> k
+
+sk(x)
+
+≤ st(x) + 
+
+> t−1
+
+X
+
+> k=1
+
+ ∥J(t) 
+
+> k
+
+∥ ρ(k) 
+
+> k
+
++
+
+> t−1
+
+X
+
+> i=k+1
+
+∥J(t) 
+
+> i
+
+∥ ρ(i)
+
+> k
+
+sk(x)
+
+≤ st(x) + 
+
+> t−1
+
+X
+
+> k=1
+
+ρ(t) 
+
+> k
+
+sk(x), (12) 14 which completes the induction. By replacing ρ(T ) 
+
+> i
+
+and carrying each remainder to step T by its own factor ρ(T ) 
+
+> t
+
+, the final prediction gap at step T is bounded by: 
+
+∥∆(T )(x)∥ ≤  
+
+> T−1
+
+X
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+∥e(i)(x)∥ +
+
+> T
+
+X
+
+> t=2
+
+ρ(T ) 
+
+> t
+
+∥R (t)(x)∥. (13) Substituting equation (13) into equation (6), we obtain: 
+
+ℓ fW (bz(T −1) (x)) , y (T ) − ℓ fW (z(T −1) (x)) , y (T )
+
+≤C1 
+
+> T−1
+
+X
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+∥e(i)(x)∥ + C1
+
+> T
+
+X
+
+> t=2
+
+ρ(T ) 
+
+> t
+
+∥R (t)(x)∥. (14) For every x in the support of D, recall from equation (3) that ∥e(i)(x)∥ ≤ εi and ∥R (t)(x)∥ ≤ 
+
+> C2
+> 2
+
+ P  
+
+> i<t
+
+ri
+
+2 from equation (8), we have 
+
+ℓ fW (bz(T −1) (x)) , y (T ) − ℓ fW (z(T −1) (x)) , y (T )
+
+≤C1 
+
+> T−1
+
+X
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+εi + C1C2
+
+2
+
+> T
+
+X
+
+> t=2
+
+ρ(T )
+
+> t
+
+t−1X
+
+> i=1
+
+ri
+
+2
+
+. (15) Taking the expectation over the data distribution x ∼ D , we have 
+
+L(fW ; D) − L⋆(fW ; D) = E
+
+> x∼D
+
+h
+
+ℓ fW (bz(T −1) (x)) , y (T ) − ℓ fW (z(T −1) (x)) , y (T )i
+
+≤ E
+
+> x∼D
+
+h
+
+ℓ fW (bz(T −1) (x)) , y (T ) − ℓ fW (z(T −1) (x)) , y (T ) i
+
+≤ C1 
+
+> T−1
+
+X
+
+> i=1
+
+ρ(T ) 
+
+> i
+
+εi + C1C2
+
+2
+
+> T
+
+X
+
+> t=2
+
+ρ(T )
+
+> t
+
+t−1X
+
+> i=1
+
+ri
+
+2
+
+, (16) which completes the proof of equation (4). 
+
+A.2 Proof for the Linear Case 
+
+We study the inference loss of a one-layer linear self-attention transformer trained to predict weight vectors of linear functions. Following the setup in Section 3.2, we describe the in-context weight prediction task with linear functions. The weight vector is θ⋆ ∼ N (0 , Id d), and the n in-context examples are xj ∼ N (0 , Id d) with labels yj = ⟨θ⋆, x j ⟩ for j ∈ [n], all independent. We write 
+
+X = [ x1, . . . , x n] ∈ Rd×n, y = [ y1, . . . , y n] = θ⋆⊤X, and S := 1 
+
+> n
+
+XX ⊤. The chain of thought consists of the gradient descent iterates on the squared loss on average over n examples with learning rate η, started at θ0 = 0 d:
+
+θi+1 = θi − ηS (θi − θ⋆), so that θi =  I − (I − ηS )iθ⋆ for i ≥ 0. (17) With de = 2 d + 2 , the input that contains the correct steps θ0, . . . , θ i is 
+
+Zi =
+
+
+
+X 0d 0d · · · 0d
+
+y 0 0 · · · 00d×n θ0 θ1 · · · θi
+
+01×n 1 1 · · · 1
+
+ ∈ Rde×(n+i+1) .
+
+The label of step i + 1 is ¯θi+1 := θi+1 for i ≤ T − 2, and the label of the final step is ¯θT := θ⋆.We first rewrite the training and inference losses. During training, the network is trained to predict the next iterate given the preceding ground-truth sequences. We consider the gradient flow dynamics over the population loss: 
+
+LCoT (fW ) = E
+
+> X,θ ⋆
+
+"
+
+12 
+
+> T−1
+
+X
+
+> i=0
+
+∥fW (Zi) − (0 d, 0, ¯θi+1 , 1) ∥2
+
+#
+
+.
+
+15 At inference time, we apply the model to generate T steps before it outputs the final prediction. Starting from Z0, we define the model prediction at each step as bZi+1 =  bZi, f W ( bZi), for i =0, 1, . . . , T −1, where the last column of bZi encodes the estimate bθi, and bθ0 = θ0. Then, the inference loss, in equation (2), with the squared loss, can be written as: 
+
+L(fW ; D) = E
+
+> X,θ ⋆
+
+ 12 ∥fW ( bZT −1) − (0 d, 0, θ ⋆, 1) ∥22
+
+
+
+. (18) For linear functions, we consider a one-layer linear self-attention transformer with a residual connec-tion. Given an input embedding matrix Z ∈ Rde×m of length m, we denote 
+
+fW (Z) = Z[: ,−1] + W P V Z · Z⊤W KQ Z[: ,−1] 
+
+n , (19) We denote W P V ∈ Rde×de as the weight matrix that merges the projection and value matrix, and 
+
+W KQ ∈ Rde×de is the weight matrix that merges the key and query matrix. [: , −1] indicates taking the last column of the matrix. n is the number of in-context examples. Next, we state results from the previous paper [12], which we will reuse in our statements. Under Assumption A.1, prior work [12] proves that, if we initialize the weight matrices with the block structure in Assumption A.1, the blocks that are initialized with 0 will remain 0 along the gradient flow trajectory. The initialization method is specified as follows to zero out the irrelevant blocks. 
+
+Assumption A.1 (Initialization) . Let σ0 > 0 be a constant. We assume the parameters are initialized as 
+
+W P V (0) = 
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 01×1 01×d 01×1
+
+W P V  
+
+> 31
+
+(0) 0d×1 0d×d 0d×1
+
+01×d 01×1 01×d 01×1
+
+ , W KQ (0) = 
+
+
+
+0d×d 0d×1 W KQ  
+
+> 13
+
+(0) 0d×1
+
+01×d 01×1 01×d W KQ 
+
+> 24
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 01×1 01×d 01×1
+
+ .
+
+Here, W P V  
+
+> 31
+
+(0) = Pdi=1 λP V i uiu⊤ 
+
+> i
+
+and W KQ  
+
+> 13
+
+(0) = Pdi=1 λKQ i uiu⊤ 
+
+> i
+
+, where {ui}di=1 is an orthonor-mal basis. The matrices W P V  
+
+> 31
+
+(0) and W KQ  
+
+> 13
+
+(0) are symmetric and simultaneously diagonalizable, with eigenvalues satisfying λP V i ≤ − σ0, λKQ i ∈ [σ0, 1/2] , and for all i ∈ [d]. Finally, we fix 
+
+W KQ  
+
+> 24
+
+= −1 for all t ≥ 0.
+
+Lemma A.2 (Block-wise invariance under gradient flow [12]) . Under Assumption A.1, consider the gradient flow on the population CoT loss as 
+
+dW dt = −∇ LCoT (W ).
+
+Then, for all t ≥ 0, the parameters W P V (t), W KQ (t) take the following form: 
+
+W P V (t) = 
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 01×d 0
+
+W P V  
+
+> 31
+
+(t) 0d×1 0d×d 0d×1
+
+01×d 0 01×d 0
+
+ , W KQ (t) = 
+
+
+
+0d×d 0d×1 W KQ  
+
+> 13
+
+(t) 0d×1
+
+01×d 0 01×d W KQ 
+
+> 24
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 01×d 0
+
+ .
+
+Then, we can rewrite the linear self-attention model only in terms of W P V  
+
+> 31
+
+and W KQ  
+
+> 13
+
+.
+
+Definition A.3 (Reduced transformer) . Define S := 1 
+
+> n
+
+XX ⊤. Under Assumption A.1, for a given input Zi, we can rewrite the linear self-attention model by 
+
+fW (Zi) = 
+
+h
+
+0d, 0,  θi + W P V  
+
+> 31
+
+S W KQ  
+
+> 13
+
+θi − θ⋆ , 1
+
+i⊤
+
+.
+
+where θi is the last column of Zi[d+1:2 d+1 ,−1] and θ⋆ is the ground-truth weights of the linear function. Then, we can denote a reduced model by: 
+
+˜fW (Zi) = θi + W P V  
+
+> 31
+
+S W KQ  
+
+> 13
+
+θi − θ⋆.
+
+16 The right-hand side depends on Zi only through its last column. The same formula holds for the inputs during inference bZi. Below, we write ˜fW (θ) := θ + W P V  
+
+> 31
+
+S(W KQ  
+
+> 13
+
+θ − θ⋆) for θ ∈ Rd, with 
+
+X and θ⋆ fixed. This map is affine, and its Jacobian is given by 
+
+J := ∂ ˜fW (θ)
+
+∂θ = I + W P V  
+
+> 31
+
+SW KQ  
+
+> 13
+
+, (20) which does not depend on θ.
+
+Theorem A.4 (Global convergence [12]) . Suppose n = Θ( d log 5 d), η ∈ (0 .1, 0.9) , T = ⌈c log d⌉,and c log( 11−η ) > 2. Under Assumption A.1 with σ0 > 3(1 −η)(2 −η)T , if we run gradient flow on the population loss LCoT (fW ), then after time t = O(log d + log 1 
+
+> ϵ
+
+), for any ϵ ≥ Θ( log ddc log( 11−η )−2 ),we have LCoT (fW (t)) ≤ ε. Moreover, there exist matrices A and B, with ∥A∥op , ∥B∥op ≤
+
+Θ( d− 12 c log( 11−η )+ 12 ), such that W P V  
+
+> 31
+
+(t) = ( −ηI + A) and W KQ  
+
+> 13
+
+(t) = ( I + B).
+
+We state Theorem A.5, which is the main result for the linear case. 
+
+Theorem A.5 (Slightly adapted from [12]) . Suppose n = Θ( d log 5 d), η ∈ (0 .1, 0.9) , and T =
+
+⌈c log d⌉, with c log   11−η
+
+ > 2. Under the initialization in Assumption A.1 with σ0 > 3(1 −η)(2 −η)T , if we run gradient flow on the population loss LCoT (fW ), after time t = O(log d + log 1 
+
+> ϵ0
+
+), for any 
+
+ϵ0 = Θ( log ddc log( 11−η )−2 ), we have L(fW ; D) ≤ ϵ1, for any ϵ1 ∈ Θ(( d−c log( 11−η )+2 log d), 1.
+
+A.2.1 Proof of Theorem A.5 
+
+Next, we prove the bounds on inference loss and the noise stability measure of the linear self-attention model on the weight prediction task. Recall that, to evaluate the inference loss, we apply the model 
+
+fW to generate T steps before it outputs the final prediction. Starting from the input Z0, we denote the model’s generated output at step i (also serves as the model input at step i + 1 ) as follows: 
+
+bZi+1 (W ) :=  bZi(W ), f W ( bZi(W )) , i = 0 , 1, . . . , T − 1,
+
+where we denote bZ0 := Z0. Then, we denote the last column of bZi(W ) as bzi(W ) := bZi(W )[: ,−1] 
+
+and bθi(W ) := bZi(W )[d+1:2 d+1 ,−1] . We can write down the block structure of bZi as 
+
+bZi(W ) = 
+
+
+
+X 0d 0d . . . 0d
+
+y 0 0 . . . 00d×n θ0 bθ1(W ) . . . bθi(W )01×n 1 1 . . . 1
+
+ .
+
+Correspondingly, we denote the ground-truth input with i intermediate steps as Zi, θi as ground-truth weight iterates, and we denote the final label by zT := (0 d, 0, θ ⋆, 1) . When W is fixed, we write bθi
+
+for bθi(W ).
+
+Proof of Theorem A.5. We will first write the inference error as a sum of prediction errors at each step, each carried to the final step by a power of the Jacobian of the trained transformer. This is a case of Lemma 3.1, where the Jacobian becomes a single matrix J, and the second-order remainder is zero. The inference loss is therefore small once J is contractive. At convergence, we will show that J is close to the Jacobian I − ηS , whose norm ∥J∥2 < 1, and the errors are small, which yields the rate for the inference loss. Let W = W (t) be the trained weights at time t given by Theorem A.4. By Definition A.3, we have the simplified form of the transformer: 
+
+bθi = ˜fW (bθi−1) = bθi−1 + W P V  
+
+> 31
+
+S W KQ  
+
+> 13
+
+bθi−1 − θ⋆,
+
+for i = 1 , . . . , T , and bθT is the θ-block of the final output fW ( bZT −1). Therefore, we can write 
+
+L(fW ; D) = 12 E
+
+> X,θ ⋆
+
+h
+
+∥bθT − θ⋆∥2i
+
+.
+
+17 We compare the generated estimates bθi with the gradient descent iterates θi. Let 
+
+∆i := ˜fW (θi−1) − θi, i = 1 , . . . , T, 
+
+be the prediction error of step i, when the model is given the correct previous step. Since ˜fW is affine with the Jacobian J in equation (20), 
+
+bθi − θi =   ˜fW (bθi−1) − ˜fW (θi−1) + ∆ i = J(bθi−1 − θi−1) + ∆ i.
+
+Recursively decomposing the above from bθ0 = θ0, we have 
+
+bθT − θ⋆ = ( θT − θ⋆) + 
+
+> T
+
+X
+
+> i=1
+
+JT −i∆i. (21) This equation is the form of Lemma 3.1 for the linear transformer. The first term, θT − θ⋆, is the error of T gradient descent steps on the given in-context examples, because the final label is θ⋆. Since ∥J∥
+
+is not bounded uniformly over Gaussian inputs, we bound equation (21) in expectation rather than with the worst-case constants of Lemma 3.1. By the Cauchy–Schwarz inequality, 
+
+L(fW ; D) ≤ T + 1 2
+
+
+
+E
+
+> X,θ ⋆
+
+∥θT − θ⋆∥2 +
+
+> T
+
+X
+
+> i=1
+
+E
+
+> X,θ ⋆
+
+∥JT −i∆i∥2 
+
+. (22) It remains to show that J is contractive at convergence and that the residuals are small. 
+
+(1) Upper bound of E∥J∥2. Now, we analyze the spectral norm of the Jacobian matrix of the linear transformer, J = I + W P V  
+
+> 31
+
+SW KQ  
+
+> 13
+
+. Based on the results in Theorem A.4, for the trained transformer by running the gradient flow on the population loss on the chain-of-thought sequences, there exists matrix A and B, such that W31 = ( −ηI + A) and W13 = ( I + B) with ∥A∥op , ∥B∥op ≤
+
+Θ( d− 12 c log( 11−η )+ 12 ). We denote 
+
+β := Θ( d− 12 c log( 11−η )+ 12 ), and a := c log( 11 − η ) > 2.
+
+In particular, β = Θ( d 1−a 
+
+> 2
+
+) ≤ d−1/2 for a large enough d.Therefore, we have: 
+
+J = I + W P V  
+
+> 31
+
+SW KQ 
+
+> 13
+
+= I + ( −ηI + A)S(I + B)= I − ηS + ( AS − ηSB + ASB )= J0 + E, 
+
+where J0 = I − ηS and E = ( AS − ηSB + ASB ).Recall that S = 1 
+
+> n
+
+XX ⊤ where X = [ x1, . . . , x n] with xi sampled from N (0 , Id d). By the Gaussian singular-value bound [29] applied to X, given n = Θ( d2 log 5 d), the event G := {∥ S − I∥2 ≤
+
+Cpd/n } has probability at least 1 − 2e−d/ 2 for a constant C. On G, we have that 
+
+∥J0∥2 = ∥I − ηS ∥2 ≤ 1 − η + Cη pd/n = 1 − η + O(log −5/2 d), and ∥S∥2 ≤ 2.
+
+For matrix E, on G, submultiplicativity gives 
+
+∥E∥2 ≤  ∥A∥2 + η∥B∥2 + ∥A∥2∥B∥2
+
+∥S∥2 = Θ( d−c log 11−η +1 ).
+
+Therefore, on G,
+
+∥J∥2 ≤ ∥ J0∥2 + ∥E∥2 ≤ 1 − η + O(log −5/2 d) + Θ( d−c log 11−η +1 ). (23) Thus, ∥J∥2 ≤ 1 − η/ 2 < 1 for a large enough d.
+
+(2) Upper bound of E∥∆i∥2. We have the one-step gradient descent update as θi = θi−1 −ηS (θi−1 −
+
+θ⋆). Then, the prediction error of step i conditioned on the correct steps is 
+
+∆i = ˜fW (θi−1) − θi
+
+= ( W31 SW 13 + ηS ) θi−1 − (W31 + ηI )Sθ ⋆ = ( AS − ηSB + ASB ) θi−1 − AS θ ⋆.
+
+18 Therefore, we have 
+
+∥∆i∥2 ≤ 2 ∥AS − ηSB + ASB ∥22∥θi−1∥2 + ∥AS ∥22∥θ⋆∥2. (24) Note that θi is the i-th iterate of the gradient descent applied to (X, y ). Given that θ⋆ ∼ N (0 , Id d)
+
+and S = 1 
+
+> n
+
+XX T , with n = Θ( d2 log 5 d), we have EX,θ ⋆
+
+∥θi∥2 ≤ O(d). Therefore, based on 
+
+θi = ( I − (I − ηS )i)θ⋆, on G, we have ∥I − ηS ∥2 ≤ 1, so ∥θi∥ ≤ 2∥θ⋆∥.On G, we also have ∥AS − ηSB + ASB ∥2 ≤ 6β, and ∥AS ∥2 ≤ 2β.Therefore, plug those back to equation (24), for i = 1 , . . . , T , we have: 
+
+E∥∆i∥221G
+
+ ≤ 2 36 β2 · 4d + 4 β2d = O(dβ 2) = O(d2−a).
+
+Upper bound of L(fW ; D). Now, we have shown that E[∥∆i∥21G ] = O(d2−a) for i = 1 , . . . , T ,and ∥J∥2 ≤ 1 − η/ 2 on G. Then, summing the geometric series gives 
+
+> T
+
+X
+
+> i=1
+
+E∥JT −i∆i∥21G
+
+ ≤
+
+> T
+
+X
+
+> i=1
+
+(1 − η/ 2) 2( T −i) E∥∆i∥21G
+
+ ≤ O(d2−a).
+
+In addition, the first term of equation (22) is the error of exact gradient descent. By equation (17), 
+
+θT − θ⋆ = −(I − ηS )T θ⋆. On G, we have 
+
+∥I − ηS ∥2T 
+
+> 2
+
+≤ (1 − η)2T  1 + Cη 
+
+1 − η
+
+pd/n 2T ≤ 2(1 − η)2T .
+
+Since T ≥ c log d, we have 
+
+E∥θT − θ⋆∥21G
+
+ ≤ 2(1 − η)2T E∥θ⋆∥2 ≤ 2d1−2a.
+
+Combining these results into equation (22), by the Cauchy–Schwarz inequality, we have 
+
+L(fW ; D) ≤ T + 1 2
+
+
+
+2d1−2a + O(d2−a) + e−Ω( d)
+
+= O(d2−a log d), (25) since T + 1 = O(log d).
+
+A.3 Proof for the Quadratic Case 
+
+In this section, we study an in-context weight prediction task where the model is trained to predict the parameters of a quadratic function from n examples. Let the quadratic weight vector be θ⋆ ∈ Rd
+
+where θ⋆ ∼ N (0 , Id d). We sample n in-context examples xi ∼ N (0 , Id d) with the corresponding labels according to yi = ( θ⋆⊤xi)2, for i = 1 , . . . , n . The goal is to predict θ⋆ given the n examples. Similar to weight prediction for the linear function, define the embedding dimension de = 2 d + 2 .The initial input sequence is constructed as 
+
+Z0 =
+
+
+
+x1 · · · xn 0
+
+y1 · · · yn 00 · · · 0 θ0
+
+0 · · · 0 1
+
+ := 
+
+
+
+X 0d
+
+y 00d θ0
+
+0 1
+
+ ∈ Rde×(n+1) , (26) where X = [ x1, . . . , x n] ∈ Rd×n, y = [ y1, . . . , y n]⊤ ∈ Rn, and θ0 ∈ Rd is an initial estimate in the basin of θ⋆. We take θ0 = α0θ⋆ for a constant α0 ∈ [3 /4, 1) . We also append a dummy constant 1 to each parameter token for formatting convenience. We construct the chain-of-thought using gradient descent on the squared loss, i.e., 
+
+> 12n
+
+Pnj=1 
+
+ (θ⊤xj )2 − yj
+
+2. Define a residual vector as e(θ) = by(θ) − y, where byj (θ) = ( θ⊤xj )2.The gradient of the loss is 
+
+2
+
+n
+
+> n
+
+X
+
+> j=1
+
+ (θ⊤xj )2 − yj
+
+xj x⊤ 
+
+> j
+
+θ = 2
+
+n X diag  e(θ)X⊤θ. 
+
+19 Given a learning rate η, starting from θ0, define the gradient descent iterates for i = 1 , . . . , T :
+
+θi = θi−1 − η · 2
+
+n X diag  e(θi−1)X⊤θi−1 = θi−1 − η · 2
+
+n XD + 
+
+> i
+
+D− 
+
+> i
+
+X⊤θi−1,
+
+where D+ 
+
+> i
+
+= diag( X⊤θi−1 + X⊤θ⋆) and D− 
+
+> i
+
+= diag( X⊤θi−1 − X⊤θ⋆).Using these iterates, we define the ground-truth sequences 
+
+Zi =
+
+
+
+x1 · · · xn 0 0 · · · 0
+
+y1 · · · yn 0 0 · · · 00 · · · 0 θ0 θ1 · · · θi
+
+0 · · · 0 1 1 · · · 1
+
+ ∈ Rde×(n+i+1) , for i = 1 , 2, . . . , T. (27) 
+
+A.3.1 Proof of Lemma 3.3 
+
+Proof. We now construct a three-head nonlinear self-attention transformer that performs one gradient descent step for the quadratic squared loss. For head h ∈ { 1, 2, 3}, we denote a three-head self-attention model as 
+
+fW (Z) = Z[: ,−1] +
+
+> 3
+
+X
+
+> i=1
+
+W P V i Z · ϕi
+
+ Z⊤W KQ i Z[: ,−1] 
+
+> n
+
+
+
+.
+
+Here W Vi , W Ki , W Qi ∈ Rdi×de for i = 1 , 2, 3. One can set d1, d 2, and d3 separately. We construct the transformer in the following way. Let ϕ(·) be applied elementwise as 
+
+ϕ1(t) = t⊙3, ϕ2(t) = t⊙2, ϕ3(t) = t⊙2. (28) We then set 
+
+W P V 1 =
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+−2ηn 2 Id d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ , W KQ 1 =
+
+
+
+0d×d 0d×1 Id d 0d×1
+
+01×d 0 0d×1 00d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ ,W P V 2 =
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0 
+
+> 12
+
+ηn Id d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ , W KQ 2 =
+
+
+
+0d×d 0d×1 Id d 0d×1
+
+01×d 0 0d×1 10d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ ,W P V 3 =
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+− 12 ηn Id d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ , W KQ 3 =
+
+
+
+0d×d 0d×1 Id d 0d×1
+
+01×d 0 0d×1 −10d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ . (29) Now, we can inductively calculate the i-th step of generation, showing that the output is exactly the parameter after the i-th gradient step. 
+
+fW (Zi) =(0 d, 0, θ i, 1) + 
+
+
+
+0d, 0, −2ηn 2X · ϕ1
+
+  Z⊤W KQ 1 Z[: ,−1] 
+
+> n
+
+
+
++ ηn 
+
+2 X · ϕ2
+
+  Z⊤W KQ 2 Z[: ,−1] 
+
+> n
+
+ − ηn 
+
+2 X · ϕ3
+
+  Z⊤W KQ 3 Z[: ,−1] 
+
+> n
+
+, 0
+
+
+
+.
+
+Based on the construction, we have the following: 
+
+X · ϕ1
+
+ Z⊤W KQ 1 Z[: ,−1] 
+
+ = X(X⊤θi)⊙3
+
+X · ϕ2
+
+ Z⊤W KQ 2 Z[: ,−1] 
+
+ = X(X⊤θi + y⊤)⊙2
+
+X · ϕ3
+
+ Z⊤W KQ 3 Z[: ,−1] 
+
+ = X(X⊤θi − y⊤)⊙2
+
+Therefore, we have 
+
+fW (Zi) = (0 d, 0, θ i, 1) + (0 d, 0, − 2ηn X (X⊤θi)⊙3 − (X⊤θi) ⊙ y⊤, 0) = (0 d, 0, θ i − 2ηn X diag  e(θi)X⊤θi, 1) 
+
+20 where we denote the residual error e(θ) = by(θ) − y, where byj (θ) = ( θ⊤xj )2.Then, after T steps of applying fW , we obtain the T -step gradient descent solution using n examples of (x, y ). Denote the θT as the solution obtained by applying T -gradient step. Based on Lemma A.6, we have the test loss of fW as 
+
+LW = 12 E
+
+> X,θ ⋆
+
+
+
+fW ( bZT −1) − (0 d, 0, θ ⋆, 1) 22
+
+
+
+= 12 E
+
+> X,θ ⋆
+
+h
+
+∥θT − θ⋆∥22
+
+i
+
+≤ O(d−2c log( 11−μηd )+1 ).
+
+Lemma A.6. Let θ⋆ ∼ N (0 , Id d) and x1, . . . , x n
+
+> i.i.d.
+
+∼ N (0 , Id d). Define yj = ( x⊤ 
+
+> j
+
+θ⋆)2 and the empirical loss 
+
+Ln(θ) := 12n
+
+> n
+
+X
+
+> j=1
+
+
+
+(x⊤ 
+
+> j
+
+θ)2 − yj
+
+2
+
+= 12n
+
+> n
+
+X
+
+> j=1
+
+
+
+(x⊤ 
+
+> j
+
+θ)2 − (x⊤ 
+
+> j
+
+θ⋆)22
+
+.
+
+Let dist( θ, {± θ⋆}) := min {∥ θ − θ⋆∥2, ∥θ + θ⋆∥2}. Consider gradient descent θt+1 = θt −
+
+η∇L n(θt), t = 0 , 1, 2, . . . , T . There exist absolute constants 0 < m ≤ L < ∞ and a radius 
+
+ρ ∈ (0 , 1) such that for all θ satisfying dist( θ, {± θ⋆}) ≤ ρ∥θ⋆∥2, the Hessian of Ln obeys 
+
+m∥θ⋆∥22 Id d ⪯ ∇ 2Ln(θ) ⪯ L∥θ⋆∥22 Id d .
+
+Suppose the initialization lies in the basin, i.e., dist( θ0, {± θ⋆}) ≤ ρ∥θ⋆∥2. Assume that n ≥
+
+Cd 2 log 5 d for a sufficiently large constant C > 0, 0 < η ≤ 12L∥θ⋆∥22
+
+, and T = ⌈c log d⌋. Then, with probability at least 1 − d−10 over (θ⋆, X ), the following holds 
+
+dist( θT , {± θ⋆})2 ≤ dist( θ0, {± θ⋆})2 · d2c log 
+
+ 1−mη ∥θ⋆∥22
+
+
+
+.
+
+Then, given η = Θ(1 /d ) and T = Θ(log d), we have 
+
+EX,θ ⋆
+
+dist( θT , ±θ⋆)2 ≤ O
+
+
+
+d1−2c log( 11−mηd )
+
+.
+
+Proof. We prove the claim on a high-probability event under which the empirical loss is uniformly strongly convex and smooth in a neighborhood of {± θ⋆}, and then apply a standard contraction argument for gradient descent. Let x ∈ Rd and define 
+
+ℓx(θ) := 12
+
+ (x⊤θ)2 − (x⊤θ⋆)22.
+
+Then 
+
+∇ℓx(θ) =  (x⊤θ)2 − (x⊤θ⋆)2∇(x⊤θ)2 = 2  (x⊤θ)2 − (x⊤θ⋆)2(x⊤θ)x, 
+
+and differentiating once more gives 
+
+∇2ℓx(θ) = 2 
+
+
+
+∇ (x⊤θ)2 − (x⊤θ⋆)2(x⊤θ) +  (x⊤θ)2 − (x⊤θ⋆)2∇(x⊤θ)
+
+
+
+x⊤
+
+= 2 
+
+
+
+2( x⊤θ)x(x⊤θ) +  (x⊤θ)2 − (x⊤θ⋆)2x
+
+
+
+x⊤
+
+= 2 
+
+
+
+3( x⊤θ)2 − (x⊤θ⋆)2
+
+xx ⊤.
+
+Therefore, the empirical Hessian is 
+
+∇2Ln(θ) = 1
+
+n
+
+> n
+
+X
+
+> j=1
+
+∇2ℓxj (θ) = 2
+
+n
+
+> n
+
+X
+
+> j=1
+
+
+
+3( x⊤ 
+
+> j
+
+θ)2 − (x⊤ 
+
+> j
+
+θ⋆)2
+
+xj x⊤ 
+
+> j
+
+.
+
+Let B := {θ ∈ Rd : dist( θ, {± θ⋆}) ≤ ρ∥θ⋆∥2}. We use a claim that when n ≥ Cd 2 log 5 d (for C
+
+sufficiently large), with probability at least 1 − d−10 over (θ⋆, X ), the following event holds: 
+
+E : ∀θ ∈ B , m∥θ⋆∥22 Id d ⪯ ∇ 2Ln(θ) ⪯ L∥θ⋆∥22 Id d, (30) for some absolute constants 0 < m ≤ L < ∞ and ρ ∈ (0 , 1) . One can prove E by a standard ε-net argument over B together with Gaussian concentration for fourth-order polynomials. For example, 21 see the local regularity condition established (cf. Section 7 of [3]), the empirical Hessian is uniformly well-conditioned in a neighborhood of ±θ⋆. We condition on E for the remainder of the proof. Assume θ0 ∈ B . Since on E we have ∇2Ln(θ) ⪯ L∥θ⋆∥22 Id d for all θ ∈ B , the loss is L∥θ⋆∥22-smooth on B. With stepsize η ≤ 1/(2 L∥θ⋆∥22), the standard descent lemma implies Ln(θt+1 ) ≤Ln(θt) as long as θt ∈ B . Moreover, since Ln(θ) is strongly convex in a neighborhood of each minimizer ±θ⋆ on E, and θ⋆ is a minimizer with ∇L n(θ⋆) = 0 , the GD iterates remain in the same local basin. Thus θt ∈ B for all t ≤ T .Next, we show one-step contraction in distance to {± θ⋆}. Fix the sign s ∈ { +1 , −1} that minimizes 
+
+∥θ0 − sθ ⋆∥2 and define 
+
+∆t := θt − sθ ⋆.
+
+On E, for all θ ∈ B we have 
+
+m∥θ⋆∥22 Id d ⪯ ∇ 2Ln(θ) ⪯ L∥θ⋆∥22 Id d .
+
+Since ∇L n(sθ ⋆) = 0 and Ln is twice differentiable, the mean value form of the gradient gives 
+
+∇L n(θt) − ∇L n(sθ ⋆) = 
+
+ Z 10
+
+∇2Ln(sθ ⋆ + τ (θt − sθ ⋆)) dτ 
+
+
+
+(θt − sθ ⋆) =: Ht∆t,
+
+where Ht satisfies the same eigenvalue bounds: 
+
+m∥θ⋆∥22 Id d ⪯ Ht ⪯ L∥θ⋆∥22 Id d .
+
+Therefore, the GD update can be written as 
+
+∆t+1 = θt+1 − sθ ⋆ = θt − sθ ⋆ − η∇L n(θt) = ∆ t − ηH t∆t = ( I − ηH t)∆ t.
+
+Taking norms and using Ht ⪰ m∥θ⋆∥22 Id d yields 
+
+∥∆t+1 ∥2 ≤ ∥ I − ηH t∥op ∥∆t∥2 ≤ (1 − ηm ∥θ⋆∥22)∥∆t∥2,
+
+where the last inequality uses η ≤ 1/(2 L∥θ⋆∥22) so that all eigenvalues of I − ηH t lie in [0 , 1 −
+
+ηm ∥θ⋆∥22]. Squaring gives the one-step contraction 
+
+∥∆t+1 ∥22 ≤ (1 − mη ∥θ⋆∥22)2∥∆t∥22.
+
+By induction, 
+
+∥∆T −1∥22 ≤ (1 − mη ∥θ⋆∥22)2T ∥∆0∥22.
+
+Since ∥∆t∥2 = dist( θt, {± θ⋆}) by construction of s, and T = c log d,
+
+dist( θT −1, {± θ⋆})2 ≤ dist( θ0, {± θ⋆})2 · (1 − mη ∥θ⋆∥22)2c log d
+
+= dist( θ0, {± θ⋆})2 · d2c log(1 −mη ∥θ⋆∥22).
+
+Finally, the probability statement follows since E holds with probability at least 1 − d−10 .
+
+A.3.2 Gradient Computation 
+
+In this subsection, we compute the gradient of the full model and show that under certain initialization, running gradient flow on the training loss converges to the construction in Lemma 3.3. Recall that we train a three-head nonlinear self-attention transformer, denoted as 
+
+fW (Z) = Z[: ,−1] +
+
+> 3
+
+X
+
+> i=1
+
+W P V i Z · ϕi
+
+ Z⊤W KQ i Z[: ,−1] 
+
+> n
+
+
+
+.
+
+Here, by the convention in prior work [12, 34], we merge W Pi and W Vi into a single matrix and merge W Ki and W Qi into a single matrix. W P V i and W KQ i ∈ Rde×de for i = 1 , 2, 3. By the construction, we set ϕi(·) as elementwise non-linear functions ϕ1(t) = t⊙3, ϕ 2(t) = t⊙2, and 
+
+ϕ3(t) = t⊙2.The chain-of-thought training objective is written as 
+
+LCoT (W ) = E  
+
+> xi∼N (0 ,Id d),θ ⋆∼N (0 ,Id d)
+
+"
+
+12 
+
+> T−1
+
+X
+
+> i=0
+
+fW (Zi) − (0 d, 0, ¯θi+1 , 1) 22
+
+#
+
+.
+
+22 Here, ¯θi+1 := θi+1 for i ≤ T − 2 and ¯θT := θ⋆. As in the training loss equation (1), there are T
+
+steps. The label of the last step is the target θ⋆. The reduced loss and all gradients below use this convention. At inference time, we apply the model to generate T − 1 steps before it outputs the final prediction. The test loss is written as 
+
+L(W ) = E
+
+> X,θ ⋆
+
+ 12 fW ( bZT −1) − (0 d, 0, θ ⋆, 1) 22
+
+
+
+.
+
+Now, we compute the gradients of W P V i and W KQ i based on the loss of each CoT step. 
+
+Lemma A.7 (Full model gradient) . The gradients of W P V i and W KQ i for i = {1, 2, 3} are given by the following. 
+
+∇W P V 1 LCoT (W ) = E
+
+> X,θ ⋆
+
+"T −1X
+
+> i=0
+
+ri
+
+
+
+Ziϕ1
+
+ Z⊤   
+
+> iWKQ 1Zi[: ,−1]
+> n
+
+ ⊤
+
+#
+
+∇W P V 2 LCoT (W ) = E
+
+> X,θ ⋆
+
+"T −1X
+
+> i=0
+
+ri
+
+
+
+Ziϕ2
+
+ Z⊤   
+
+> iWKQ 2Zi[: ,−1]
+> n
+
+ ⊤
+
+#
+
+∇W P V 3 LCoT (W ) = E
+
+> X,θ ⋆
+
+"T −1X
+
+> i=0
+
+ri
+
+
+
+Ziϕ3
+
+ Z⊤   
+
+> iWKQ 3Zi[: ,−1]
+> n
+
+ ⊤
+
+#
+
+∇W KQ 1 LCoT (W ) = E
+
+> X,θ ⋆
+
+"
+
+1
+
+n 
+
+> T−1
+
+X
+
+> i=0
+
+Zi
+
+ Z⊤ 
+
+> i
+
+W P V 1⊤ri
+
+ ⊙ 3( Z⊤    
+
+> iWKQ 1Zi[: ,−1]
+> n
+
+)⊙2
+
+Z⊤
+
+> i[: ,−1]
+
+#
+
+∇W KQ 2 LCoT (W ) = E
+
+> X,θ ⋆
+
+"
+
+1
+
+n 
+
+> T−1
+
+X
+
+> i=0
+
+Zi
+
+ Z⊤ 
+
+> i
+
+W P V 2⊤ri
+
+ ⊙ 2( Z⊤    
+
+> iWKQ 2Zi[: ,−1]
+> n
+
+)
+
+
+
+Z⊤
+
+> i[: ,−1]
+
+#
+
+∇W KQ 3 LCoT (W ) = E
+
+> X,θ ⋆
+
+"
+
+1
+
+n 
+
+> T−1
+
+X
+
+> i=0
+
+Zi
+
+ Z⊤ 
+
+> i
+
+W P V 3⊤ri
+
+ ⊙ 2( Z⊤    
+
+> iWKQ 3Zi[: ,−1]
+> n
+
+)
+
+
+
+Z⊤
+
+> i[: ,−1]
+
+#
+
+where we define 
+
+ri =
+
+> 3
+
+X
+
+> h=1
+
+W P V h Zi · ϕh
+
+ Z⊤   
+
+> iWKQ hZi[: ,−1]
+> n
+
+
+
+− (0 d, 0, ¯θi+1 − θi, 0) 
+
+with ¯θi+1 defined above. Proof. For a step index i = 0 , 1, . . . , T − 1, write Z ∈ Rde×m with m = n + i + 1 and z = Z[: ,−1] ∈
+
+Rde . We define 
+
+sh := Z⊤W KQ h zn , vh := ϕh(sh), uh := W P V h Zv h, for h = 1 , 2, 3.
+
+Then, we can write the squared loss in terms of the residual error in each step as 
+
+ℓi(W ) := 12 ∥ri∥2, where ri =
+
+> 3
+
+X
+
+> h=1
+
+uh − (0 d, 0, θ i+1 − θi, 0) ,
+
+Then, we compute the gradients by the chain rule. For each head, the dependence of the loss on 
+
+W P V h is only through uh. Hence, 
+
+∇W P V h ℓi(W ) = ri(Zv h)⊤ = ri
+
+
+
+Zϕ h
+
+ Z⊤W KQ h zn
+
+ ⊤
+
+.
+
+Summing over i and taking the expectation yields the stated formula. Then, we compute the gradient for W KQ h . Since vh = ϕh(sh) is elementwise, we define 
+
+qh := ∂ℓ i
+
+∂s h
+
+=
+
+
+
+Z⊤(W P V h )⊤ri
+
+
+
+⊙ ϕ′
+
+> h
+
+(sh).
+
+23 Using the definition of sh, we have 
+
+∇W KQ h ℓi(W ) = 1
+
+n Zq hz⊤ = 1
+
+n Z
+
+ Z⊤(W P V h )⊤ri
+
+ ⊙ ϕ′
+
+> h
+
+(sh)
+
+
+
+z⊤.
+
+Plugging in ϕ′
+
+> 1
+
+(t) = 3 t⊙2 and ϕ′
+
+> 2
+
+(t) = ϕ′
+
+> 3
+
+(t) = 2 t gives exactly the gradients after summing over i
+
+and taking the expectation. According to Lemma 3.3, we use the following specific initialization to zero out the irrelevant blocks. 
+
+Assumption A.8 (Initialization) . We assume the parameters are initialized as 
+
+W P V 1 (0) = 
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 1 
+
+> 31
+
+(0) 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ , W KQ 1 (0) = 
+
+
+
+0d×d 0d×1 W KQ 1 
+
+> 13
+
+(0) W KQ 1
+
+> 14
+
+01×d 0 0d×1 W KQ 1
+
+> 24
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+
+
+W P V 2 (0) = 
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 2 
+
+> 31
+
+(0) 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ , W KQ 2 (0) = 
+
+
+
+0d×d 0d×1 W KQ 2 
+
+> 13
+
+(0) W KQ 2
+
+> 14
+
+01×d 0 0d×1 W KQ 2
+
+> 24
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+
+
+W P V 3 (0) = 
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 3 
+
+> 31
+
+(0) 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ , W KQ 3 (0) = 
+
+
+
+0d×d 0d×1 W KQ 3 
+
+> 13
+
+(0) W KQ 3
+
+> 14
+
+01×d 0 0d×1 W KQ 3
+
+> 24
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+
+
+Additionally, we impose a weight-sharing mechanism that ties weights across W P V i matrices and across W KQ i matrices. Let two underlying matrices be W P V  
+
+> 31
+
+and W KQ  
+
+> 13
+
+. We represent the matrices in the transformer with the two matrices as follows: 
+
+W P V 1 
+
+> 31
+
+(t) = −2ηn 2W P V  
+
+> 31
+
+(t), W P V 2 
+
+> 31
+
+(t) = ηn 
+
+2 W P V  
+
+> 31
+
+(t), W P V 3 
+
+> 31
+
+(t) = − ηn 
+
+2 W P V  
+
+> 31
+
+(t)
+
+W KQ 1 
+
+> 13
+
+(t) = W KQ  
+
+> 13
+
+(t), W KQ 2 
+
+> 13
+
+(t) = W KQ  
+
+> 13
+
+(t), W KQ 3 
+
+> 13
+
+(t) = W KQ  
+
+> 13
+
+(t).
+
+The weight matrices W P V  
+
+> 31
+
+(t) and W KQ  
+
+> 13
+
+(t) are updated with the combined gradient of the corre-sponding three weights. Further, W P V  
+
+> 31
+
+(0) = Pdi=1 λP V i uiu⊤ 
+
+> i
+
+and W KQ  
+
+> 13
+
+(0) = Pdi=1 λKQ i uiu⊤
+
+> i
+
+share the same orthonormal basis, which is symmetric and simultaneously diagonalizable. We fix 
+
+W KQ 1 
+
+> 24
+
+= 0 , W KQ 2 
+
+> 24
+
+= 1 , W KQ 3 
+
+> 24
+
+= −1, and W KQ 1 
+
+> 14
+
+= 0 d, W KQ 2 
+
+> 14
+
+= 0 d, W KQ 3 
+
+> 14
+
+= 0 d for all t > 0.We take the initialization to be isotropic, λP V i = λV (0) and λKQ i = λK (0) for all i ∈ [d], where for a constant σ ∈ (0 , 1/4) ,
+
+λK (0) ∈
+
+h 1√3 + σ, 1
+
+i
+
+, λV (0) ∈ (0 , 1/σ ], λV (0) 2 ≥ F  λK (0) 2 + σ2,
+
+where F (x) := x−13 + 29 log 23x−1 .We consider the gradient flow trajectory: 
+
+dW dt = − ∇ LCoT (W ), where 
+
+W :=[ W KQ 1 /{W KQ 1 
+
+> 24
+
+, W KQ 1 
+
+> 14
+
+}, W KQ 2 /{W KQ 2 
+
+> 24
+
+, W KQ 2 
+
+> 14
+
+}, W KQ 3 /{W KQ 3 
+
+> 24
+
+, W KQ 3 
+
+> 14
+
+},W P V 1 , W P V 2 , W P V 3 ].
+
+Next, we prove that if we initialize those matrices as in Assumption A.8, then the zero blocks will stay at 0 along the gradient descent trajectory. 24 Lemma A.9. Under Assumption A.8, when the transformer is trained under gradient flow, ∀t > 0,
+
+W P V 1 (t) = 
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 1 
+
+> 31
+
+(t) 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ , W KQ 1 (t) = 
+
+
+
+0d×d 0d×1 W KQ 1 
+
+> 13
+
+(t) 0d×1
+
+01×d 0 0d×1 00d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+
+
+W P V 2 (t) = 
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 2 
+
+> 31
+
+(t) 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ , W KQ 2 (t) = 
+
+
+
+0d×d 0d×1 W KQ 2 
+
+> 13
+
+(t) 0d×1
+
+01×d 0 0d×1 10d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+
+
+W P V 3 (t) = 
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 3 
+
+> 31
+
+(t) 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+ , W KQ 3 (t) = 
+
+
+
+0d×d 0d×1 W KQ 3 
+
+> 13
+
+(t) 0d×1
+
+01×d 0 0d×1 −10d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+
+
+Proof. We show that when the irrelevant blocks are 0, the gradients for those blocks are always 0: 
+
+W P V 1 Zi · ϕ1
+
+ Z⊤   
+
+> iWKQ 1Zi[: ,−1]
+> n
+
+
+
+= 1
+
+n3
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 1 
+
+> 31
+
+(t) 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+
+
+X 0 · · · 0
+
+y 0 · · · 00d θ0 · · · θi
+
+0 1 · · · 1
+
+
+
+Z⊤ 
+
+> i
+
+W KQ 1
+
+
+
+00
+
+θi
+
+1
+
+⊙3
+
+= 1
+
+n3
+
+
+
+0d×d 0d . . . 0d
+
+01×d 0 . . . 0
+
+W P V 1 
+
+> 31
+
+(t)X 0d . . . 0d
+
+01×d 0 . . . 0
+
+
+
+X 0 · · · 0
+
+y 0 · · · 00d θ0 · · · θi
+
+0 1 · · · 1
+
+ 
+
+> ⊤
+
+
+
+W KQ 1 
+
+> 13
+
+(t)θi
+
+00d
+
+0
+
+⊙3
+
+= 1
+
+n3
+
+
+
+0d×d 0d . . . 0d
+
+01×d 0 . . . 0
+
+W P V 1 
+
+> 31
+
+(t)X 0d . . . 0d
+
+01×d 0 . . . 0
+
+X⊤W KQ 1 
+
+> 13
+
+(t)θi
+
+0i+1 
+
+⊙3
+
+= 1
+
+n3
+
+
+
+0d
+
+0
+
+W P V 1 
+
+> 31
+
+(t)X X⊤W KQ 1 
+
+> 13
+
+(t)θi
+
+⊙3
+
+0
+
+ .
+
+For the second head, we have 
+
+W P V 2 Zi · ϕ2
+
+ Z⊤   
+
+> iWKQ 2Zi[: ,−1]
+> n
+
+
+
+= 1
+
+n2
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 2 
+
+> 31
+
+(t) 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+
+
+X 0 · · · 0
+
+y 0 · · · 00d θ0 · · · θi
+
+0 1 · · · 1
+
+
+
+Z⊤ 
+
+> i
+
+W KQ 2
+
+
+
+00
+
+θi
+
+1
+
+⊙2
+
+= 1
+
+n2
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 2 
+
+> 31
+
+(t)X 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+
+
+X 0 · · · 0
+
+y 0 · · · 00d θ0 · · · θi
+
+0 1 · · · 1
+
+ 
+
+> ⊤
+
+
+
+W KQ 2 
+
+> 13
+
+(t)θi
+
+10d
+
+0
+
+⊙2
+
+= 1
+
+n2
+
+
+
+0d×d 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+W P V 2 
+
+> 31
+
+(t)X 0d×1 0d×d 0d×1
+
+01×d 0 0d×1 0
+
+X⊤W KQ 2 
+
+> 13
+
+(t)θi + y⊤
+
+0i+1 
+
+⊙2
+
+= 1
+
+n2
+
+
+
+0d
+
+0
+
+W P V 2 
+
+> 31
+
+(t)X X⊤W KQ 2 
+
+> 13
+
+(t)θi + y⊤⊙2
+
+0
+
+ .
+
+25 Similarly, for the third head, we have 
+
+W P V 3 Zi · ϕ3
+
+ Z⊤ 
+
+> i
+
+W KQ 3 Zi[: ,−1] 
+
+n
+
+
+
+= 1
+
+n2
+
+
+
+0d
+
+0
+
+W P V 3
+
+31 (t)X X⊤W KQ 3
+
+13 (t)θi − y⊤⊙2
+
+0
+
+ .
+
+Recall that we have the residual for a CoT step defined as 
+
+ri =
+
+3X
+
+h=1 
+
+W P V h Zi · ϕh
+
+ Z⊤ 
+
+> i
+
+W KQ h Zi[: ,−1] 
+
+n
+
+
+
+− (0 d, 0, θ i+1 − θi, 0) ⊤ = (0 d, 0, bri − (θi+1 − θi), 0) ⊤,
+
+where we define 
+
+bri = 1
+
+n3 W P V 1
+
+31 X X⊤W KQ 1
+
+13 θi
+
+⊙3 + 1
+
+n2 W P V 2
+
+31 X X⊤W KQ 2
+
+13 θi + y⊤⊙2
+
++ 1
+
+n2 W P V 3
+
+31 X X⊤W KQ 3
+
+13 θi − y⊤⊙2
+
+= 1
+
+n3 W P V 1
+
+31 X X⊤W KQ 1
+
+13 θi
+
+⊙3 + 4
+
+n2 W P V 2
+
+31 X X⊤W KQ 2
+
+13 θi ⊙ y⊤. (31) The second step is because of the symmetry in Assumption A.8 that W P V 2
+
+31 = −W P V 3
+
+31 and W KQ 2
+
+13 =
+
+W KQ 3
+
+13 .Now, we consider the gradient for W P V h . Denote the loss at step i as Li(W ). For an X and θ⋆,
+
+∇W P V 1 Li(W ) = ri
+
+ Ziϕ1( Z⊤ 
+
+> i
+
+W KQ 1 Zi[: ,−1] 
+
+n )⊤ = 1
+
+n3 ri
+
+ Zi
+
+X⊤W KQ 1
+
+13 (t)θi
+
+0i+1 
+
+⊙3 ⊤
+
+= 1
+
+n3
+
+
+
+0d
+
+0
+
+bri − (θi+1 − θi)0
+
+
+
+X X⊤W KQ 1
+
+13 (t)θi
+
+⊙3
+
+y X⊤W KQ 1
+
+13 (t)θi
+
+⊙3
+
+0d
+
+0
+
+
+
+⊤
+
+= 1
+
+n3
+
+
+
+0d×d 0d 0d×d 0d
+
+01×d 0 01×d 0
+
+∇W P V 131 
+
+Li ∇W P V 132 
+
+Li 0d×d 0d
+
+01×d 0 01×d 0
+
+
+
+where 
+
+∇W P V 131 
+
+Li = bri
+
+ X X⊤W KQ 1
+
+13 (t)θi
+
+⊙3⊤ − (θi+1 − θi) X X⊤W KQ 1
+
+13 (t)θi
+
+⊙3⊤
+
+∇W P V 132 
+
+Li = bri
+
+ y X⊤W KQ 1
+
+13 (t)θi
+
+⊙3⊤ − (θi+1 − θi) y X⊤W KQ 1
+
+13 (t)θi
+
+⊙3⊤.
+
+Similarly, we calculate the gradient of W P V 2 . We have 
+
+∇W P V 2 Li(W ) = ri
+
+ Ziϕ2( Z⊤ 
+
+> i
+
+W KQ 2 Zi[: ,−1] 
+
+n )⊤ = 1
+
+n2 ri
+
+ Zi
+
+X⊤W KQ 2
+
+13 (t)θi + y⊤
+
+0i+1 
+
+⊙2 ⊤
+
+= 1
+
+n2
+
+
+
+0d
+
+0
+
+bri − (θi+1 − θi)0
+
+
+
+X X⊤W KQ 2
+
+13 (t)θi + y⊤⊙2
+
+y X⊤W KQ 2
+
+13 (t)θi + y⊤⊙2
+
+0d
+
+0
+
+
+
+⊤
+
+= 1
+
+n2
+
+
+
+0d×d 0d 0d×d 0d
+
+01×d 0 01×d 0
+
+∇W P V 231 
+
+Li ∇W P V 232 
+
+Li 0d×d 0d
+
+01×d 0 01×d 0
+
+ , where 
+
+∇W P V 231 
+
+Li = bri
+
+ X X⊤W KQ 2
+
+13 (t)θi + y⊤⊙2⊤ − (θi+1 − θi) X X⊤W KQ 2
+
+13 (t)θi + y⊤⊙2⊤
+
+∇W P V 232 
+
+Li = bri
+
+ y X⊤W KQ 2
+
+13 (t)θi + y⊤⊙2⊤ − (θi+1 − θi) y X⊤W KQ 2
+
+13 (t)θi + y⊤⊙2⊤.
+
+26 Also, the gradient for W P V 3 is as follows: 
+
+∇W P V 3 Li(W ) = ri
+
+ Ziϕ3( Z⊤ 
+
+> i
+
+W KQ 3 Zi[: ,−1] 
+
+n )⊤ = 1
+
+n2 ri
+
+ Zi
+
+X⊤W KQ 3
+
+13 (t)θi − y⊤
+
+0i+1 
+
+⊙2 ⊤
+
+= 1
+
+n2
+
+
+
+0d
+
+0
+
+bri − (θi+1 − θi)0
+
+
+
+X X⊤W KQ 3
+
+13 (t)θi − y⊤⊙2
+
+y X⊤W KQ 3
+
+13 (t)θi − y⊤⊙2
+
+0d
+
+0
+
+
+
+⊤
+
+= 1
+
+n2
+
+
+
+0d×d 0d 0d×d 0d
+
+01×d 0 01×d 0
+
+∇W P V 331 
+
+Li ∇W P V 332 
+
+Li 0d×d 0d
+
+01×d 0 01×d 0
+
+ , where 
+
+∇W P V 331 
+
+Li = bri
+
+ X X⊤W KQ 3
+
+13 (t)θi − y⊤⊙2⊤ − (θi+1 − θi) X X⊤W KQ 3
+
+13 (t)θi − y⊤⊙2⊤
+
+∇W P V 332 
+
+Li = bri
+
+ y X⊤W KQ 3
+
+13 (t)θi − y⊤⊙2⊤ − (θi+1 − θi) y X⊤W KQ 3
+
+13 (t)θi − y⊤⊙2⊤.
+
+Next, we calculate the gradient for W KQ h . We write rθi := bri − (¯θi+1 − θi) for the θ-block of ri.Thus, ri = (0 d, 0, r θi , 0) , and Z⊤
+
+i W P V h⊤ri = [ X⊤W P V h⊤
+
+31 rθi ; 0 i+1 ]. Then, we have 
+
+∇W KQ 1 Li = 1
+
+n Zi
+
+ Z⊤
+
+i W P V 1⊤ri
+
+ ⊙ 3( Z⊤ 
+
+> i
+
+W KQ 1 Zi[: ,−1] 
+
+n )⊙2
+
+Z⊤
+
+i[: ,−1] 
+
+= 1
+
+n Zi
+
+ X⊤W P V 1⊤
+
+31 (t)rθi
+
+0i+1 
+
+
+
+⊙ 3
+
+n2
+
+  X⊤W KQ 1
+
+13 (t)θi
+
+⊙2
+
+0i+1 
+
+ 
+
+Z⊤
+
+i[: ,−1] 
+
+= 3
+
+n3 Zi
+
+" 
+
+X⊤W P V 1⊤
+
+31 (t)rθi ⊙  X⊤W KQ 1
+
+13 (t)θi
+
+⊙2
+
+0i+1 
+
+#
+
+Z⊤
+
+i[: ,−1] 
+
+= 3
+
+n3
+
+
+
+X
+
+
+
+X⊤W P V 1⊤
+
+31 (t)rθi ⊙  X⊤W KQ 1
+
+13 (t)θi
+
+⊙2
+
+y
+
+
+
+X⊤W P V 1⊤
+
+31 (t)rθi ⊙  X⊤W KQ 1
+
+13 (t)θi
+
+⊙2
+
+0d
+
+0
+
+0d 0 θ⊤
+
+i 1
+
+= 3
+
+n3
+
+
+
+0d×d 0d ∇W KQ 113 
+
+Li ∇W KQ 114 
+
+Li
+
+01×d 0 ∇W KQ 123 
+
+Li ∇W KQ 124 
+
+Li
+
+0d×d 0d 0d×d 001×d 0 01×d 0
+
+ , where 
+
+∇W KQ 113 
+
+Li = X
+
+
+
+X⊤W P V 1⊤
+
+31 (t)rθi ⊙  X⊤W KQ 1
+
+13 (t)θi
+
+⊙2
+
+θ⊤
+
+i
+
+∇W KQ 123 
+
+Li = y
+
+
+
+X⊤W P V 1⊤
+
+31 (t)rθi ⊙  X⊤W KQ 1
+
+13 (t)θi
+
+⊙2
+
+θ⊤
+
+i ,
+
+27 and we fix W KQ 1 
+
+> 24
+
+= 0 and W KQ 1 
+
+> 14
+
+= 0 d for t > 0. Then, for head two, we have 
+
+∇W KQ 2 Li = 1
+
+n Zi
+
+ Z⊤ 
+
+> i
+
+W P V 2⊤ri
+
+ ⊙ 2( Z⊤    
+
+> iWKQ 2Zi[: ,−1]
+> n
+
+)
+
+
+
+Z⊤
+
+> i[: ,−1]
+
+= 1
+
+n Zi
+
+ X⊤W P V 2⊤ 
+
+> 31
+
+(t)rθi
+
+0i+1 
+
+
+
+⊙ 2
+
+n
+
+  X⊤W KQ 2 
+
+> 13
+
+(t)θi + y⊤
+
+0i+1 
+
+ 
+
+Z⊤
+
+> i[: ,−1]
+
+= 2
+
+n2 Zi
+
+" 
+
+X⊤W P V 2⊤ 
+
+> 31
+
+(t)rθi ⊙  X⊤W KQ 2 
+
+> 13
+
+(t)θi + y⊤
+
+0i+1 
+
+#
+
+Z⊤
+
+> i[: ,−1]
+
+= 2
+
+n2
+
+
+
+X
+
+
+
+X⊤W P V 2⊤ 
+
+> 31
+
+(t)rθi ⊙  X⊤W KQ 2 
+
+> 13
+
+(t)θi + y⊤
+
+y
+
+
+
+X⊤W P V 2⊤ 
+
+> 31
+
+(t)rθi ⊙  X⊤W KQ 2 
+
+> 13
+
+(t)θi + y⊤
+
+0d
+
+0
+
+0d 0 θ⊤ 
+
+> i
+
+1
+
+= 2
+
+n2
+
+
+
+0d×d 0d ∇W KQ 213 
+
+Li ∇W KQ 214 
+
+Li
+
+01×d 0 ∇W KQ 223 
+
+Li ∇W KQ 224 
+
+Li
+
+0d×d 0d 0d×d 001×d 0 01×d 0
+
+ , where 
+
+∇W KQ 213 
+
+Li = X
+
+
+
+X⊤W P V 2⊤ 
+
+> 31
+
+(t)rθi ⊙  X⊤W KQ 2 
+
+> 13
+
+(t)θi + y⊤
+
+θ⊤
+
+> i
+
+∇W KQ 223 
+
+Li = y
+
+
+
+X⊤W P V 2⊤ 
+
+> 31
+
+(t)rθi ⊙  X⊤W KQ 2 
+
+> 13
+
+(t)θi + y⊤
+
+θ⊤ 
+
+> i
+
+,
+
+and we fix W KQ 2 
+
+> 24
+
+= 1 and W KQ 2 
+
+> 14
+
+= 0 d for t > 0. Similarly, we have the gradient for W KQ 3 as follows. 
+
+∇W KQ 313 
+
+Li = X
+
+
+
+X⊤W P V 3⊤ 
+
+> 31
+
+(t)rθi ⊙  X⊤W KQ 3 
+
+> 13
+
+(t)θi − y⊤
+
+θ⊤
+
+> i
+
+∇W KQ 323 
+
+Li = y
+
+
+
+X⊤W P V 3⊤ 
+
+> 31
+
+(t)rθi ⊙  X⊤W KQ 3 
+
+> 13
+
+(t)θi − y⊤
+
+θ⊤ 
+
+> i
+
+,
+
+and we fix W KQ 3 
+
+> 24
+
+= −1 and W KQ 3 
+
+> 14
+
+= 0 d for t > 0.Now, we are going to show that the expected gradients with respect to the irrelevant blocks are zero, i.e., ∇W P V 132 
+
+Li, ∇W P V 232 
+
+Li, ∇W P V 332 
+
+Li, ∇W KQ 123 
+
+Li, ∇W KQ 223 
+
+Li, ∇W KQ 323 
+
+Li. We will show that 
+
+EX,θ ⋆
+
+h
+
+∇W P V 132 
+
+Li
+
+i
+
+= 0 , and proofs for others follow similarly. We use the sign-flip symmetry of the Gaussian distribution to prove this fact. Denote gi := y⊤a⊙3
+
+> i
+
+and ai := X⊤W KQ 1 
+
+> 13
+
+θi. Define a sign-flip transformation T : ( X, θ ⋆) 7 → (−X, θ ⋆). Since X has i.i.d. standard Gaussian columns, the distribution of (X, θ ⋆) is invariant under T .The parameter token θi and the target increment θi+1 −θi used in Zi are generated by the deterministic gradient descent on the quadratic squared loss. Thus, θi is invariant under T . Then, based on the definitions, we have y is invariant under T , and gi will be flipped to −gi under T .Moreover, we can show bri is even under T . Under the block expressions, we have 
+
+rθi = bri − (θi+1 − θi)= 1
+
+n3 W P V 1 
+
+> 31
+
+X X⊤W KQ 1 
+
+> 13
+
+θi
+
+⊙3 + 4
+
+n2 W P V 2 
+
+> 31
+
+X X⊤W KQ 2 
+
+> 13
+
+θi ⊙ y⊤ − (θi+1 − θi)
+
+One can verify that rθi is invariant under the transformation T . Thus, ∇W P V 132 
+
+Li(W ) = rigi is odd under T . Combining the above sign-flipping results and using the distributional invariance, we have 
+
+E
+
+> X,θ ⋆
+
+h
+
+∇W P V 132 
+
+Li(W )
+
+i
+
+= E 
+
+> T(X,θ ⋆)
+
+h
+
+∇W P V 132 
+
+Li(W ) ◦ T 
+
+i
+
+= − E
+
+> X,θ ⋆
+
+h
+
+∇W P V 132 
+
+Li(W )
+
+i
+
+,
+
+Therefore, EX,θ ⋆
+
+h
+
+∇W P V 132 
+
+Li(W )
+
+i
+
+= 0 .Notice that the final loss only depends on the (d + 2) to (2 d + 1) entries of the transformer’s output. We can simplify the model by pruning the irrelevant and zero blocks. We can define a simplified transformer, where the dynamics of the equivalent model are exactly the same as the original model. 28 Definition A.10. Under Assumption A.8, by Lemma A.9, for a given input Zi, we can rewrite the one-layer non-linear transformer by 
+
+fW (Zi) = 
+
+h
+
+0d, 0,  θi − 2ηn W P V  
+
+> 31
+
+X X⊤W KQ  
+
+> 13
+
+θi
+
+⊙3 + 2ηn W P V  
+
+> 31
+
+X X⊤W KQ  
+
+> 13
+
+θi ⊙ y⊤ , 1
+
+i⊤
+
+.
+
+where θi is the last column of Zi[d+2:2 d+1 ,−1] and y⊤ = ( X⊤θ⋆)⊙2 where θ⋆ is the ground-truth weights of the function. Then, we can denote a reduced model by: 
+
+˜fW (Zi) = θi − 2ηn W P V  
+
+> 31
+
+X X⊤W KQ  
+
+> 13
+
+θi
+
+⊙3 + 2ηn W P V  
+
+> 31
+
+X X⊤W KQ  
+
+> 13
+
+θi ⊙ y⊤. (32) For the ease of notations, we will write ˜fW (Zi) = ˜f (θi), where θi denotes the (d + 2) to (2 d + 1) 
+
+entries of the last column of Zi.In the following sections, we will consider the equivalent form of the transformer. Here we present the gradient with respect to the reduced model. 
+
+Lemma A.11. The gradients of W P V  
+
+> 31
+
+and W KQ  
+
+> 13
+
+are given by the following expectations: 
+
+∇W P V  
+
+> 31
+
+LCoT (W )= 
+
+> T−1
+
+X
+
+> i=0
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn ( ˜fW (θi) − θi+1 )
+
+ X(X⊤W KQ  
+
+> 13
+
+θi)⊙3⊤ −  X X⊤W KQ  
+
+> 13
+
+θi ⊙ y⊤ ⊤
+
++ E
+
+> X,θ ⋆
+
+
+
+− 2ηn (θT − θ⋆)
+
+ X(X⊤W KQ  
+
+> 13
+
+θT −1)⊙3⊤ −  X X⊤W KQ  
+
+> 13
+
+θT −1 ⊙ y⊤ ⊤
+
+, and 
+
+∇W KQ 
+
+> 13
+
+LCoT (W )= 
+
+> T−1
+
+X
+
+> i=0
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn X
+
+
+
+X⊤W P V ⊤ 
+
+> 31
+
+( ˜fW (θi) − θi+1 ) ⊙  3 X⊤W KQ  
+
+> 13
+
+θi
+
+⊙2 − y⊤
+
+θ⊤
+
+> i
+
+
+
++ E
+
+> X,θ ⋆
+
+
+
+− 2ηn X
+
+
+
+X⊤W P V ⊤ 
+
+> 31
+
+(θT − θ⋆) ⊙  3 X⊤W KQ  
+
+> 13
+
+θT −1
+
+⊙2 − y⊤
+
+θ⊤ 
+
+> T−1
+
+
+
+.
+
+Proof. Based on the simplified form of the transformer in Definition A.10, we can rewrite the CoT training loss as follows. 
+
+LCoT (W ) = 12 E
+
+> X,θ ⋆
+
+"T −2X
+
+> i=0
+
+∥fW (Zi) − (0 d, 0, θ i+1 , 1) ∥22
+
+#
+
++ 12 E
+
+> X,θ ⋆
+
+∥fW (ZT −1) − (0 d, 0, θ ⋆, 1) ∥22
+
+
+
+= 12 E
+
+> X,θ ⋆
+
+"T −2X
+
+> i=0
+
+∥ ˜fW (θi) − θi+1 ∥22
+
+#
+
++ 12 E
+
+> X,θ ⋆
+
+h
+
+∥ ˜fW (θT −1) − θ⋆∥22
+
+i
+
+.
+
+Here, we split the loss between the last step output and the ground-truth weights θ⋆.Then, based on the gradient computation in Lemma A.9, we can write out the gradient for the weight matrix W P V in the transformer. Recall that in Assumption A.8, we use a weight-sharing mecha-nism that defines W P V 1 
+
+> 31
+
+(t) = −2ηn 2W P V  
+
+> 31
+
+(t), W P V 2 
+
+> 31
+
+(t) = ηn  
+
+> 2
+
+W P V  
+
+> 31
+
+(t), W P V 3 
+
+> 31
+
+(t) = − ηn  
+
+> 2
+
+W P V  
+
+> 31
+
+(t).29 Therefore, 
+
+∇W P V  
+
+> 31
+
+LCoT (W )= − 2ηn 2∇W P V 131 
+
+LCoT (W ) + ηn 
+
+2 ∇W P V 231 
+
+LCoT (W ) − ηn 
+
+2 ∇W P V 331 
+
+LCoT (W )= 
+
+> T−2
+
+X
+
+> i=0
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn ( ˜fW (θi) − θi+1 ) X(X⊤W KQ  
+
+> 13
+
+θi)⊙3⊤
+
+
+
++ E
+
+> X,θ ⋆
+
+
+
+− 2ηn ( ˜fW (θT −1) − θ⋆) X(X⊤W KQ  
+
+> 13
+
+θT −1)⊙3⊤
+
+
+
+− 
+
+> T−2
+
+X
+
+> i=0
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn ( ˜fW (θi) − θi+1 ) X X⊤W KQ  
+
+> 13
+
+θi ⊙ y⊤ ⊤
+
+
+
+− E
+
+> X,θ ⋆
+
+
+
+− 2ηn ( ˜fW (θT −1) − θ⋆) X X⊤W KQ  
+
+> 13
+
+θT −1 ⊙ y⊤ ⊤
+
+
+
+= 
+
+> T−1
+
+X
+
+> i=0
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn ( ˜fW (θi) − θi+1 )
+
+ X(X⊤W KQ  
+
+> 13
+
+θi)⊙3⊤ −  X X⊤W KQ  
+
+> 13
+
+θi ⊙ y⊤ ⊤
+
++ E
+
+> X,θ ⋆
+
+
+
+− 2ηn (θT − θ⋆) X(X⊤W KQ  
+
+> 13
+
+θT −1)⊙3⊤ + 2ηn (θT − θ⋆) X X⊤W KQ  
+
+> 13
+
+θT −1 ⊙ y⊤ ⊤
+
+
+
+.
+
+The last step is because we subtract 
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn ( ˜fW (θT −1) − θT ) X(X⊤W KQ  
+
+> 13
+
+θT −1)⊙3
+
+ ⊤
+
+from the second term and put it into the first term, then subtract 
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn ( ˜fW (θT −1) − θT ) X X⊤W KQ  
+
+> 13
+
+θT −1 ⊙ y⊤
+
+from the fourth term and put it into the third term. Similarly, we can break down the gradient for W KQ  
+
+> 13
+
+. Recall that in Assumption A.8, we use a weight-sharing mechanism that defines W KQ 1 
+
+> 13
+
+(t) = W KQ  
+
+> 13
+
+(t), W KQ 2 
+
+> 13
+
+(t) = W KQ  
+
+> 13
+
+(t), W KQ 3 
+
+> 13
+
+(t) = 
+
+W KQ  
+
+> 13
+
+(t). Therefore, we have 
+
+∇W KQ 
+
+> 13
+
+LCoT (W )=∇W KQ 113 
+
+LCoT (W ) + ∇W KQ 213 
+
+LCoT (W ) + ∇W KQ 313 
+
+LCoT (W )= 
+
+> T−1
+
+X
+
+> i=0
+
+E
+
+> X,θ ⋆
+
+
+
+− 6ηn X
+
+
+
+X⊤W P V ⊤ 
+
+> 31
+
+( ˜fW (θi) − θi+1 ) ⊙  X⊤W KQ  
+
+> 13
+
+θi
+
+⊙2
+
+θ⊤
+
+> i
+
+
+
++
+
+E
+
+> X,θ ⋆
+
+
+
+− 6ηn X
+
+
+
+X⊤W P V ⊤ 
+
+> 31
+
+(θT − θ⋆) ⊙  X⊤W KQ  
+
+> 13
+
+θT −1
+
+⊙2
+
+θ⊤ 
+
+> T−1
+
+
+
+− 
+
+> T−1
+
+X
+
+> i=0
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn X
+
+
+
+X⊤W P V ⊤ 
+
+> 31
+
+( ˜fW (θi) − θi+1 ) ⊙ y⊤
+
+θ⊤
+
+> i
+
+
+
+−
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn X
+
+
+
+X⊤W P V ⊤ 
+
+> 31
+
+(θT − θ⋆) ⊙ y⊤
+
+θ⊤ 
+
+> T−1
+
+
+
+= 
+
+> T−1
+
+X
+
+> i=0
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn X
+
+
+
+X⊤W P V ⊤ 
+
+> 31
+
+( ˜fW (θi) − θi+1 ) ⊙  3 X⊤W KQ  
+
+> 13
+
+θi
+
+⊙2 − y⊤
+
+θ⊤
+
+> i
+
+
+
++
+
+E
+
+> X,θ ⋆
+
+
+
+− 2ηn X
+
+
+
+X⊤W P V ⊤ 
+
+> 31
+
+(θT − θ⋆) ⊙  3 X⊤W KQ  
+
+> 13
+
+θT −1
+
+⊙2 − y⊤
+
+θ⊤ 
+
+> T−1
+
+
+
+.
+
+30 A.3.3 Proof of Theorem 3.4 
+
+With the above computed gradients, we now prove the main theorem on the convergence of transform-ers trained on quadratic functions. We characterize the training dynamics using ordinary differential equations in terms of the eigenvalues of the transformer weights. We first characterize the gradient of the CoT objective as a main term plus interaction terms, which yields an ordinary differential equation for the eigenvalues of the two trained blocks. Then, we analyze the ordinary differential equation in stages. 
+
+Proof. We first use the gradient computation in Lemma A.11 and derive ordinary differential equations for the eigenvalues of the weight matrices W P V  
+
+> 31
+
+and W KQ  
+
+> 13
+
+. By Assumption A.8, we have weight matrices in the form for all t ≥ 0:
+
+W P V  
+
+> 31
+
+(t) = λV (t) Id d, W KQ  
+
+> 13
+
+(t) = λK (t) Id d,
+
+where the dynamics reduce to the two eigenvalues λV (t) and λK (t). Consider that the gradient descent initialization satisfies θ0 = α0θ⋆ with a constant α0 ∈ [3 /4, 1) , and take n = Θ( d2 log 5 d).We will show that the gradients in the eigenbasis admit the following decomposition 
+
+∇W P V  
+
+> 31
+
+LCoT (W ) =  gV (λV , λ K ) + ∆ V  Id d,
+
+∇W KQ 
+
+> 13
+
+LCoT (W ) =  gK (λV , λ K ) + ∆ K  Id d,
+
+where gV , g K are explicit main terms, and ∆V , ∆K are interaction terms. The induced eigenvalue ODEs can be represented by 
+
+˙λV (t) = −gV
+
+ λV (t), λ K (t) − ∆V (t), ˙λK (t) = −gK
+
+ λV (t), λ K (t) − ∆K (t),
+
+In particular, by expanding the main terms around the construction λV = λK = 1 , we will show that 
+
+gV (λV , λ K ) = 36 κ2 
+
+> T−1
+
+X
+
+> i=0
+
+βi(1 − βi)(1 − βi)( λV − 1) + (1 − 3βi)( λK − 1) 
+
++ O |λV − 1|2 + |λK − 1|2,gK (λV , λ K ) = 36 κ2 
+
+> T−1
+
+X
+
+> i=0
+
+βi(1 − 3βi)(1 − βi)( λV − 1) + (1 − 3βi)( λK − 1) 
+
++ O |λV − 1|2 + |λK − 1|2,
+
+where the coefficients depend only on (T, κ, α 0), and the weights βi ∈ [α20, 1) .Now, we derive the explicit forms of the ODE. Based on Lemma A.9, if the parameters are initialized as in Assumption A.8, then under gradient flow all zero blocks remain zero for all t > 0. Hence, the model dynamics are fully characterized by the two matrices W P V  
+
+> 31
+
+(t) and W KQ  
+
+> 13
+
+(t). Then, we write the reduced form of the transformer as in Equation 32. The chain-of-thought training loss can be written as 
+
+LCoT (W ) = 12 EX,θ ⋆
+
+h T −2X
+
+> i=0
+
+∥ ˜fW (θi) − θi+1 ∥22 + ∥ ˜fW (θT −1) − θ⋆∥22
+
+i
+
+.
+
+with the residuals defined as 
+
+ei := 
+
+ ˜fW (θi) − θi+1 , i = 0 , . . . , T − 2,
+
+˜fW (θT −1) − θ⋆, i = T − 1.
+
+Let 
+
+Ψ( θ) := X
+
+
+
+(X⊤W KQ  
+
+> 13
+
+θ)⊙3 − (X⊤W KQ  
+
+> 13
+
+θ) ⊙ y⊤
+
+.
+
+Then the gradients of the reduced parameters are 
+
+∇W P V  
+
+> 31
+
+LCoT (W ) = E
+
+h T −1X
+
+> i=0
+
+− 2ηn eiΨ( θi)⊤i
+
+, (33) 
+
+∇W KQ 
+
+> 13
+
+LCoT (W ) = E
+
+h T −1X
+
+> i=0
+
+− 2ηn X
+
+
+
+(X⊤W P V ⊤ 
+
+> 31
+
+ei) ⊙  3( X⊤W KQ  
+
+> 13
+
+θi)⊙2 − y⊤
+
+θ⊤
+
+> i
+
+i
+
+. (34) 31 As in Assumption A.8, assume W P V  
+
+> 31
+
+(t) and W KQ  
+
+> 13
+
+(t) are symmetric and share an orthonormal eigenbasis U . Rotating all variables by U ⊤ leaves the data distribution invariant, so we can work in the basis where U = Id d and both matrices are diagonal. Thus, the isotropy is preserved. The dynamics reduce to ODEs for the eigenvalues λV (t) and λK (t).Then, we further write the ODE as the expectation over θ⋆ and X. Let θ⋆ ∼ N (0 , Id d) and initialize θ0 = α0θ⋆ with α0 ∈ [3 /4, 1) . Then, gradient descent on the quadratic functions preserves collinearity, so θi = αiθ⋆, α i+1 = αi − 6η∥θ⋆∥22αi(α2 
+
+> i
+
+− 1) . Here, αi are scalars that only depend on the data ∥θ⋆∥2. Let ¯αi follow the same recursion with ∥θ⋆∥2 replaced by its mean d, and let 
+
+βi := ¯ α2 
+
+> i
+
+. The empirical iterates θi stay close to αiθ⋆, and ∥θ⋆∥2 is close to d.Given W P V  
+
+> 31
+
+= λV Id d and W KQ  
+
+> 13
+
+= λK Id d, let 
+
+s := 1 − λV λ3 
+
+> K
+
+, τ := 1 − λV λK ,
+
+which both vanish at the construction λV = λK = 1 . Then, we have 
+
+Ψ( θ) = λ3 
+
+> K
+
+X(X⊤θ)⊙3 − λK X (X⊤θ) ⊙ y⊤,
+
+for i ≤ T − 2,
+
+ei = 2ηn
+
+
+
+s X (X⊤θi)⊙3 − τ X  (X⊤θi) ⊙ y⊤
+
+,
+
+and eT −1 is the same expression plus θT − θ⋆. As the other terms do not depend on (λV , λ K ), LCoT 
+
+is exactly a quadratic function of (s, τ ).Then, we apply the expectation to the Gaussian moment. for x ∼ N (0 , Id d) and fixed vectors v, w ∈
+
+Rd, we have E[x(x⊤v)3] = 3 ∥v∥2v, E[x(x⊤v)( x⊤w)2] = ∥w∥2v + 2( v⊤w)w. Applying these identities yields the population expectation 
+
+EX [Ψ( θ) | θ, θ ⋆] = n
+
+
+
+3λ3 
+
+> K
+
+∥θ∥2θ − λK
+
+ ∥θ⋆∥2θ + 2( θ⊤θ⋆)θ⋆
+
+. (35) In particular, at θ = αθ ⋆ the expectations of 1 
+
+> n
+
+X(X⊤θ)⊙3 and 1 
+
+> n
+
+X (X⊤θ) ⊙ y⊤ are 3α3∥θ⋆∥2θ⋆
+
+and 3α∥θ⋆∥2θ⋆.We keep only the population parts and replace ∥θ⋆∥2 by d and αi by ¯αi, which defines the main terms. The remaining terms are the interaction terms. Then, taking the exact expectation over θ⋆ and 
+
+X, the population gradient-flow dynamics of the eigenvalues are given by 
+
+˙λV = 36 κ2λKT −1X
+
+> i=0
+
+βi(βis − τ )( λ2 
+
+> K
+
+βi − 1) − ∆V , (36) 
+
+˙λK = 36 κ2λVT −1X
+
+> i=0
+
+βi(βis − τ )(3 λ2 
+
+> K
+
+βi − 1) − ∆K . (37) The interaction terms ∆V and ∆K are the differences between the exact expressions and the main terms in equation (36) and equation (37). On any bounded set of (λV , λ K ), their orders are as follows 
+
+|∆V | + |∆K | = O
+
+ 1log d
+
+ T −1X
+
+> i=0
+
+βi|βis − τ | + |s| + |τ |
+
+
+
++ O d−aC .
+
+The first part vanishes at the construction where s = τ = 0 . The second part is set by the length of training examples. Consequently, the population dynamics close exactly in terms of (λV , λ K ) and the deterministic weights βi, up to the interaction terms, yielding a finite-dimensional ODE. Now, we prove the convergence of training transformers on quadratic functions based on the above forms of ODEs. By Lemma A.9, the block-sparse structure is preserved under gradient flow, so the dynamics are fully characterized by the two reduced matrices W P V  
+
+> 31
+
+(t) and W KQ  
+
+> 13
+
+(t). We further use an isotropic symmetry: W KQ  
+
+> 13
+
+(t) = λK (t) Id d, W P V  
+
+> 31
+
+(t) = λV (t) Id d, ∀t ≥ 0, in order to identify the fixed point for the ODE. Then, the model reduces to scalars (λK (t), λ V (t)) .We now show the convergence in two stages. In the first stage, using the structure of the ODE and the condition (here enforced by the colinear initialization θ0 = α0θ⋆ with α0 ∈ [3 /4, 1) ), we show 32 that whenever (λK , λ V ) is outside a small neighborhood of (1 , 1) , the gradient norm is bounded below by a positive quantity depending at most polylogarithmically on d: ∥∇ LCoT (λK , λ V )∥22 ≥
+
+c1LCoT (λK , λ V ), when ∥(λK , λ V ) − (1 , 1) ∥ ≥ δ0, for some constants c1 > 0 and δ0 = O( 1log d ).This yields an exponential decrease of LCoT until the trajectory enters the δ0-ball around (1 , 1) , in time t1 = O(log d).In the second stage, inside the δ0-ball of (1 , 1) , LCoT is smooth, and its Hessian is positive definite (this follows from the identifiability of the construction in the assumption). Hence a local PL-condition inequality holds: ∥∇ LCoT (λK , λ V )∥22 ≥ c2LCoT (λK , λ V ), when ∥(λK , λ V ) − (1 , 1) ∥ ≤ δ0,for some c2 > 0. This implies LCoT (t) ≤ LCoT (t1) exp   − c2(t − t1), so reaching LCoT (t) ≤ ε takes an additional t2 = O(log 1 
+
+> ε
+
+) time. Thus, the transformer converges to the construction as described in Lemma 3.3. Following Lemma 3.3 and Theorem A.5, we similarly obtain the rate of the inference loss when training converges. 
+
+## B Omitted Experimental Results 
+
+B.1 Evaluations of the Stability Measure 
+
+Recall that Lemma 3.1 is a worst-case upper bound, and the figures in the main text compare it to the measured loss gap on separate axes. We report the difference in scale explicitly. For each model and each reasoning length T , we report six quantities: • The loss gap |L(fW ; D) − L⋆(fW ; D)| between the inference loss and the reference loss; • The value of our bound, i.e., the right-hand side of equation (4); • The bound-to-gap ratio, i.e., the ratio of the previous two quantities; • The first-order term C1
+
+PT −1 
+
+> t=1
+
+ρ(T ) 
+
+> t
+
+εt;• The second-order term C1C2
+
+> 2
+
+PTt=2 ρ(T )
+
+> t
+
+ P t−1 
+
+> i=1
+
+ri
+
+2;• The two constants entering the bound: the Lipschitz constant C1 of the loss function, and the Lipschitz constant C2 of the model’s input Jacobian. We estimate C1 as the maximum norm of the loss gradient with respect to the model output over the evaluation set, and C2 as the maximum finite-difference change in the input Jacobian over pairs of nearby inputs from the same set. Table 2 reports all six quantities for Qwen-1.5B, Llama-1B, and Gemma-2B trained on the Bellman-Ford task, for T = 1 , . . . , 5. At T = 1 there is no accumulated error, and both the gap and the bound are zero. We report the results in Table 2. First, the bound is relatively tight on Qwen-1.5B, where the bound-to-gap ratio stays between 6 and 9 across all T . On Llama-1B and Gemma-2B, the ratio reaches 
+
+2.3 × 10 6 and 1.5 × 10 5 at T = 5 . Second, this difference is attributed to the constants. C1 is small and comparable across all three models (between 0.01 and 0.07 ), while C2 differs by roughly three orders of magnitude, from around 5 on Qwen-1.5B to above 3 × 10 3 on Llama-1B. Since C2
+
+multiplies the squared accumulated deviations in the second-order term, a large C2 increases the bound value. Third, the second-order term grows faster in T than the first-order term. For Llama-1B and Gemma-2B, it dominates the bound from T = 3 onward. On Qwen-1.5B, the first-order term remains the larger of the two. In Figure 5, we measure the loss gap and the error amplification factor PT −1 
+
+> t=1
+
+ρ(T ) 
+
+> t
+
+for T ranging from 1 to 5. We report the results evaluated with Gemma-2B and Llama-1B models on the Bellman-Ford and Prim’s algorithms. The inference loss increases significantly with the number of steps. The error amplification factor scales exponentially with T , closely tracking the growth in the inference loss. 
+
+Evaluations of the bound under quantization. Table 3 decomposes equation (4) across bit-widths for Qwen-1.5B on three tasks. Lowering the bit-width has two opposing effects on the bound. First, it reduces the error amplification factor: from full precision to 1 bit, P 
+
+> t
+
+ρ(T ) 
+
+> t
+
+decreases by 3.7× on the Dijkstra task, 5.9× on the Prim task, and 1.2× on the Bellman-Ford task. Second, the quantized model fits the training data less well, so the per-step prediction errors tend to grow. 33 Table 2: Decomposition of the bound in equation (4) for three models trained on the Bellman-Ford task. Loss gap denotes |L(fW ; D) − L⋆(fW ; D)|, Bound denotes the right-hand side of equation (4), and Ratio denotes the bound value divided by the loss gap. The first- and second-order terms are 
+
+C1
+
+PT −1 
+
+> t=1
+
+ρ(T ) 
+
+> t
+
+εt and C1C2
+
+> 2
+
+PTt=2 ρ(T )
+
+> t
+
+ P t−1 
+
+> i=1
+
+ri
+
+2. The absolute scale of the bound varies by orders of magnitude across architectures. At T = 1 there is no accumulated error, so the loss gap and the bound value are zero. 
+
+Terms of equation (4) Constants Model T Loss gap Bound Ratio First-order Second-order C1 C2
+
+Qwen-1.5B 1 0 0 – 0 0 0.01 02 0.08 0.68 8.0 0.68 9.5 × 10 −4 0.02 5.44 3 0.25 1.5 6.1 1.3 1.7 ×10 −1 0.03 5.83 4 0.47 3.4 7.2 2.5 8.4 ×10 −1 0.05 5.83 5 0.83 6.9 8.3 4.5 2.4 ×10 0 0.07 5.83 Llama-1B 1 0 0 – 0 0 0.04 02 0.05 3.3 × 10 3 6.2 × 10 4 2.3 × 10 3 9.7 × 10 2 0.03 3.03 × 10 3
+
+3 0.30 5.4 × 10 4 1.8 × 10 5 6.2 × 10 3 4.8 × 10 4 0.04 3.17 × 10 3
+
+4 0.85 5.5 × 10 5 6.4 × 10 5 6.4 × 10 3 5.4 × 10 5 0.05 3.18 × 10 3
+
+5 1.84 4.3 × 10 6 2.3 × 10 6 5.0 × 10 4 4.2 × 10 6 0.05 3.21 × 10 3
+
+Gemma-2B 1 0 0 – 0 0 0.00 02 0.09 1.1 × 10 3 3.6 × 10 4 7.3 × 10 2 4.3 × 10 2 0.01 1.05 × 10 3
+
+3 0.48 3.5 × 10 4 7.3 × 10 4 1.5 × 10 3 3.3 × 10 4 0.03 1.15 × 10 3
+
+4 1.21 7.6 × 10 4 6.2 × 10 4 2.0 × 10 3 7.4 × 10 4 0.03 1.24 × 10 3
+
+5 2.11 3.2 × 10 5 1.5 × 10 5 2.7 × 10 3 3.2 × 10 5 0.06 1.37 × 10 3
+
+Table 3: Decomposition of equation (4) under quantization-aware training, for Qwen-1.5B at T =5. Lowering the bit-width monotonically reduces the error amplification factor PT −1 
+
+> t=1
+
+ρ(T ) 
+
+> t
+
+and increases the per-step prediction errors, summarized by PT −1 
+
+> t=1
+
+εt; the bound and the test accuracy are determined by the balance of the two. The best bit-width per task is in bold. 
+
+Task Bit-width Test accuracy (%) Loss gap Bound P 
+
+> t
+
+ρ(T )
+
+> t
+
+P 
+
+> t
+
+εt
+
+Bellman-Ford 1 69.6 2.0 21.8 143.6 3.6 2 77.3 1.5 12.1 157.2 1.9 3 79.5 1.4 10.8 159.6 1.9 
+
+4 80.3 0.6 7.3 166.7 1.8 32 75.3 1.8 13.4 177.0 2.3 Dijkstra 
+
+1 76.2 0.9 2.1 9.3 2.9 2 75.3 0.9 2.4 9.4 2.9 3 74.2 1.1 3.3 13.9 2.7 4 73.8 1.6 5.2 22.6 1.9 32 73.1 2.3 14.2 34.4 1.8 Prim 
+
+1 66.3 1.1 1.1 11.9 3.0 2 65.6 1.3 1.4 14.7 3.0 3 64.7 1.7 1.5 20.1 2.8 4 63.5 2.0 2.0 30.1 2.5 32 62.3 2.1 2.7 69.8 2.3 
+
+In practice, we observe that QAT reduces the error amplification factor more significantly than it increases prediction errors. As a result, lower bit-width quantization typically achieves a reduction in the bound, leading to improved test accuracy. On Dijkstra and Prim, the prediction errors increase by only 1.6× and 1.3×. The bound decreases monotonically as the bit-width is lowered, by 6.8× and 
+
+2.5× at 1 bit. The test accuracy improves by 3.1% and 4.0% over full precision. On Bellman-Ford, the reduction of P 
+
+> t
+
+ρ(T ) 
+
+> t
+
+is small, while the prediction errors double from 4 bits to 1 bit. Therefore, 34 Table 4: The error amplification factor tracks the inference loss across base models. We fine-tune Llama-1B and Gemma-2B on Bellman-Ford ( T = 5 ) and report both terms of equation (4) together with the estimated constants; columns are as in Table 2. Within each model, the ranking of methods by our bound matches their ranking by the loss gap, even though the absolute scale of the bound differs by orders of magnitude between the two models. 
+
+Terms of equation (4) Constants Model Method Loss gap Bound First-order Second-order C1 C2
+
+Llama-1B SFT-CoT 1.84 4.3 × 10 6 5.0 × 10 4 4.2 × 10 6 0.050 3.21 × 10 3
+
+Coconut 0.699 1.1 × 10 5 1.3 × 10 3 1.1 × 10 5 0.077 1.63 × 10 3
+
+Alg. 1 0.491 1.3 × 10 4 7.4 × 10 2 1.2 × 10 4 0.091 1.79 × 10 3
+
+Gemma-2B SFT-CoT 2.11 3.2 × 10 5 2.7 × 10 3 3.2 × 10 5 0.060 1.37 × 10 3
+
+Coconut 0.662 1.5 × 10 4 1.34 × 10 2 1.5 × 10 4 0.094 9.27 × 10 2
+
+Alg. 1 0.091 4.9 × 10 3 26.6 4.9 × 10 3 0.064 4.78 × 10 2T = 2 T = 3 T = 4 T = 5 T = 6 0123 Our bound ( right axis )Inference loss ( left axis )                                
+
+> 0123
+> ×10 5Bellman -ford ,Gemma -2B T= 1 T= 2 T= 3 T= 4 T= 5 0123
+> 0.02.55.07.5
+> ×10 4Prim ’s algorithm ,Gemma -2B T= 2 T= 3 T= 4 T= 5 T= 6 0123Our bound ( right axis )Inference loss ( left axis )
+> 024
+> ×10 6Bellman -ford ,Llama -1B T= 1 T= 2 T= 3 T= 4 T= 5 024
+> 024
+> ×10 6Prim ’s algorithm ,Llama -1B
+
+Figure 5: We illustrate the loss gap and our bound in equation (4), which can scale exponentially across generation steps, closely tracking the growth of the inference loss. Results are evaluated on Bellman-Ford and Prim’s algorithm, using Gemma-2B and Llama-1B models. The two quantities are plotted on separate axes and differ in absolute scale; see Table 2 for the bound-to-gap ratios. the bound and the test accuracy are both best at 4 bits. The bit-width at which the growth of the error levels begins to dominate depends on the task, and we select it on the validation set. 
+
+Evaluations of our bound across algorithms. To evaluate whether the relationship between our bound and the inference loss extends beyond Qwen-1.5B, we apply Algorithm 1 to Llama-1B and Gemma-2B on Bellman-Ford with T = 5 , and compare it with standard chain-of-thought fine-tuning (SFT-CoT) and continuous chain-of-thought (Coconut) [10]. As shown in Table 4, our algorithm attains the lowest loss gap and the lowest bound on both models. Compared with Coconut, it reduces the loss gap by 58% on average and the bound by 78% on average. Compared with SFT-CoT, it lowers the bound by 330 × and 65 ×. This confirms that the reduction in test loss correlates with the reduction of our bound components. 
+
+Numerical evaluation of Jacobian norms. We further analyze the training dynamics by examining the Hessian trace of models fine-tuned with chain-of-thought on linear and quadratic functions. Specifically, we evaluate the norm of the Jacobian matrix product as a function of the reasoning length 
+
+T and report results for both settings. As shown in Figure 6, as the reasoning length T increases, the norm of the Jacobian matrix product converges to a value. This behavior is consistent and aligned with our analysis of the gradient descent update rule for linear and quadratic functions. 35 20 40 60 80 100 T02468Jacobian Norm (a) Jacobian matrix norm on linear functions 40 80 120 160 200 T0510 15 20 25 Jacobian Norm (b) Jacobian matrix norm in quadratic functions 
+
+Figure 6: We illustrate how transformers realize multi-step gradient descent behavior when trained on linear and quadratic functions. We verify that the Jacobian matrix norm is a converging series on linear functions and quadratic functions. The Jacobian norm of linear functions is PTi=1 ∥(I − ηn XX ⊤)i∥22
+
+and the Jacobian norm of quadratic functions is PTi=1 ∥(I − 2ηn XD (θi)X⊤)i∥22.
+
+B.2 Sample Complexity Comparison 
+
+We compare models fine-tuned with a varied number of training examples between 1000 , 2000 , and 
+
+5000 . We also evaluate a model fine-tuned without intermediate steps. After training, we evaluate the noise stability using the fine-tuned model. We inject isotropic Gaussian noise with standard deviation 
+
+σ = 0 .005 into the model weights and measure the increase in the inference loss. We compute the average loss increase with 10 random seeds. We evaluate the noise stability of models fine-tuned with chain-of-thought on a range of algorithmic reasoning tasks, including DFS, Dijkstra, Prim, and DAG shortest path. First, we find that increasing the number of training samples leads to improved noise stability across all tasks. This suggests a strong correlation between generalization performance and robustness to weight noise. For the algorithms of the same task, we noted a difference in noise stability. Specifically, models fine-tuned with the Dijkstra algorithm have more than 2× lower Hessian traces than the Bellman-Ford algorithm. Additionally, models fine-tuned by Kruskal’s algorithm yield 15 × lower Hessian trace values than Prim’s. Second, we study the effect of intermediate steps on the sample complexity. We randomly subsample the intermediate steps T to 20 , 10 , 5, 2, and 0 where T = 0 indicates training without intermediate steps. We find that a larger T substantially reduces sample complexity. Using intermediate steps consistently achieves better sample complexity compared to training without intermediate steps. 
+
+Hyperparameters. We report the hyperparameters used in our experiments in Table 5. Table 5: Summary of the hyperparameters used for each reasoning task. The exact configurations are selected from the defined search spaces during supervised fine-tuning. Task Quantization Optimizer Learning rate LoRA Rank Sampling factor λ Latent steps k                                                        
+
+> Dijkstra 1-bit AdamW 2×10 −516 0.1 1Bellman-Ford 4-bit AdamW 2×10 −516 0.2 1Prim 4-bit AdamW 2×10 −516 0.1 1BFS 1-bit AdamW 2×10 −516 0.1 1DFS 3-bit AdamW 2×10 −516 0.1 1Cyclic 1-bit AdamW 2×10 −516 1.0 1Symmetry 1-bit AdamW 2×10 −516 1.0 1
+
+B.3 Discussions 
+
+Our formulation targets supervised fine-tuning on ground-truth steps. Reinforcement learning methods like Group Relative Policy Optimization or Proximal Policy Optimization optimize over the model’s own rollouts. Our analysis extends to reinforcement learning in two key ways. First, because test-time generation is independent of the training objective, our stability analysis applies equally to models trained with reinforcement learning. Second, our work can be applied to study whether 36 policy-gradient training implicitly regularizes input Jacobian norms along high-reward trajectories. We leave the formal extension of our bounds to the reinforcement learning setting for future work. Lastly, we discuss several limitations of this work. First, our method regularizes these Jacobian norms during training. Future work could develop test-time regularization strategies that adapt to each input example during inference. Second, for black-box models, where gradients and Jacobians are not directly accessible, proxy stability measures based on noise perturbations may provide a practical alternative. Finally, extending the Jacobian-based error accumulation analysis to broader language-model tasks, including tool use, generation, and question answering, remains an interesting direction. 37
