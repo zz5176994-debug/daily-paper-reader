@@ -25,3 +25,73 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: laf
+      description: 大语言模型基础、推理、模型微调与智能体研究
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: Multi-Agent Systems
+          keyword_cn: 多智能体系统
+          query: Multi-Agent Systems
+        - keyword: Tool-Augmented Language Models
+          keyword_cn: 工具增强型语言模型
+          query: Tool-Augmented Language Models
+        - keyword: Chain-of-Thought Reasoning
+          keyword_cn: 思维链推理
+          query: Chain-of-Thought Reasoning
+        - keyword: Reinforcement Learning from Human Feedback
+          keyword_cn: 基于人类反馈的强化学习
+          query: Reinforcement Learning from Human Feedback
+        - keyword: Parameter-Efficient Fine-Tuning
+          keyword_cn: 参数高效微调
+          query: Parameter-Efficient Fine-Tuning
+        - keyword: Transformer
+          keyword_cn: Transformer 架构
+          query: Transformer
+      intent_queries:
+        - query: >-
+            Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent
+            collaboration.
+          query_cn: 研究基于大语言模型的智能体、ReAct、工具调用、自主规划、智能体记忆以及多智能体协作机制。
+          enabled: true
+          source: manual
+          note: ''
+        - query: >-
+            Research on chain of thought prompting, multi step reasoning, self consistency, mathematical reasoning, and
+            reinforcement learning for improving LLM reasoning.
+          query_cn: 研究思维链提示（Chain of Thought Prompting）、多步推理、自一致性、数学推理，以及通过强化学习提升大语言模型推理能力的方法。
+          enabled: true
+          source: manual
+          note: ''
+        - query: >-
+            Research on efficient fine tuning, LoRA, QLoRA, instruction tuning, RLHF, DPO, and alignment of large
+            language models.
+          query_cn: 研究大语言模型的高效微调、LoRA、QLoRA、指令微调、基于人类反馈的强化学习（RLHF）、直接偏好优化（DPO）以及模型对齐方法。
+          enabled: true
+          source: manual
+          note: ''
+        - query: >-
+            Research on Transformer architectures, attention mechanisms, language model pre training, and improvements
+            in model efficiency and capabilities.
+          query_cn: 研究 Transformer 架构、注意力机制、语言模型预训练，以及提升模型计算效率和能力的方法。
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-10-09T10:12:20.969Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
