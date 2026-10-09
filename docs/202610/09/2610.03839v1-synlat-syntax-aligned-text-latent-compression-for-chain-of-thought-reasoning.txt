@@ -1,0 +1,417 @@
+Title: SYNLAT: Syntax-Aligned Text-Latent Compression for Chain-of-Thought Reasoning
+
+URL Source: https://arxiv.org/pdf/2610.03839v1
+
+Published Time: Tue, 06 Oct 2026 00:05:51 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# SYNLAT: SYNTAX-ALIGNED TEXT–LATENT COMPRESSION FOR CHAIN-OF-THOUGHT REASONING 
+
+# Yifeng Zhao 1, Hongjun Yu 1, Shibo Wang 1, Yunjiao Zhou 1, Zixiao Zhu 1,Zepeng Ning 2, Kezhi Mao 1, Junlang Qian 1,∗
+
+> 1
+
+# Nanyang Technological University 2Nankai University 
+
+ABSTRACT 
+
+Long chain-of-thought (CoT) traces impose substantial output-token costs. Under constrained budgets, compression must preserve answer-critical information, making boundary placement central. Token-level and fixed-length boundaries can fragment coherent spans such as phrases, formulas, and local derivations, whereas step-level boundaries can bind content requiring different compres-sion actions. We introduce SynLat, a text–latent CoT framework that aligns compression boundaries with syntactic structure through non-overlapping Syntax-Aligned Units (SAUs). An answer-conditioned Teacher constructs progressive KEEP/LATENT targets for a single compression-conditioned Student, which generates mixed reasoning from only the question and requested compression level at infer-ence. Across two Qwen3 Student scales, Standard- and Long-CoT groups, and three compression levels, SynLat matches or exceeds the strongest evaluated baseline in all 12 task-group aggregates and strictly leads in 11 under the reported achieved-CR selection pro-tocol. Overall gains reach 3.6/2.6 points at MEDIUM and 7.0/5.5 points at HIGH for Qwen3-8B/14B, with larger advantages under stronger compression, particularly on Long-CoT groups. 
+
+Index Terms — chain-of-thought reasoning, reasoning compres-sion, latent reasoning, syntactic structure, large language models 
+
+1. INTRODUCTION 
+
+Chain-of-thought (CoT) prompting makes intermediate reasoning explicit [1], but long traces increase output-token cost. Explicit compression methods include token pruning [2], chunk compres-sion [3], step-entropy filtering [4], and formula preservation [5]. At aggressive ratios, however, deleting or condensing text can reduce logical fidelity and fragment symbolic expressions [5]. Latent compression instead moves reasoning into non-text car-riers. COCONUT propagates hidden states as continuous reasoning states [6], whereas CODI distills explicit CoT into continuous space [7]. With the trace fully replaced, latent states must carry complete, precise derivations without textual anchors. Moreover, SIM-CoT re-ports that scaling implicit reasoning can destabilize training as latent representations become homogeneous and lose semantic diversity [8]. Hybrid methods therefore retain selected text: Token Assorted mixes it with discrete latent symbols [9], while SPOT replaces se-lected spans with pause states [10]. Compression then becomes a representation-fidelity allocation problem: which content remains textual and which becomes latent. However, this allocation requires suitable decision units, and ex-isting methods expose a boundary mismatch. As Figure 1 illustrates, token and fixed-window units can fragment local relations, whereas 
+
+> ∗Corresponding author: JUNLANG001@e.ntu.edu.sg
+
+# CoL-STaR: Syntax-Aligned Text–Latent Compression for Chain-of-Thought Reasoning 
+
+# Anonymous submission 
+
+Abstract 
+
+Chain-of-thought (CoT) reasoning improves the problem-solving ability of large language models, but long reason-ing traces impose substantial output-token costs. Under con-strained output budgets, CoT compression must shorten rea-soning while preserving answer-critical information, mak-ing compression-boundary placement critical: token-level and fixed-length boundaries can fragment semantically coher-ent spans such as phrases, formulas, and local derivations, whereas step-level boundaries can bind content that requires different compression actions. We introduce CoL-STaR, a text–latent CoT compression framework that aligns compres-sion boundaries with syntactic structure to construct Syntax-Aligned Units (SAUs). During offline target construction, CoL-STaR uses reference answers to derive progressive text– latent assignments over SAUs and trains a single model to reproduce this allocation; at inference, this model generates controllable mixed reasoning using only the question and re-quested compression ratio. Across two model scales, short and long reasoning task groups, and three compression ratios, CoL-STaR establishes a new state of the art in the accuracy– compression trade-off across all 12 evaluated settings, with outright gains in 11 of them. Its advantage is largest under ag-gressive compression and on tasks requiring longer reasoning traces. 
+
+# Introduction 
+
+Chain-of-thought (CoT) prompting (Wei et al. 2022) and zero-shot CoT (Kojima et al. 2022) improve large language model reasoning by making intermediate reasoning explicit. Recent inference-time methods extend this pattern through sampled-trace aggregation (Wang et al. 2023), search over reasoning states (Yao et al. 2023a), larger test-time com-pute (Snell et al. 2025), and long-trace reasoning models (Guo et al. 2025). However, longer reasoning traces increase output-token cost, making latency, serving budget, and gen-eration length practical constraints for CoT compression. Ex-plicit CoT compression (Munkhbat et al. 2025; Qiao et al. 2025; Chen et al. 2026) reduces this cost through token prun-ing (Xia et al. 2025), chunk compression (Wang et al. 2025), step-entropy filtering (Li et al. 2026), or formula-preserving 
+
+This is an anonymized submission for review purposes only. Dis-tribution, citation, or public sharing of this manuscript is strictly prohibited. Copyright and publication details will appear in the final version if accepted. Step 3-Token                                                 
+
+> Syntax (Ours)
+> Token Deletion Therefore the two equations imply x=4and y=23-Token & Guard Therefore the two equations Therefore the two equations Therefore the two equations Therefore the two equations
+> imply x=
+> imply x=
+> imply x=
+> imply x=4and y=24and y=24and y=24and y=2
+
+Figure 1: Compression-decision boundaries for the same rea-soning sentence. Token and fixed-window units can fragment local relations, whereas step-level units can bind distinct re-lations; Syntax-Aligned Units preserve coherent relations while keeping them separately assignable to text or latent form. compression (Tang et al. 2026); because these operations act on textual units, stronger compression can remove local relations expressed through phrases, formulas, numerical de-pendencies, or short derivations. Latent compression moves part of this reasoning into non-text carriers such as hidden states (Hao et al. 2025), continuous embeddings (Shen et al. 2025), discrete symbols (Su et al. 2025), or pause states (Chu et al. 2026). One direct use of latent carriers is full-trace latent replace-ment: COCONUT (Hao et al. 2025) propagates hidden states as continuous reasoning states, and CODI (Shen et al. 2025) distills explicit CoT into continuous space, reducing visible output but requiring latent states to carry long, precise deriva-tions. This wholesale replacement is brittle: pause-token rea-soning (Goyal et al. 2024) shows non-monotonic effects from additional non-linguistic positions, and SIM-CoT (Wei et al. 2026) reports instability and homogeneous latent states un-der excessive implicit reasoning. Hybrid text–latent methods instead retain part of the trace as text and replace selected content with latent carriers, including discrete latent replace-ment in Token Assorted (Su et al. 2025), online switching in SwiReasoning (Shi et al. 2026), and span-level pause com-pression in SPOT (Chu et al. 2026). Hybrid CoT compression 
+
+Fig. 1 . Compression-decision boundaries for the same reasoning sentence. Token and fixed-window units can fragment local rela-tions, whereas step-level units can bind distinct relations; Syntax-Aligned Units preserve coherent relations while keeping them sepa-rately assignable to text or latent form. step-level units can bind distinct relations into one compression de-cision. Neither provides trace-specific units that keep local relations intact while leaving them separately assignable to text or latent form. Constituency syntax supplies nested contiguous spans for such allocation units [11]. SynLat converts them into ordered, non-overlapping Syntax-Aligned Units (SAUs). Offline, an answer-conditioned Teacher assigns progressive KEEP /LATENT targets, and latent units map to a shared discrete codebook. Plan-then-Generate training transfers this supervision to a compression-conditioned Student. At inference, the Student receives only the question and requested compression level, generating a mixed CoT of retained text and latent symbols before the final answer. Experiments show that, under the reported achieved compres-sion rate (CR) selection protocol, SynLat improves the accuracy– compression trade-off, with larger gains under stronger compression, particularly on Long-CoT groups. Controlled studies further sup-port SAU boundaries, answer-conditioned planning, and Student-side transfer. Our contributions are threefold: (i) we formulate budgeted CoT compression as a representation-fidelity allocation problem, retain-ing answer-critical reasoning as text while compressing recoverable content into latent representations; (ii) we introduce SynLat, which aligns text–latent allocation boundaries with trace-specific syntax and transfers answer-conditioned targets to a single Student; and (iii) experiments establish its accuracy–compression gains across the evaluated model scales, task groups, and compression levels under the reported achieved-CR selection protocol. arXiv:2610.03839v1 [cs.CL] 2 Oct 2026 3 Mixed Targets         
+
+> ... [S1] [S2] [S3] Full CoT
+> S1 [LATENT] S2 [KEEP] S3 [KEEP] ...
+> Embedding
+> <CMP_*> <LAT>
+> <CMP_*>
+> 1Syntax-Aligned Units 4Student Training
+
+Student 
+
+-> Student 
+
+> Compression Level
+> Text Span Latent Discrete Code
+
+OFFLINE TRAINING INFERENCE Deploy Student Only → 
+
+> Question + <CMP_*>
+
+Answer: 72  
+
+> Mixed CoT
+> Frozen Trainable
+> 2Answer-Conditioned Planning
+> Answer-conditioned Teacher Planner
+
++ + 
+
+> 3Mixed Targets
+> Clustering
+> [text]
+> Parse Tree
+> Mixed CoT
+
+Figure 2: Overview of CoL-STaR. Offline target construction converts a reference trace into mixed-CoT targets through SAU construction, KEEP /LATENT allocation, and latent-code assignment; at deployment, the Student uses only the question and compression condition. 
+
+˜r = ( w1: a, z 1, w b:c, z 2, . . . ). Figure 2 summarizes the CoL-STaR pipeline, and the remaining sections describe how these units are constructed and assigned to text or latent form. 
+
+Syntactic Constituency Structure 
+
+Constituency parsing is a long-standing NLP framework that represents a sentence as nested continuous spans, from statis-tical parsers to modern span-based neural models (Charniak 2000; Stern, Andreas, and Klein 2017; Kitaev and Klein 2018). A CoT sequence can be represented the same way: a constituency parser maps r = ( w1, . . . , w n) to a tree 
+
+T (r) = ( V, E ) whose leaves are the tokens w1, . . . , w n and whose internal nodes v ∈ V each cover a continuous token span cv = wa(v): b(v) = ( wa(v), . . . , w b(v)).Figure 3 illustrates this with the sentence “Natalia sold 
+
+48 /2 = 24 clips in May.” Leaves correspond to surface tokens such as “Natalia” or “sold,” while internal nodes group them into larger spans such as “ 48 /2 = 24 clips” or “in May.” The tree does not alter the CoT; it only supplies a hierarchical set of span boundaries over the same token sequence. CoL-STaR uses this structure only as a source of candidate span boundaries, not for the linguistic interpretation of syn-tactic labels. Constituency spans capture locally complete phrases while staying more fine-grained than full reasoning steps. The SAU construction step below flattens these hier-archical spans into an ordered, non-overlapping sequence of Syntax-Aligned Units for text–latent allocation. 
+
+CoL-STaR: Syntax-Aligned Text–Latent CoT Compression 
+
+Overview CoL-STaR instantiates mixed latent CoT as a compression-conditioned generation process: given a ques-tion q and a compression condition c, the Student generates a mixed reasoning trace eR(c) followed by an answer. The con-Natalia sold 48/2 = 24 clips in May.    
+
+> Sentence-wise parsing
+> Sent.
+> NP VP
+> Tree-guided merge
+> Natalia sold 48/2 = 24 clips in May
+> NNP:
+> Natalia
+> VBD:
+> sold
+> NP:
+> 48/2 = 24 clips
+> IN:
+> in
+> NP:
+> May
+> PP
+
+Figure 3: Syntactic constituency parsing and SAU construc-tion. A reasoning sentence is parsed into nested continu-ous spans, then merged into non-overlapping Syntax-Aligned Units for text–latent allocation. dition specifies how many units become latent, and offline target construction decides which ones. As shown in Figure 2, the offline stage takes a refer-ence trace R and a reference answer y∗ and sequentially performs SAU construction, KEEP /LATENT allocation, and latent-code assignment to build mixed-CoT targets for each condition. The Student then learns to reproduce these targets from (q, c ) alone. At deployment, the Student receives only the question and compression condition, with no access to the reference trace, reference answer, or Teacher. Implemen-tation details for SAU construction, latent-codebook training, and plan serialization are provided in Appendix D. 
+
+Tree-Guided Syntax-Aligned Unit Construction A con-stituency tree provides hierarchical, overlapping spans, whereas text–latent allocation requires an ordered set of non-overlapping units. CoL-STaR parses R sentence by sentence, maps each node back to the character interval it covers, and Fig. 2 . Overview of SynLat. Offline target construction converts a reference trace into mixed-CoT targets through SAU construction, KEEP/LATENT allocation, and latent-code assignment; at deployment, the Student uses only the question and compression condition. 
+
+2. RELATION TO PRIOR WORK Explicit CoT and visible compression. Chain-of-thought prompt-ing exposes intermediate reasoning [1], whose growing traces mo-tivate compression within natural language. TokenSkip prunes to-kens [2]; R1-Compress condenses chunks [3]; step-entropy filtering selects steps by entropy [4]; and Extra-CoT preserves formulas at aggressive ratios [5]. These methods remain within visible text and delete or rewrite predefined units, motivating representations beyond text. 
+
+Latent and hybrid text–latent reasoning. Latent methods move reasoning beyond ordinary text. COCONUT propagates continu-ous hidden states [6], while CODI distills explicit CoT into continu-ous space [7]. SIM-CoT reports that scaling implicit reasoning can destabilize training and homogenize latent states [8]. DLR learns a discrete vocabulary from rendered CoT features [12]. Hybrid meth-ods therefore retain textual anchors: Token Assorted mixes text with discrete symbols [9], SPOT replaces spans with pause states [10], Selective Latent Thinking gates latent spans by confidence [13], and A*-Thought-V2 geometrically selects step-level continuous states [14]. Prior summarization work uses constituency parses to define deletable spans [15]. SynLat differs by flattening trace-specific syn-tax into ordered, non-overlapping SAUs and learning compression-conditioned text–latent allocation over a shared discrete codebook. 
+
+3. METHOD 3.1. Preliminaries 
+
+Given a question q, standard chain-of-thought (CoT) reasoning gen-erates a textual trace R = ( w1, . . . , w n) before an answer y, i.e., 
+
+q → R → y, where each wi is a text token. In our discrete setting, a consecutive segment waj :bj maps to a latent token zj = ϕ(waj :bj ),shortening the trace while discarding its natural-language form. We study mixed latent CoT, written as ˜R = ( u1, . . . , u k ), where each 
+
+ui is a retained text span or latent token, e.g., 
+
+˜R = ( w1: a, z 1, w b:d, z 2, . . . ).
+
+3.2. Syntactic constituency structure 3 Mixed Targets         
+
+> ... [S1] [S2] [S3] Full CoT
+> S1 [LATENT] S2 [KEEP] S3 [KEEP] ...
+> Embedding
+> <CMP_*> <LAT>
+> <CMP_*>
+> 1Syntax-Aligned Units 4Student Training
+
+Student 
+
+-> Student 
+
+> Compression Level
+> Text Span Latent Discrete Code
+
+## OFFLINE TRAINING INFERENCE Deploy Student Only → 
+
+> Question + <CMP_*>
+
+Answer: 72  
+
+> Mixed CoT
+> Frozen Trainable
+> 2Answer-Conditioned Planning
+> Answer-conditioned Teacher Planner
+
++ + 
+
+> 3Mixed Targets
+> Clustering
+> [text]
+> Parse Tree
+> Mixed CoT
+
+Figure 2: Overview of CoL-STaR. Offline target construction converts a reference trace into mixed-CoT targets through SAU construction, KEEP /LATENT allocation, and latent-code assignment; at deployment, the Student uses only the question and compression condition. 
+
+˜r = ( w1: a, z 1, w b:c, z 2, . . . ). Figure 2 summarizes the CoL-STaR pipeline, and the remaining sections describe how these units are constructed and assigned to text or latent form. 
+
+## Syntactic Constituency Structure 
+
+Constituency parsing is a long-standing NLP framework that represents a sentence as nested continuous spans, from statis-tical parsers to modern span-based neural models (Charniak 2000; Stern, Andreas, and Klein 2017; Kitaev and Klein 2018). A CoT sequence can be represented the same way: a constituency parser maps r = ( w1, . . . , w n) to a tree 
+
+T (r) = ( V, E ) whose leaves are the tokens w1, . . . , w n and whose internal nodes v ∈ V each cover a continuous token span cv = wa(v): b(v) = ( wa(v), . . . , w b(v)).Figure 3 illustrates this with the sentence “Natalia sold 
+
+48 /2 = 24 clips in May.” Leaves correspond to surface tokens such as “Natalia” or “sold,” while internal nodes group them into larger spans such as “ 48 /2 = 24 clips” or “in May.” The tree does not alter the CoT; it only supplies a hierarchical set of span boundaries over the same token sequence. CoL-STaR uses this structure only as a source of candidate span boundaries, not for the linguistic interpretation of syn-tactic labels. Constituency spans capture locally complete phrases while staying more fine-grained than full reasoning steps. The SAU construction step below flattens these hier-archical spans into an ordered, non-overlapping sequence of Syntax-Aligned Units for text–latent allocation. 
+
+## CoL-STaR: Syntax-Aligned Text–Latent CoT Compression 
+
+Overview CoL-STaR instantiates mixed latent CoT as a compression-conditioned generation process: given a ques-tion q and a compression condition c, the Student generates a Natalia sold 48/2 = 24 clips in May.    
+
+> Sentence-wise parsing
+> Sent.
+> NP VP
+> Tree-guided merge
+> Natalia sold 48/2 = 24 clips in May
+> NNP:
+> Natalia
+> VBD:
+> sold
+> NP:
+> 48/2 = 24 clips
+> IN:
+> in
+> NP:
+> May
+> PP
+
+Figure 3: Syntactic constituency parsing and SAU construc-tion. A reasoning sentence is parsed into nested continu-ous spans, then merged into non-overlapping Syntax-Aligned Units for text–latent allocation. dition specifies how many units become latent, and offline target construction decides which ones. As shown in Figure 2, the offline stage takes a refer-ence trace R and a reference answer y∗ and sequentially performs SAU construction, KEEP /LATENT allocation, and latent-code assignment to build mixed-CoT targets for each condition. The Student then learns to reproduce these targets from (q, c ) alone. At deployment, the Student receives only the question and compression condition, with no access to the reference trace, reference answer, or Teacher. Implemen-tation details for SAU construction, latent-codebook training, and plan serialization are provided in Appendix D. 
+
+Tree-Guided Syntax-Aligned Unit Construction A con-stituency tree provides hierarchical, overlapping spans, whereas text–latent allocation requires an ordered set of non-overlapping units. CoL-STaR parses R sentence by sentence, 
+
+Fig. 3 . Syntactic constituency parsing and SAU construction. Areasoning sentence is parsed into nested contiguous spans, then par-titioned into non-overlapping Syntax-Aligned Units for text–latent allocation. Constituency parsing represents sentences as nested contiguous spans [11]. Applied sentence-wise, a parser maps R to trees 
+
+Ts = ( Vs, E s) with token leaves and internal nodes v ∈ Vs covering spans Cv = wa(v): b(v). SynLat uses these boundaries rather than syntactic labels to define allocation units finer than full reasoning steps. As Figure 3 illustrates, the hierarchical, overlapping spans are flattened into ordered, non-overlapping Syntax-Aligned Units (SAUs). 
+
+3.3. SynLat: syntax-aligned text–latent CoT compression Overview. As Figure 2 illustrates, SynLat constructs mixed-CoT targets offline from a reference trace R and answer y∗ through SAU Table 1 . Main results. Each cell reports answer accuracy and achieved compression rate (Acc./CR); Avg. and Overall are macro averages. Bold accuracy is best within each compression setting, and bold method names indicate SynLat. Raw Full CoT has no normalized CR; †
+
+marks the nearest point outside the strict budget-matching window. 
+
+Standard-CoT Long-CoT Setting Method MATH-500 
+
+Acc./CR 
+
+StrategyQA 
+
+Acc./CR 
+
+Avg. 
+
+Acc./CR 
+
+OlympiadBench 
+
+Acc./CR 
+
+WorldTree V2 
+
+Acc./CR 
+
+ProofWriter 
+
+Acc./CR 
+
+Avg. 
+
+Acc./CR 
+
+Overall 
+
+Acc./CR 
+
+(a) Qwen3-8B Student 
+
+Reference No CoT 64.1/100.0 64.8/100.0 64.5/100.0 12.6/100.0 68.9/100.0 75.4/100.0 52.3/100.0 57.2/100.0 Raw Full CoT 87.2/– 75.0/– 81.1/– 49.4/– 83.3/– 92.7/– 75.1/– 77.5/– 
+
+SynLat (NONE) 87.8/0.0 75.4/0.0 81.6/0.0 49.8/0.0 83.6/0.0 93.1/0.0 75.5/0.0 77.9/0.0 LOW TokenSkip 84.9/23.5 72.8/21.5 78.9/22.5 44.5/25.4 80.3/22.8 89.4/23.0 71.4/23.7 74.4/23.2 Token Assorted 85.2 /22.7 73.1/20.8 79.2 /21.8 44.0/24.8 80.8/21.9 89.9/22.4 71.6/23.0 74.6/22.5 SPOT 84.6/21.8 73.4/22.1 79.0/22.0 44.8/20.2 † 81.3/23.2 90.1/22.8 72.1/22.1 74.8/22.0 
+
+SynLat (LOW) 84.8/23.6 73.5 /20.1 79.2 /21.9 46.8 /26.0 81.4 /21.7 91.2 /22.5 73.1 /23.4 75.5 /22.8 MEDIUM TokenSkip 80.6/45.2 68.8/42.8 74.7/44.0 37.0/47.7 74.3/44.1 83.0/44.8 64.8/45.5 68.7/44.9 Token Assorted 81.1/43.6 69.4/40.2 75.3/41.9 35.6/44.0 † 75.7/41.7 84.5/42.3 65.3/42.7 69.3/42.4 SPOT 79.6/42.6 69.9/44.0 74.8/43.3 36.2/37.8 † 76.8/45.0 85.4/44.6 66.1/42.5 69.6/42.8 
+
+SynLat (MEDIUM) 83.3 /46.2 71.4 /40.2 77.4 /43.2 43.5 /49.1 79.2 /42.4 88.8 /43.8 70.5 /45.1 73.2 /44.3 HIGH TokenSkip 73.8/65.8 63.2/62.2 68.5/64.0 25.5/68.9 67.0/65.0 76.0/66.1 56.2/66.7 61.1/65.6 Token Assorted 74.5/63.1 63.8/57.8 69.2/60.5 21.8/61.5 † 72.5/60.2 77.0/61.0 57.1/60.9 61.9/60.7 SPOT 70.5/61.2 † 68.0/64.0 † 69.3/62.6 19.5/54.5 † 73.8/65.8 79.7/64.9 57.7/61.7 62.3/62.1 
+
+SynLat (HIGH) 79.1 /66.8 68.7 /58.4 73.9 /62.6 38.7 /71.2 75.0 /62.6 84.8 /64.1 66.2 /66.0 69.3 /64.6 
+
+(b) Qwen3-14B Student 
+
+Reference No CoT 67.2/100.0 66.1/100.0 66.7/100.0 15.9/100.0 71.8/100.0 78.0/100.0 55.2/100.0 59.8/100.0 Raw Full CoT 89.6/– 77.4/– 83.5/– 53.4/– 85.0/– 94.3/– 77.6/– 79.9/– 
+
+SynLat (NONE) 90.2/0.0 77.1/0.0 83.7/0.0 52.7/0.0 86.0/0.0 95.0/0.0 77.9/0.0 80.2/0.0 LOW TokenSkip 87.7/23.0 75.0/22.0 81.4/22.5 48.1/24.7 83.0/22.6 92.0/23.4 74.4/23.6 77.2/23.1 Token Assorted 87.2/22.5 74.9/21.0 81.1/21.8 47.2/24.0 82.6/22.0 91.5/22.7 73.8/22.9 76.7/22.4 SPOT 86.9/22.0 75.3/22.5 81.1/22.3 47.8/21.5 83.3/23.5 92.2 /23.0 74.4/22.7 77.1/22.5 
+
+SynLat (LOW) 88.7 /24.0 75.9 /20.5 82.3 /22.3 50.2 /25.0 84.2 /22.0 91.0/23.0 75.1 /23.3 78.0 /22.9 MEDIUM TokenSkip 84.9/45.4 72.2/44.0 78.6/44.7 42.9/46.8 78.8/44.7 88.1/45.1 69.9/45.5 73.4/45.2 Token Assorted 84.0/44.2 71.6/41.0 77.8/42.6 40.1/44.5 78.1/42.5 87.0/43.1 68.4/43.4 72.2/43.1 SPOT 82.7/43.7 74.0 /44.5 78.4/44.1 40.8/40.5 † 79.6/45.2 88.7/45.0 69.7/43.6 73.2/43.8 
+
+SynLat (MEDIUM) 86.6 /46.0 73.8/40.5 80.2 /43.3 47.1 /47.5 82.0 /43.0 90.6 /44.5 73.2 /45.0 76.0 /44.3 HIGH TokenSkip 80.0/66.0 65.0/64.0 † 72.5/65.0 35.0/67.2 73.5/65.4 82.0/66.0 63.5/66.2 67.1/65.7 Token Assorted 78.0/64.2 63.4/59.0 70.7/61.6 29.0/62.3 † 71.0/61.5 80.0/62.2 60.0/62.0 64.3/61.8 SPOT 74.2/62.0 † 67.0/64.8 † 70.6/63.4 24.2/58.0 † 75.0/66.0 85.0/65.5 61.4/63.2 65.1/63.3 
+
+SynLat (HIGH) 83.3 /67.0 71.2 /59.0 77.3 /63.0 43.0 /69.0 78.5 /63.0 87.2 /65.0 69.6 /65.7 72.6 /64.6 construction, KEEP/LATENT allocation, and code assignment. Compression condition c controls how many units are replaced; the Teacher selects which ones, and two-stage training transfers these targets to a Student. 
+
+Tree-guided syntax-aligned unit construction. Starting at each parse root, SynLat retains nodes of at most Lmax tokens and oth-erwise descends to their children. Adjacent siblings sharing a par-ent are merged within the same cap; residual content falls back to leaf spans. Sorting retained spans by their character intervals yields 
+
+S1: N = ( S1, . . . , S N ), an ordered, non-overlapping partition that fully reconstructs R.
+
+Compression-conditioned progressive allocation. For each Si,SynLat assigns a(c) 
+
+> i
+
+∈ { KEEP , LATENT }: KEEP preserves its text, whereas LATENT replaces it with a discrete token. Condition c
+
+specifies a target SAU replacement ratio r(c), giving Kc = ⌊r(c)N ⌋
+
+replacements and Ac = {i | a(c) 
+
+> i
+
+= LATENT } with |Ac| = Kc.Unlike achieved token-level CR, this target counts units. Using y∗,the offline Teacher retains answer-critical text and replaces units it judges recoverable from the remaining textual anchors and context, rather than judging local importance alone. The conditions share a progressive replaceability order, so 
+
+ALOW ⊆ AMEDIUM ⊆ AHIGH : higher compression adds LA-TENT units without restoring earlier ones to text. 
+
+Codebook construction and mixed CoT realization. LATENT units use a shared finite codebook [16], not span-specific placehold-ers. SAUs from a task-independent corpus are encoded by frozen SpanBERT [17], followed by IncrementalPCA, normalization, and spherical mini-batch k-means to form E = {ek }Kcode  
+
+> k=1
+
+.A LATENT unit Si, represented by the transformed, normalized vector hi, takes its nearest centroid’s code: 
+
+k∗ 
+
+> i
+
+= arg max 
+
+> 1≤k≤Kcode
+
+h⊤ 
+
+> i
+
+ek , Li = <LAT k∗ 
+
+> i
+
+>. (1) Code assignment selects the symbol, not the action. The mixed CoT is 
+
+˜R(c) =
+
+> N
+
+M
+
+> i=1
+
+˜u(c) 
+
+> i
+
+, ˜u(c) 
+
+> i
+
+=
+
+(
+
+Li, i ∈ Ac,Si, i / ∈ Ac. (2) The original order is preserved. The Student receives special to-kens <LAT xxxx> with trainable embeddings, not the offline span vectors. 
+
+Plan-then-generate transfer. In Stage I, the Student predicts the se-rialized SAU-and-action plan Z(c)plan = Serialize( S1: N ; a(c)1: N ) from 
+
+(q, R, c ):
+
+Lplan = − log Pθ
+
+
+
+Z(c)plan | q, R, c 
+
+
+
+. (3) Stage II initializes from Stage I and removes R, training generation from (q, c ) with τFA = <FINAL ANSWER> :
+
+Lgen = − log Pθ
+
+ ˜R(c), τ FA , y ∗ | q, c 
+
+
+
+. (4) Training across NONE, LOW, MEDIUM, and HIGH yields one Stu-dent that, at deployment, generates ˜R(c), τFA , and ˆy from (q, c )
+
+without the reference trace, reference answer, or Teacher. 
+
+4. EXPERIMENTS Models, data, and benchmarks. We evaluate Qwen3-8B/14B Stu-dents [18] on MATH-500 [19, 20], StrategyQA [21], Olympiad-Bench [22], WorldTree V2 [23], and ProofWriter [24]. Pre-answer lengths of correct, uncompressed development CoTs define Standard-CoT (MATH-500 and StrategyQA) and Long-CoT (the other tasks). A frozen Qwen3-235B checkpoint supplies correct-answer traces; a frozen Qwen3-235B Teacher constructs offline KEEP/LATENT targets. Supervision uses official training splits when available and otherwise disjoint external/synthetic corpora; evaluation instances and their reference solutions are excluded from target construction, codebook fitting, and model selection. Table 1 reports answer accuracy and achieved CR for both Student scales. 
+
+Baselines and evaluation protocol. References are No CoT (100% CR), Raw Full CoT (uncompressed), and Ours-NONE (same-Student, 0% CR). Compression baselines are TokenSkip, Token Assorted, and SPOT [2, 9, 10], which respectively prune text, mix text with latent tokens, and replace spans with latent states. They share Student scales, trace pool, splits, validation-only selection, and decoding. Ablations are dedicated Qwen3-8B studies macro-averaged over all five benchmarks. Comparisons hold data, compu-tation, and evaluation fixed. Final-answer accuracy is primary. The effective reasoning length Neff counts each generated text token and registered latent symbol before the final answer. For setting m on benchmark b,
+
+CR m,b =
+
+
+
+1 − Neff (m, b )
+
+Neff (Ours-NONE , b )
+
+
+
+× 100% . (5) CR uses the corresponding scale-and-task Ours-NONE output as de-nominator; Raw Full CoT reports accuracy only. LOW, MEDIUM, and HIGH target 25%/50%/75% SAU replacement, not output CR; overall achieved CRs are about 23%/44%/65%, with task-level vari-ation (Table 1). A baseline point matches when its task-level CR is within four percentage points of SynLat; † marks the nearest avail-able point otherwise. Group and overall results macro-average the selected task points. Main results average independent training and generation seeds. 
+
+Table 2 . Compression-unit comparison at comparable achieved CRs. Only Token Deletion also changes representation. Acc. Ret. (%) is relative to each row’s NONE accuracy; Avg. Len. counts tokens per unit. Const./Formula Split (%) measures con-stituent/formula spans split by unit boundaries; CR (%) is achieved compression rate. 
+
+Unit characteristics End-to-end result Compression scheme Avg. len. Const. split ↓
+
+Formula split ↓
+
+Acc. ret. ↑ CR 
+
+Token Deletion 1.0 76.8 69.5 89.1 44.1 5-Token 4.7 35.4 41.6 91.4 44.6 5-Token & Guard 4.6 28.9 15.7 92.2 44.5 Step 18.6 5.7 7.1 89.6 43.9 
+
+SAU (Ours) 3.6 8.1 5.9 94.0 44.3 
+
+5. RESULTS Main results. Under the reported achieved-CR selection protocol, Table 1 shows aggregate accuracy gains for SynLat at MEDIUM and HIGH across both Student scales, increasing with compression. At MEDIUM, it exceeds the strongest evaluated baseline overall by 3.6 and 2.6 percentage points for Qwen3-8B and Qwen3-14B, re-spectively. At HIGH, the margins widen to 7.0 and 5.5 points. For Qwen3-8B at HIGH, the margin is 4.7 points on Standard-CoT and 8.5 points on Long-CoT. Baselines outperform SynLat on MATH-500 for Qwen3-8B at LOW, ProofWriter for Qwen3-14B at LOW, and StrategyQA for Qwen3-14B at MEDIUM. 
+
+Compression-unit ablation. At approximately 44% achieved CR, Table 2 shows that SAUs retain 94.0% of NONE accuracy. Fixed 5-token windows trail by 2.6 points, showing that a similar length cap is insufficient; guarded windows still trail by 1.8 points, so sim-ple boundary protection does not recover syntax-aligned allocation. Steps trail by 4.4 points despite low split rates, indicating that coarse units hinder selective compression. SAUs therefore best balance for-mula preservation and granularity among the tested unit definitions for mixed text–latent compression. Token Deletion is not a pure boundary control because it also changes the compressed represen-tation. 
+
+Planning and training ablations. On fixed SAUs, answer-conditioned planning retains 94.0%/89.3% of NONE accuracy at MEDIUM/HIGH, versus 92.0%/86.2% for the strongest answer-free alternatives. Removing action-plan supervision reduces mean accuracy across the three compressed levels from 73.1 to 70.6, supporting the planning-and-transfer design. 
+
+6. CONCLUSION 
+
+In this paper, we revisit CoT compression as a problem of allo-cating limited representation fidelity. We propose SynLat, a text– latent compression framework that bases compression decisions on Syntax-Aligned Units, allowing local reasoning content to remain in text or be converted into latent representations according to its role. Experiments show that, under matched output budgets, Syn-Lat achieves higher final-answer accuracy than representative com-pression methods, with particularly large gains on tasks that require longer reasoning traces. These results indicate that CoT compression is not only about reducing visible tokens, but also about maintaining a better match between reasoning structure and answer-relevant in-formation during compression. 7. COMPLIANCE WITH ETHICAL STANDARDS 
+
+This study uses publicly available benchmark datasets and does not involve human or animal subjects. No ethical approval was required. 
+
+8. ACKNOWLEDGMENTS 
+
+This work was supported by the School of Electrical and Electronic Engineering, Nanyang Technological University, through the provi-sion of GPU computing resources. The authors have no relevant financial or non-financial interests to disclose. 
+
+9. REFERENCES 
+
+[1] J. Wei, X. Wang, D. Schuurmans, M. Bosma, B. Ichter, F. Xia, E. H. Chi, Q. V. Le, and D. Zhou, “Chain-of-thought prompt-ing elicits reasoning in large language models,” in Advances in Neural Information Processing Systems , 2022, vol. 35, pp. 24824–24837. [2] H. Xia, C. T. Leong, W. Wang, Y. Li, and W. Li, “Token-Skip: Controllable chain-of-thought compression in LLMs,” in Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , 2025, pp. 3351–3363. [3] Y. Wang, H. Luo, H. Yao, T. Huang, H. He, R. Liu, N. Tan, J. Huang, X. Cao, D. Tao, and L. Shen, “R1-Compress: Long chain-of-thought compression via chunk compression and search,” arXiv preprint arXiv:2505.16838 , 2025. [4] Z. Li, J. Zhong, Z. Zheng, X. Wen, Z. Xu, Y. Cheng, F. Zhang, and Q. Xu, “Making slow thinking faster: Compressing LLM chain-of-thought via step entropy,” in International Confer-ence on Learning Representations , 2026. [5] Y. Tang, B. Jia, W. Huang, L. Zhang, J. Xie, W. Li, W. Li, J. Hu, X. Chen, R. Ji, and S. Lin, “Towards efficient large language reasoning models via extreme-ratio chain-of-thought compression,” in International Conference on Machine Learn-ing , 2026. [6] S. Hao, S. Sukhbaatar, D. Su, X. Li, Z. Hu, J. Weston, and Y. Tian, “Training large language models to reason in a con-tinuous latent space,” in Conference on Language Modeling ,2025. [7] Z. Shen, H. Yan, L. Zhang, Z. Hu, Y. Du, and Y. He, “CODI: Compressing chain-of-thought into continuous space via self-distillation,” in Proceedings of the 2025 Conference on Em-pirical Methods in Natural Language Processing , 2025, pp. 677–693. [8] X. Wei, X. Liu, Y. Zang, X. Dong, Y. Cao, J. Wang, X. Qiu, and D. Lin, “SIM-CoT: Supervised implicit chain-of-thought,” in 
+
+International Conference on Learning Representations , 2026. [9] D. Su, H. Zhu, Y. Xu, J. Jiao, Y. Tian, and Q. Zheng, “Token assorted: Mixing latent and text tokens for improved language model reasoning,” in Proceedings of the 42nd International Conference on Machine Learning , 2025, pp. 57144–57163. [10] Y. Chu, M. Shao, Y. Liu, B. Hao, Y. Lin, J. Wang, and R. Wang, “SPOT: Span-level pause-of-thought for efficient and inter-pretable latent reasoning in large language models,” arXiv preprint arXiv:2603.06222 , 2026. [11] N. Kitaev and D. Klein, “Constituency parsing with a self-attentive encoder,” in Proceedings of the 56th Annual Meet-ing of the Association for Computational Linguistics , 2018, pp. 2676–2686. [12] S. Chang, Q. Liu, S. Wang, B. Gao, Q. Ma, H. Zhao, Y. Miao, Y. Sun, Z. Peng, J. Li, and L. Niu, “Why struggle with continu-ous latents? interpretable discrete latent reasoning via rendered compression,” arXiv preprint arXiv:2606.29712 , 2026. [13] H. Xie, J. Liu, Z. Qiao, and J. Vanschoren, “Selective latent thinking: Adaptive compression of LLM reasoning chains,” 
+
+arXiv preprint arXiv:2605.25745 , 2026. [14] X. Xu, S. Liu, S. Wang, J. Feng, F. Meng, Z. Zhang, J. Wang, X. Wang, Z. Zhou, X. Li, C. Xiao, Y. Zhang, H. Wu, L. Xi-ang, P. Li, and Z. He, “A*-thought-v2: Efficient latent rea-soning via geometric dynamics of LLM,” arXiv preprint arXiv:2609.07821 , 2026. [15] J. Xu and G. Durrett, “Neural extractive text summarization with syntactic compression,” in Proceedings of the 2019 Con-ference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Lan-guage Processing , 2019, pp. 3292–3303. [16] A. van den Oord, O. Vinyals, and K. Kavukcuoglu, “Neural discrete representation learning,” in Advances in Neural Infor-mation Processing Systems , 2017, vol. 30. [17] M. Joshi, D. Chen, Y. Liu, D. S. Weld, L. Zettlemoyer, and O. Levy, “SpanBERT: Improving pre-training by represent-ing and predicting spans,” Transactions of the Association for Computational Linguistics , vol. 8, pp. 64–77, 2020. [18] A. Yang, A. Li, B. Yang, B. Zhang, B. Hui, B. Zheng, B. Yu, C. Gao, C. Huang, C. Lv, et al., “Qwen3 technical report,” 
+
+arXiv preprint arXiv:2505.09388 , 2025. [19] D. Hendrycks, C. Burns, S. Kadavath, A. Arora, S. Basart, E. Tang, D. Song, and J. Steinhardt, “Measuring mathematical problem solving with the MATH dataset,” in Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmarks , 2021. [20] H. Lightman, V. Kosaraju, Y. Burda, H. Edwards, B. Baker, T. Lee, J. Leike, J. Schulman, I. Sutskever, and K. Cobbe, “Let’s verify step by step,” in International Conference on Learning Representations , 2024. [21] M. Geva, D. Khashabi, E. Segal, T. Khot, D. Roth, and J. Be-rant, “Did aristotle use a laptop? a question answering bench-mark with implicit reasoning strategies,” Transactions of the Association for Computational Linguistics , vol. 9, pp. 346– 361, 2021. [22] C. He, R. Luo, Y. Bai, S. Hu, Z. L. Thai, J. Shen, J. Hu, X. Han, Y. Huang, Y. Zhang, J. Liu, L. Qi, Z. Liu, and M. Sun, “OlympiadBench: A challenging benchmark for promoting AGI with olympiad-level bilingual multimodal scientific prob-lems,” in Proceedings of the 62nd Annual Meeting of the Asso-ciation for Computational Linguistics , 2024, pp. 3828–3850. [23] Z. Xie, S. Thiem, J. Martin, E. Wainwright, S. Marmorstein, and P. Jansen, “WorldTree V2: A corpus of science-domain structured explanations and inference patterns support-ing multi-hop inference,” in Proceedings of the Twelfth Lan-guage Resources and Evaluation Conference , 2020, pp. 5456– 5473. [24] O. Tafjord, B. Dalvi, and P. Clark, “ProofWriter: Generat-ing implications, proofs, and abductive statements over natural language,” in Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021 , 2021, pp. 3621–3634.

@@ -1,0 +1,281 @@
+{
+  "date": "20261009",
+  "date_label": "",
+  "generated_at": "2026-10-09 23:55:50 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.00613v1",
+      "route": "202610/09/2610.00613v1-spatial-strategies-not-actions-vector-quantized-geodesics-as-tools-for-llm-driven-agents",
+      "title": "Spatial Strategies, Not Actions: Vector-Quantized Geodesics as Tools for LLM-Driven Agents",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "LLM智能体使用向量量化测地线作为工具解决空间任务",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.00689v1",
+      "route": "202610/09/2610.00689v1-towards-robust-numerical-claim-verification",
+      "title": "Towards Robust Numerical Claim Verification",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "使用参数高效微调提升数值事实验证的鲁棒性",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.00905v1",
+      "route": "202610/09/2610.00905v1-understanding-issues-causes-and-solutions-in-open-source-llm-based-multi-agent-systems",
+      "title": "Understanding Issues, Causes and Solutions in Open-Source LLM-based Multi-Agent Systems",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "对开源LLM多智能体系统中的问题进行实证研究",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.01172v1",
+      "route": "202610/09/2610.01172v1-learning-rate-transfer-for-hybrid-transformer-ssm-architectures",
+      "title": "Learning Rate Transfer for Hybrid Transformer-SSM Architectures",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "混合Transformer-SSM架构的学习率迁移",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.01195v1",
+      "route": "202610/09/2610.01195v1-federated-agent-optimization",
+      "title": "Federated Agent Optimization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "提出联邦智能体优化，使分布式LLM智能体在保护隐私下协同改进。",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.02848v1",
+      "route": "202610/09/2610.02848v1-permutation-robustness-is-not-enough-action-collapse-in-multi-agent-transformer-policies",
+      "title": "Permutation Robustness Is Not Enough: Action Collapse in Multi-Agent Transformer Policies",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "研究智能体顺序排列下多智能体Transformer策略的动作坍缩",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.03839v1",
+      "route": "202610/09/2610.03839v1-synlat-syntax-aligned-text-latent-compression-for-chain-of-thought-reasoning",
+      "title": "SYNLAT: Syntax-Aligned Text-Latent Compression for Chain-of-Thought Reasoning",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向链式思考推理的语法对齐文本-潜在压缩",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.04002v1",
+      "route": "202610/09/2610.04002v1-do-language-models-need-a-trainable-input-embedding-table-fixed-minimal-token-codes-at-17b-class-scale",
+      "title": "Do Language Models Need a Trainable Input Embedding Table? Fixed Minimal Token Codes at 1.7B-Class Scale",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "研究在Transformer语言模型中使用固定令牌编码替代可训练输入嵌入表。",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.04672v1",
+      "route": "202610/09/2610.04672v1-masbench-benchmarking-llm-based-multi-agent-collaboration-under-partial-observability",
+      "title": "MASBench: Benchmarking LLM-based Multi-Agent Collaboration under Partial Observability",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "部分可观测下LLM多智能体协作基准",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.04899v1",
+      "route": "202610/09/2610.04899v1-rewrite-what-matters-adaptive-multilingual-query-rewriting-for-reasoning-via-agentic-reinforcement-learning",
+      "title": "Rewrite What Matters: Adaptive Multilingual Query Rewriting for Reasoning via Agentic Reinforcement Learning",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "用智能体强化学习进行多语言查询改写以提升推理",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.04961v1",
+      "route": "202610/09/2610.04961v1-building-llm-agent-systems-the-deep-learning-way-from-modular-design-to-architecture-search",
+      "title": "Building LLM Agent Systems the Deep Learning Way: From Modular Design to Architecture Search",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "借鉴深度学习的模块化LLM智能体系统构建与架构搜索",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.05219v1",
+      "route": "202610/09/2610.05219v1-safe-context-switching-for-agents-in-the-wild-mitigating-subspace-interference-via-orthogonal-adaptation",
+      "title": "Safe Context Switching for Agents in the Wild: Mitigating Subspace Interference via Orthogonal Adaptation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "研究CoT推理与安全对齐的干扰，并提出正交适配方法",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.05978v1",
+      "route": "202610/09/2610.05978v1-byte-language-models-scaling-emergent-abstractions-and-information-allocation",
+      "title": "Byte Language Models: Scaling, Emergent Abstractions, and Information Allocation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "采用字节级Transformer和令牌叠加训练，扩展性优于子词模型",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.06293v1",
+      "route": "202610/09/2610.06293v1-vepagent-bridging-causal-transition-via-tool-augmented-reinforcement-learning-for-video-event-prediction",
+      "title": "VepAgent: Bridging Causal-Transition via Tool-Augmented Reinforcement Learning for Video Event Prediction",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "智能体框架结合工具增强强化学习用于视频事件预测",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.06415v1",
+      "route": "202610/09/2610.06415v1-training-free-transformer-merging-via-sequential-local-operator-alignment",
+      "title": "Training-Free Transformer Merging via Sequential Local Operator Alignment",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "通过序列局部算子对齐实现Transformer无训练合并",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.06542v1",
+      "route": "202610/09/2610.06542v1-a-fine-grained-analysis-of-the-lora-fine-tuning-landscape-with-implications-for-data-selection",
+      "title": "A Fine-Grained Analysis of the LoRA Fine-Tuning Landscape with Implications for Data Selection",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "分析LoRA微调景观以指导适配器秩选择",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    },
+    {
+      "paper_id": "2610.06597v1",
+      "route": "202610/09/2610.06597v1-can-agent-harnesses-and-inference-engines-hear-each-other-the-hear-protocol-for-agentic-llm-serving",
+      "title": "Can Agent Harnesses and Inference Engines Hear Each Other? The HEAR Protocol for Agentic LLM Serving",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "laf"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "针对多轮推理、工具使用与并行智能体的智能体LLM服务协议",
+      "first_seen_at": "2026-10-09 23:55:50 UTC",
+      "updated_at": "2026-10-09 23:55:50 UTC"
+    }
+  ]
+}
