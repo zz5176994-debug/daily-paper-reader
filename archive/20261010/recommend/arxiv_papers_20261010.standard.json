@@ -1,0 +1,417 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-10T23:02:15.348601+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 10,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 4,
+    "quick_skim_target": 11,
+    "quick_selected": 4
+  },
+  "deep_dive": [
+    {
+      "id": "2610.07004v1",
+      "source": "arxiv",
+      "title": "Topology-Consistent Task Planning over Cellular Workflow Complexes for LLM-based Agents",
+      "abstract": "Task planning for LLM agents requires workflows that satisfy both user intent and complex sub-task dependencies. While existing planners work well for sequential or directed acyclic graph (DAG)-like structures, they struggle with workflow patterns such as verification-correction loops, convergent branch merging, and reusable intermediate states that arise naturally in real-world tool orchestration. We present TopoPlanner, a topology-consistent planning framework that lifts tool dependency graphs into cellular workflow complexes and uses them as topologyaware context for LLM tool planning. TopoPlanner retrieves a request-relevant closed subcomplex through cosheaf-consistent cellular retrieval, performs multidimensional structural reasoning over the retrieved topology, and interfaces the resulting cellular representation with the planner LLM for tool-sequence generation. Experiments on four tool-planning benchmarks with topology-guided loop, merge, and loop-merge workflows show consistent improvements over prompt-based and graph-enhanced baselines across different local LLM backbones.",
+      "authors": [
+        "Sen Zhao",
+        "Jia Tang",
+        "Ruiqi Kong",
+        "Zuyu Zhang",
+        "Lifeng Shen",
+        "Ding Zou",
+        "Xinyu He",
+        "Xu Zhang",
+        "Junwei Han"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-04T10:24:20+00:00",
+      "link": "https://arxiv.org/pdf/2610.07004v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Topology-consistent planning for LLM agents with tool orchestration",
+      "llm_evidence_cn": "LLM智能体的拓扑一致性任务规划与工具编排",
+      "llm_evidence": "LLM智能体的拓扑一致性任务规划与工具编排",
+      "canonical_evidence": "LLM智能体的拓扑一致性任务规划与工具编排",
+      "llm_tldr_en": "TopoPlanner represents tool dependencies as cellular workflow complexes to enable topology-aware planning for complex LLM agent workflows including loops and merges.",
+      "llm_tldr_cn": "本文针对LLM智能体任务规划难以处理验证-修正循环、分支合并等复杂工作流模式的问题，提出TopoPlanner框架，将工具依赖图提升为细胞工作流复形，通过cosheaf一致的细胞检索获取相关闭合子复形，并进行多维结构推理，为LLM工具规划提供拓扑感知上下文。实验表明该框架能有效处理非DAG工作流，提高了智能体工具编排的灵活性和一致性。",
+      "llm_tldr": "本文针对LLM智能体任务规划难以处理验证-修正循环、分支合并等复杂工作流模式的问题，提出TopoPlanner框架，将工具依赖图提升为细胞工作流复形，通过cosheaf一致的细胞检索获取相关闭合子复形，并进行多维结构推理，为LLM工具规划提供拓扑感知上下文。实验表明该框架能有效处理非DAG工作流，提高了智能体工具编排的灵活性和一致性。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.07004v1"
+    },
+    {
+      "id": "2610.07469v2",
+      "source": "arxiv",
+      "title": "COMPASS: Finding Where Reasoning Lives in Language Models",
+      "abstract": "Explicitly eliciting reasoning substantially improves LLM performance. Existing approaches require a predefined characterization of reasoning, whether through CoT prompt design, contrastive CoT directions, or via SAE derived reasoning features. For mathematical reasoning with verifiable answers, we show that a much simpler signal suffices, which is the correctness of the model's own direct answer attempts. This signal yields a latent direction that elicits reasoning. This direction is decodable within the activations of most attention heads, but only a small subset of them can be effectively intervened. We introduce COMPASS, an inference-time steering method that identifies these heads using a logit-space attribution score and steers their activations along the correctness direction, requiring only per-head activation statistics. Across three model families and multiple math benchmarks, COMPASS outperforms the activation-steering baselines we compare against, improves GSM8K accuracy by 16 percentage points on average, and approaches CoT accuracy with 20-70\\% fewer generated tokens. Interventions transfer without re-fitting to unseen benchmarks, and ablations show that both the correctness direction and the small set of heads carrying it are necessary, with the effect concentrated in remarkably few heads.",
+      "authors": [
+        "Pratyay Dutta",
+        "Kowshik Thopalli",
+        "Vivek Narayanaswamy"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-05T22:35:47+00:00",
+      "link": "https://arxiv.org/pdf/2610.07469v2",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Inference-time steering to elicit mathematical reasoning in LLMs",
+      "llm_evidence_cn": "推理时操控以激发大语言模型的数学推理",
+      "llm_evidence": "推理时操控以激发大语言模型的数学推理",
+      "canonical_evidence": "推理时操控以激发大语言模型的数学推理",
+      "llm_tldr_en": "COMPASS identifies attention heads where a latent reasoning direction exists and steers activations using a logit-space attribution score, improving mathematical reasoning without predefined CoT characterizations.",
+      "llm_tldr_cn": "该论文提出COMPASS方法，无需预定义CoT提示或方向，而是利用模型自身直接回答的正确性信号找到激发推理的潜在方向。通过logit空间归因分数识别可有效干预的注意力头子集，并在推理时引导其激活。在数学推理任务上，COMPASS能够提升性能，表明推理能力存在于特定注意力头中，可被定向激发。这项工作为理解并操控LLM推理过程提供了新工具。",
+      "llm_tldr": "该论文提出COMPASS方法，无需预定义CoT提示或方向，而是利用模型自身直接回答的正确性信号找到激发推理的潜在方向。通过logit空间归因分数识别可有效干预的注意力头子集，并在推理时引导其激活。在数学推理任务上，COMPASS能够提升性能，表明推理能力存在于特定注意力头中，可被定向激发。这项工作为理解并操控LLM推理过程提供了新工具。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on chain of thought prompting, multi step reasoning, self consistency, mathematical reasoning, and reinforcement learning for improving LLM reasoning.",
+      "matched_requirement_id": "req-8",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.07469v2"
+    },
+    {
+      "id": "2610.07591v1",
+      "source": "arxiv",
+      "title": "Recurrent Looped Transformer",
+      "abstract": "State tracking requires an update at every input, but the depth a Transformer applies to each token is fixed regardless of sequence length. We introduce the Recurrent Looped Transformer (RLT), which splits its layers between a parallel causal encoder and a recurrent decoder. At each token, the decoder merges the encoder output with the previous token's final decoder state, so the computation path grows with sequence length at a fixed per-token cost. On six algorithmic tasks, we compare five splits of eight layers with an eight-layer Transformer over three seeds. Trained on at most 40 bits, two RLT splits generalize parity to 256 bits with 100% accuracy in every seed, while the Transformer stays at chance. On swap-based $S_5$ permutation tracking at eight times the training length, RLT reaches 97% final-state accuracy versus under 1% for the Transformer, and accuracy increases with decoder depth. On modular arithmetic beyond the training lengths, RLT reaches up to 93% versus 33% for the Transformer. Ablations show that these gains depend on the feedback: removing it drops parity and swap-based $S_5$ to chance at every split. Updating the feedback once per four-token chunk lets known tokens in a chunk run in parallel and keeps 64-bit parity at 99%, while permutation tracking depends on per-token feedback: chunking lowers length-64 swap-based $S_5$ from 100% to 20%.",
+      "authors": [
+        "Yifan Zhang",
+        "Jichen Feng",
+        "Shihan Qin"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-10-06T01:29:46+00:00",
+      "link": "https://arxiv.org/pdf/2610.07591v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Introduces a Transformer variant with recurrent decoder for efficient state tracking",
+      "llm_evidence_cn": "提出带递归解码器的Transformer变体用于高效状态跟踪",
+      "llm_evidence": "提出带递归解码器的Transformer变体用于高效状态跟踪",
+      "canonical_evidence": "提出带递归解码器的Transformer变体用于高效状态跟踪",
+      "llm_tldr_en": "Proposes Recurrent Looped Transformer that splits layers between encoder and recurrent decoder to enable length generalization at fixed per-token cost, showing 100% accuracy on parity up to 256 bits.",
+      "llm_tldr_cn": "针对Transformer深度固定导致状态跟踪长度泛化差的问题，提出递归循环Transformer（RLT），将层分为并行因果编码器和递归解码器，每个token合并编码器输出与前一个解码器状态，使计算路径随序列长度增长但每token成本固定。在算法任务上训练于最多40位，RLT的两种分割在256位奇偶校验上达到100%准确率，而普通Transformer仅为随机水平，证明递归架构能显著提升长度泛化能力。",
+      "llm_tldr": "针对Transformer深度固定导致状态跟踪长度泛化差的问题，提出递归循环Transformer（RLT），将层分为并行因果编码器和递归解码器，每个token合并编码器输出与前一个解码器状态，使计算路径随序列长度增长但每token成本固定。在算法任务上训练于最多40位，RLT的两种分割在256位奇偶校验上达到100%准确率，而普通Transformer仅为随机水平，证明递归架构能显著提升长度泛化能力。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.07591v1"
+    },
+    {
+      "id": "2610.07676v1",
+      "source": "arxiv",
+      "title": "Exact-Solution Volume and Length Generalization in Transformers",
+      "abstract": "Research on transformer expressivity shows whether a transformer is capable of solving a given task, but gives little indication of whether the solution, if learned, is generalizable to longer input lengths. We study this question through normalized exact-solution volume (NESV): the fraction of a bounded parameter region that achieves an exact solution on every input of length $n$. For fixed-width, single-layer transformers with $\\log n$-scaled attention, we establish asymptotic bounds on NESV for four tasks: FIRST ($Θ(1)$), MAJORITY ($Θ(1/(n\\log n))$), INDEX ($Θ(1/n^3)$), and PARITY ($0$). These results are consistent with previous empirical results: the faster the exact-solution volume decays with input length, the harder it is to length-generalize on that task. Looking deeper into INDEX, our volume analysis reveals two error sources that grow with $n$. Consequently, we study a transformer model that would structurally eliminate one of the terms, theoretically improving the NESV bound to $Θ(n^{-1})$, and empirically achieving 85% accuracy when tested at $10\\times$ the training length, compared with the 60% accuracy of the original model. We conclude that volume analysis may be a useful approach to identify concrete sources of length sensitivity and thus provide insights into task-specific model refinements.",
+      "authors": [
+        "Yijia Jessica Zhu",
+        "David Chiang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-10-06T03:11:14+00:00",
+      "link": "https://arxiv.org/pdf/2610.07676v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "transformer expressivity and exact-solution volume for length generalization",
+      "llm_evidence_cn": "Transformer表达能力与精确解体积用于长度泛化",
+      "llm_evidence": "Transformer表达能力与精确解体积用于长度泛化",
+      "canonical_evidence": "Transformer表达能力与精确解体积用于长度泛化",
+      "llm_tldr_en": "The paper studies length generalization in transformers by analyzing normalized exact-solution volume, establishing asymptotic bounds for single-layer transformers on simple tasks, linking expressivity to generalization.",
+      "llm_tldr_cn": "Transformer表达能力研究仅说明能否解决任务，未揭示习得解能否泛化到更长输入。论文定义归一化精确解体积(NESV)，针对单层对数缩放注意力Transformer分析四个任务的渐近界。结果与经验观察一致：精确解体积随输入长度衰减越快，长度泛化越困难。该理论框架为理解Transformer长度泛化能力提供了新视角，对架构设计有指导意义。",
+      "llm_tldr": "Transformer表达能力研究仅说明能否解决任务，未揭示习得解能否泛化到更长输入。论文定义归一化精确解体积(NESV)，针对单层对数缩放注意力Transformer分析四个任务的渐近界。结果与经验观察一致：精确解体积随输入长度衰减越快，长度泛化越困难。该理论框架为理解Transformer长度泛化能力提供了新视角，对架构设计有指导意义。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on Transformer architectures, attention mechanisms, language model pre training, and improvements in model efficiency and capabilities.",
+      "matched_requirement_id": "req-10",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.07676v1"
+    },
+    {
+      "id": "2610.07704v1",
+      "source": "arxiv",
+      "title": "Independent Multi-Agent Reinforcement Learning with Counterfactual Semantic-Social World Models",
+      "abstract": "Fully decentralized multi-agent reinforcement learning (MARL), also referred to as independent learning, requires each agent to learn and act using only its local information and experience, without a centralized critic or inter-agent communication. Such a stringent information structure renders the conventional reward signal ambiguous. A poor return may result from an ineffective ego action, an incompatible teammate response, or an effective opponent response, yet scalar rewards alone do not reveal which explanation is responsible. We argue that agents can learn more effectively by prospectively comparing the consequences of candidate actions rather than diagnosing failures only from realized returns. We introduce CASTLE (Counterfactual Action-conditioned Semantic Tokens for Local Execution in Decentralized MARL), an offline-training, online-in-context guidance framework with two complementary world models. A Local Dynamics World Model, offline pre-trained over agents' local trajectories, summarizes the agent's local trajectory dynamics and partial observability, while a Semantic-Social World Model predicts compact short-horizon task and social consequences for each candidate ego action. The latter is trained from counterfactual simulator rollouts that expose plausible teammate and opponent responses to alternative actions taken from the same logged rollout state. During online learning and execution, both world models remain frozen and are queried by agents using only locally available information. Their prediction logits provide in-context guidance to an independent PPO policy. Across 30 matched seeds on Tag, Spread, and Adversary in the benchmark multi-particle environments, our proposed CASTLE achieves the highest mean final score among the evaluated methods, exceeding the strongest baseline on each task by 10.67, 6.46, and 0.33 normalized points, respectively.",
+      "authors": [
+        "Fernando Martinez",
+        "Tao Li",
+        "Yingdong Lu",
+        "Juntao Chen"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.LG"
+      ],
+      "published": "2026-10-06T03:53:47+00:00",
+      "link": "https://arxiv.org/pdf/2610.07704v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "fully decentralized multi-agent reinforcement learning with counterfactual world models",
+      "llm_evidence_cn": "具有反事实语义-社会世界模型的完全去中心化多智能体强化学习",
+      "llm_evidence": "具有反事实语义-社会世界模型的完全去中心化多智能体强化学习",
+      "canonical_evidence": "具有反事实语义-社会世界模型的完全去中心化多智能体强化学习",
+      "llm_tldr_en": "CASTLE introduces counterfactual semantic-social world models for independent MARL, enabling agents to prospectively compare candidate actions under ambiguous scalar rewards without centralized critics or communication.",
+      "llm_tldr_cn": "完全去中心化的多智能体强化学习中，标量奖励无法分辨低回报来自自身动作、队友反应还是对手行为。CASTLE提出反事实语义-社会世界模型，使智能体能够前瞻性地比较候选动作的后果，而非仅从已实现回报诊断失败。该方法在无中心化评论家和通信条件下改进独立学习效果。",
+      "llm_tldr": "完全去中心化的多智能体强化学习中，标量奖励无法分辨低回报来自自身动作、队友反应还是对手行为。CASTLE提出反事实语义-社会世界模型，使智能体能够前瞻性地比较候选动作的后果，而非仅从已实现回报诊断失败。该方法在无中心化评论家和通信条件下改进独立学习效果。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Multi-Agent Systems",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.07704v1"
+    },
+    {
+      "id": "2610.07803v1",
+      "source": "arxiv",
+      "title": "ThinkFuse: Trajectory-Aware Test-Time Fusion for Small Reasoning Models",
+      "abstract": "Small reasoning models (SRMs) have shown strong performance on complex reasoning tasks by generating extended chain-of-thought trajectories, but they often fail to recover once their reasoning enters an erroneous path. Existing test-time fusion methods rely on local fusion signals to determine when to trigger fusion, which can be misled by transient uncertainty fluctuations and may reinforce unstable reasoning trajectories. We propose ThinkFuse, a training-free test-time fusion framework that selectively intervenes in unreliable reasoning segments. ThinkFuse compares segment-level uncertainty shifts with trajectory-level uncertainty trends to identify unstable reasoning points and fuse auxiliary reasoning paths into the primary model's trajectory. Extensive experiments demonstrate that ThinkFuse outperforms baselines on mathematical and knowledge-intensive reasoning benchmarks, with consistent gains across model-family combinations, and remains robust with a smaller primary model. Our analysis shows that ThinkFuse requires fewer fusion triggers and generates fewer tokens, highlighting the efficiency of selective triggering. Our code is available at https://github.com/js-lee-AI/ThinkFuse.",
+      "authors": [
+        "Myunghoon Kang",
+        "Jungseob Lee",
+        "Jaehyung Seo",
+        "Heuiseok Lim"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-10-06T05:56:21+00:00",
+      "link": "https://arxiv.org/pdf/2610.07803v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Selectively fuses reasoning paths to correct erroneous chain-of-thought trajectories",
+      "llm_evidence_cn": "选择性融合推理路径以纠正错误的思维链轨迹",
+      "llm_evidence": "选择性融合推理路径以纠正错误的思维链轨迹",
+      "canonical_evidence": "选择性融合推理路径以纠正错误的思维链轨迹",
+      "llm_tldr_en": "Proposes ThinkFuse, a training-free test-time fusion that identifies unstable reasoning segments via uncertainty shifts and fuses auxiliary paths to improve small reasoning models' performance.",
+      "llm_tldr_cn": "针对小推理模型在复杂推理中一旦进入错误路径难以恢复的问题，提出ThinkFuse，一种训练无关的测试时融合框架。它通过比较片段级不确定性变化与轨迹级不确定性趋势来识别不稳定推理点，并将辅助推理路径融合到主模型轨迹中。实验表明该方法能有效干预错误推理段，提升小模型的推理性能。",
+      "llm_tldr": "针对小推理模型在复杂推理中一旦进入错误路径难以恢复的问题，提出ThinkFuse，一种训练无关的测试时融合框架。它通过比较片段级不确定性变化与轨迹级不确定性趋势来识别不稳定推理点，并将辅助推理路径融合到主模型轨迹中。实验表明该方法能有效干预错误推理段，提升小模型的推理性能。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on chain of thought prompting, multi step reasoning, self consistency, mathematical reasoning, and reinforcement learning for improving LLM reasoning.",
+      "matched_requirement_id": "req-8",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.07803v1"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2610.08061v1",
+      "source": "arxiv",
+      "title": "ASCENT: First-Order Optimal Fine-Tuning with Recalibration for Safety--Utility Co-Enhancement",
+      "abstract": "Supervised fine-tuning can substantially improve the downstream utility of large language models (LLMs) but may compromise their safety. Existing safety-preserving methods constrain downstream updates using safety-related parameters or subspaces, but mainly focus on safety preservation rather than joint safety and utility enhancement, lack a theoretical characterization of the optimal safety-related subspace and safety-preserving task update, and typically rely on a static safety subspace that may become outdated during fine-tuning. To address these limitations, we propose ASCENT, a downstream fine-tuning framework for safety--utility co-enhancement through first-order optimal safety-aware periodic calibration and task optimization. We model safety as a function of LLM parameters $S(θ)$ and use its first-order approximation to characterize safety changes under parameter updates. Under a fixed rank and Frobenius-norm budget, we prove that the update constructed from the top-$r$ singular components of the safety-function gradient maximizes the estimated safety change, and use it for periodic calibration to preserve and improve safety. We further derive a unique safety-preserving task update that stays close to the original task update while penalizing negative effects on the estimated safety change. ASCENT alternates these optimal task and calibration updates to jointly enhance safety and utility. Experiments across multiple LLM families and downstream tasks show that ASCENT improves downstream utility by up to 20.3\\% and reduces attack success rate by up to 35.5\\%, achieving state-of-the-art safety and utility across all evaluated settings. Our code is available at https://github.com/ZJU-LLM-Safety/ASCENT.",
+      "authors": [
+        "Weiwei Qi",
+        "Chongyu Wang",
+        "Tianhang Zheng",
+        "Zefeng Wu",
+        "Zhilin Guo",
+        "Xiaojun Jia",
+        "Zhongjie Ba",
+        "Kui Ren"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-10-06T09:56:55+00:00",
+      "link": "https://arxiv.org/pdf/2610.08061v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "fine-tuning for safety-utility co-enhancement",
+      "llm_evidence_cn": "安全-效用协同增强的微调",
+      "llm_evidence": "安全-效用协同增强的微调",
+      "canonical_evidence": "安全-效用协同增强的微调",
+      "llm_tldr_en": "The paper proposes ASCENT, a fine-tuning framework that jointly enhances safety and utility via first-order optimal safety-aware periodic calibration and task optimization.",
+      "llm_tldr_cn": "监督微调提升LLM下游效用但可能损害安全性，现有方法主要保安全而忽略效用与安全的联合增强。ASCENT框架通过一阶最优安全感知周期性校准与任务优化，实现安全-效用协同增强，并理论刻画最优安全子空间。实验验证其在微调中保持安全同时提升效用，超越仅安全保持的方法。这项工作为LLM的对齐微调提供了新思路。",
+      "llm_tldr": "监督微调提升LLM下游效用但可能损害安全性，现有方法主要保安全而忽略效用与安全的联合增强。ASCENT框架通过一阶最优安全感知周期性校准与任务优化，实现安全-效用协同增强，并理论刻画最优安全子空间。实验验证其在微调中保持安全同时提升效用，超越仅安全保持的方法。这项工作为LLM的对齐微调提供了新思路。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on efficient fine tuning, LoRA, QLoRA, instruction tuning, RLHF, DPO, and alignment of large language models.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.08061v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.08312v1",
+      "source": "arxiv",
+      "title": "CoDe-LoRA: Mitigating the Orthogonality Dilemma in Continual Learning of LLMs via Knowledge Consolidation and Decoupling",
+      "abstract": "Continual learning (CL) is essential for Large Language Models (LLMs) to sequentially adapt to evolving tasks. To mitigate catastrophic forgetting, recent advances implement low-rank adaptation with orthogonal projections (e.g., O-LoRA) to isolate task parameters. However, we reveal that such strict geometric constraints trigger an \"Orthogonality Dilemma\": rigid parameter isolation impedes the transfer and accumulation of shared representations across semantically related tasks. In this work, we propose a new replay-free method, called Consolidation and Decoupling LoRA (CoDe-LoRA), for CL of LLMs. CoDe-LoRA disentangles the learning process into Consolidating Universal Knowledge and Decoupling Task-Specific Knowledge. To achieve this, CoDe-LoRA leverages an adaptive null space projection mechanism and semantic routing to balance knowledge accumulation with task-specific adaptation. Experimental results across four backbones and three CL benchmarks show that CoDe-LoRA achieves the best average accuracy. Our code is available at https://github.com/Estrellajer/CoDe-LoRA.",
+      "authors": [
+        "Maoqi Liu",
+        "Quan Fang",
+        "Yufei He"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-10-06T13:17:25+00:00",
+      "link": "https://arxiv.org/pdf/2610.08312v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Proposes CoDe-LoRA for continual learning of LLMs via low-rank adaptation",
+      "llm_evidence_cn": "提出CoDe-LoRA用于LLM持续学习中的低秩适配",
+      "llm_evidence": "提出CoDe-LoRA用于LLM持续学习中的低秩适配",
+      "canonical_evidence": "提出CoDe-LoRA用于LLM持续学习中的低秩适配",
+      "llm_tldr_en": "Proposes CoDe-LoRA to mitigate the orthogonality dilemma in continual learning, disentangling learning into consolidating universal knowledge and decoupling task-specific parameters.",
+      "llm_tldr_cn": "针对持续学习中正交约束阻碍共享表示迁移的问题，提出CoDe-LoRA，一种无需回放的方法。它将学习过程分解为巩固通用知识和解耦任务特定参数，从而缓解正交性困境。实验表明该方法能在相关任务间实现更好的知识迁移，同时减少灾难性遗忘。",
+      "llm_tldr": "针对持续学习中正交约束阻碍共享表示迁移的问题，提出CoDe-LoRA，一种无需回放的方法。它将学习过程分解为巩固通用知识和解耦任务特定参数，从而缓解正交性困境。实验表明该方法能在相关任务间实现更好的知识迁移，同时减少灾难性遗忘。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on efficient fine tuning, LoRA, QLoRA, instruction tuning, RLHF, DPO, and alignment of large language models.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.08312v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.11132v1",
+      "source": "arxiv",
+      "title": "SFT-as-Context Mitigates Forgetting in Supervised Fine-Tuning",
+      "abstract": "Supervised fine-tuning (SFT) equips large language models (LLMs) with specialized capabilities, but often comes at the cost of forgetting the general capabilities of their parent models (i.e., the pretrained models before fine-tuning). This trade-off is especially limiting for queries that require both specialized and general capabilities. We introduce SFT-as-context, a training-free method in which the parent model uses the SFT model's response as context to answer the query. This allows the parent model to acquire fine-tuned capabilities from the SFT response through in-context learning while preserving its own general capabilities. Across 19 parent-SFT model pairs and 11 benchmarks, SFT-as-context remains close to the SFT models on fine-tuned capabilities, with gaps of only 2.2 and 2.1 percentage points on AIME 2024 and LiveCodeBench and 2.0 macro MAE on NutriBench-English, while staying within 2.2 percentage points of the parent models on general capabilities on average. Remarkably, it can solve queries requiring both fine-tuned and general capabilities, even when neither the parent nor SFT model succeeds alone. This approach also extends beyond parent-SFT pairs: responses from a small open-source SFT model can improve a strong closed-source LLM, outperforming either model alone. Furthermore, we use a Bayesian framework to derive theoretical guarantees that bound the error of SFT-as-context relative to the SFT model on fine-tuned capabilities and to the parent model on general capabilities. In addition, we visualize the attention weights and find that the parent model attends more to useful SFT responses and less to irrelevant ones, suggesting that selective attention helps the parent model use the SFT response through in-context learning.",
+      "authors": [
+        "Kenan Tang",
+        "Andong Hua",
+        "Chengxuan Qian",
+        "Saket Tiwari",
+        "Yao Qin"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-10-08T02:57:28+00:00",
+      "link": "https://arxiv.org/pdf/2610.11132v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Uses SFT response as context to retain general capabilities while acquiring fine-tuned skills",
+      "llm_evidence_cn": "将SFT响应作为上下文，在获取微调能力的同时保留通用能力",
+      "llm_evidence": "将SFT响应作为上下文，在获取微调能力的同时保留通用能力",
+      "canonical_evidence": "将SFT响应作为上下文，在获取微调能力的同时保留通用能力",
+      "llm_tldr_en": "This paper introduces SFT-as-context, a training-free method where the parent model uses the SFT model's response as context, combining fine-tuned capabilities with general abilities to reduce forgetting.",
+      "llm_tldr_cn": "监督微调赋予LLM专业能力但常导致通用能力遗忘。本文提出SFT-as-Context方法，无需训练，让父模型将微调模型的响应作为上下文，通过上下文学习获取微调能力，同时保留自身通用能力。在19对父模型-微调模型和11个基准上的实验表明，该方法在专业能力上接近微调模型，同时保持较高的通用性能，有效缓解了微调遗忘问题，为模型能力融合提供了简单有效的方案。",
+      "llm_tldr": "监督微调赋予LLM专业能力但常导致通用能力遗忘。本文提出SFT-as-Context方法，无需训练，让父模型将微调模型的响应作为上下文，通过上下文学习获取微调能力，同时保留自身通用能力。在19对父模型-微调模型和11个基准上的实验表明，该方法在专业能力上接近微调模型，同时保持较高的通用性能，有效缓解了微调遗忘问题，为模型能力融合提供了简单有效的方案。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on efficient fine tuning, LoRA, QLoRA, instruction tuning, RLHF, DPO, and alignment of large language models.",
+      "matched_requirement_id": "req-9",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.11132v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.11613v1",
+      "source": "arxiv",
+      "title": "AgentEvolver: System-Wide Self-Evolution Through Task Execution",
+      "abstract": "An agent can complete a task without improving how it works. Turning task experience into reusable capability requires connecting the changed component to its evaluation and subsequent use. We present AgentEvolver, a system for developing capabilities during task execution while keeping the foundation model fixed. Eight entity families expose reusable operations, methods, agents, control flow, interfaces, and supporting state to revision through a common versioned lifecycle. A shared Runtime coordinates ongoing work, while persistent planning and recoverable context preserve task direction and supporting evidence. We evaluate task outcomes on SWE-bench Pro Public and examine capability changes in six application cases. The team reports an 82.08\\% resolution rate with evolution, exceeding its reported baseline without evolution. The cases show retained capabilities entering later website, game, and research work, while also documenting incomplete objectives and an unsuccessful strategy. These findings distinguish improvement in a reusable component from success on the final task. AgentEvolver provides a concrete basis for studying capability accumulation through execution; independent-task transfer and total development cost remain open questions.",
+      "authors": [
+        "Wentao Zhang",
+        "Fuchao Yang",
+        "Yilei Zhao",
+        "Xinrun Wang",
+        "Bo An"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-08T09:55:05+00:00",
+      "link": "https://arxiv.org/pdf/2610.11613v1",
+      "tags": [
+        "keyword:laf",
+        "query:laf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "System-wide self-evolution of agent capabilities via task execution",
+      "llm_evidence_cn": "通过任务执行实现智能体系统级自我进化",
+      "llm_evidence": "通过任务执行实现智能体系统级自我进化",
+      "canonical_evidence": "通过任务执行实现智能体系统级自我进化",
+      "llm_tldr_en": "Presents a system that develops agent capabilities during task execution while keeping the foundation model fixed, using versioned entity families and persistent planning.",
+      "llm_tldr_cn": "针对智能体完成任务但无法提升自身能力的问题，提出AgentEvolver系统，在固定基础模型前提下通过任务执行发展能力。八个实体族暴露可复用操作、方法、智能体等以供修订，共享运行时协调工作并保持规划与上下文。在SWE-bench Pro Public上取得82.08%解决率。",
+      "llm_tldr": "针对智能体完成任务但无法提升自身能力的问题，提出AgentEvolver系统，在固定基础模型前提下通过任务执行发展能力。八个实体族暴露可复用操作、方法、智能体等以供修订，共享运行时协调工作并保持规划与上下文。在SWE-bench Pro Public上取得82.08%解决率。",
+      "llm_tags": [
+        "query:laf"
+      ],
+      "matched_query_tag": "query:laf",
+      "matched_query_text": "Research on LLM based agents, ReAct, tool use, autonomous planning, agent memory, and multi agent collaboration.",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2610.11613v1",
+      "quick_tier": "8plus"
+    }
+  ]
+}
